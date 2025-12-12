@@ -929,7 +929,7 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
       second: '2-digit',
     });
 
-    // Hitung tanggal keluar (asumsi: tanggal update atau tanggal sekarang)
+    // Tanggal keluar (bisa dari updated_at atau sekarang)
     const tanggalKeluar = new Date().toLocaleDateString('id-ID', {
       day: '2-digit',
       month: '2-digit',
@@ -941,38 +941,27 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
       second: '2-digit',
     });
 
-    // Hitung hasil akhir
+    // Hitung hasil
     const bruto = data.timbanganPertama;
     const tara = data.timbanganKedua || 0;
-    const nettoKotor = bruto - tara;
+    const potongan = 8; // Sesuaikan dengan data aktual
+    const netto = bruto - tara - potongan;
 
-    // Perhitungan kelembapan (jika ada)
-    let potongBASAH = 0;
-    let potongSAMPAH = 0;
-    let hasilAkhir = nettoKotor;
-
-    if (data.hasilUjiKelembapan) {
-      const claimPercentage = data.hasilUjiKelembapan.claimPercentage;
-      potongBASAH = claimPercentage;
-      const pengurangan = nettoKotor * (claimPercentage / 100);
-
-      // Asumsi potongan sampah dalam kg (sesuaikan dengan data Anda)
-      potongSAMPAH = 10; // Ganti dengan data aktual jika ada
-
-      hasilAkhir = nettoKotor - pengurangan - potongSAMPAH;
-    }
-
-    // Nama barang dengan keterangan (jika lainnya)
+    // Nama barang
     let namaBarangDisplay = data.namaBarang;
     if (data.namaBarang === 'DAN LAIN-LAIN' && data.keteranganBarang) {
       namaBarangDisplay = data.keteranganBarang;
     }
 
-    // Referensi number (No. Refrensi)
-    const noRefrensi = `K1100398`; // Bisa disesuaikan dengan logic Anda
+    // Customer atau Supplier
+    const customerName = data.jenisRelasi === 'customer' ? data.namaRelasi : '';
+    const supplierName = data.jenisRelasi === 'supplier' ? data.namaRelasi : '';
 
-    // Customer/Supplier
-    const customerSupplier = data.jenisRelasi === 'customer' ? data.namaRelasi : data.namaRelasi;
+    // No. Referensi
+    const noRefrensi = 'K1100398'; // Sesuaikan
+
+    // Barcode value
+    const barcodeValue = data.noTiket.padStart(6, '0') + '-162';
 
     // HTML untuk print
     const printContent = `
@@ -982,6 +971,11 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
       <meta charset="UTF-8">
       <title>Slip Timbangan - ${data.noTiket}</title>
       <style>
+        @page {
+          size: 80mm auto;
+          margin: 0;
+        }
+
         * {
           margin: 0;
           padding: 0;
@@ -989,85 +983,72 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
         }
 
         body {
-          font-family: 'Courier New', monospace;
-          font-size: 11px;
-          line-height: 1.4;
-          padding: 10px;
+          font-family: 'Courier New', Courier, monospace;
+          font-size: 14px;
+          line-height: 1.5;
+          padding: 15px 10px;
           width: 80mm;
+          background: white;
         }
 
         .header {
           text-align: center;
-          margin-bottom: 10px;
-          border-bottom: 2px solid #000;
-          padding-bottom: 8px;
-        }
-
-        .company-logo {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 5px;
-          margin-bottom: 3px;
-        }
-
-        .logo-icon {
-          width: 20px;
-          height: 20px;
-          background: linear-gradient(135deg, #ff5722 0%, #ff9800 100%);
-          clip-path: polygon(0 0, 100% 0, 100% 70%, 50% 100%, 0 70%);
+          border-bottom: 3px double #000;
+          padding-bottom: 10px;
+          margin-bottom: 15px;
         }
 
         .company-name {
           font-weight: bold;
-          font-size: 13px;
+          font-size: 18px;
+          letter-spacing: 1px;
+          margin-bottom: 3px;
         }
 
         .company-address {
-          font-size: 9px;
-          color: #333;
+          font-size: 13px;
+          color: #000;
+          letter-spacing: 0.5px;
         }
 
         .info-row {
           display: flex;
-          justify-content: space-between;
-          margin-bottom: 3px;
-          font-size: 10px;
+          margin-bottom: 5px;
+          font-size: 12px;
         }
 
         .info-label {
-          width: 40%;
-          font-weight: normal;
+          width: 42%;
+          display: inline-block;
+        }
+
+        .info-separator {
+          width: 8%;
+          display: inline-block;
+          text-align: center;
         }
 
         .info-value {
-          width: 60%;
-          text-align: left;
-          font-weight: normal;
+          width: 50%;
+          display: inline-block;
         }
 
-        .section {
-          margin-bottom: 8px;
-        }
-
-        .section-title {
-          font-weight: bold;
+        .divider {
           border-bottom: 1px solid #000;
-          margin-bottom: 5px;
-          padding-bottom: 2px;
+          margin: 12px 0;
         }
 
-        .weight-box {
-          border: 1px solid #000;
-          padding: 8px;
-          margin: 8px 0;
-          background: #f9f9f9;
+        .weight-section {
+          margin: 15px 0;
+          padding: 10px 5px;
+          border: 2px solid #000;
         }
 
         .weight-row {
           display: flex;
           justify-content: space-between;
-          margin-bottom: 4px;
+          margin-bottom: 8px;
+          font-size: 15px;
         }
 
         .weight-label {
@@ -1079,185 +1060,200 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
           text-align: right;
         }
 
-        .final-result {
-          border-top: 2px solid #000;
-          padding-top: 5px;
-          margin-top: 5px;
-          font-size: 12px;
-          font-weight: bold;
+        .weight-unit {
+          margin-left: 5px;
         }
 
         .signature-section {
-          margin-top: 15px;
+          margin-top: 20px;
           display: flex;
           justify-content: space-between;
-          border-top: 1px dashed #000;
-          padding-top: 10px;
+          font-size: 11px;
         }
 
         .signature-box {
+          width: 48%;
           text-align: center;
-          width: 45%;
         }
 
-        .signature-line {
-          margin-top: 40px;
-          border-top: 1px solid #000;
-          padding-top: 3px;
+        .signature-label {
+          margin-bottom: 3px;
         }
 
-        .barang-type {
-          display: inline-block;
-          padding: 2px 8px;
-          border: 1px solid #000;
-          border-radius: 3px;
+        .signature-space {
+          height: 50px;
+          border-bottom: 1px solid #000;
+          margin: 5px 0;
+        }
+
+        .company-initial {
+          text-align: center;
+          margin: 15px 0;
+          font-size: 13px;
           font-weight: bold;
-          font-size: 9px;
-          margin-left: 5px;
+        }
+
+        .barcode-section {
+          text-align: center;
+          margin-top: 15px;
+          padding-top: 10px;
+          border-top: 1px dashed #000;
+        }
+
+        .barcode-lines {
+          font-family: 'Libre Barcode 128', 'Courier New', monospace;
+          font-size: 40px;
+          letter-spacing: -2px;
+          margin: 5px 0;
+        }
+
+        .barcode-text {
+          font-size: 11px;
+          letter-spacing: 3px;
+          margin-top: 3px;
         }
 
         @media print {
           body {
-            padding: 0;
+            padding: 10px 8px;
           }
 
-          @page {
-            size: 80mm auto;
-            margin: 0;
+          .no-print {
+            display: none;
           }
         }
       </style>
     </head>
     <body>
+      <!-- Header -->
       <div class="header">
-        <div class="company-logo">
-          <div class="logo-icon"></div>
-          <div class="company-name">PT. AGRO DELI SERDANG</div>
-        </div>
+        <div class="company-name">PT AGRO DELI SERDANG</div>
         <div class="company-address">Dusun VII, Dalu Sepuluh-A</div>
       </div>
 
-      <div class="section">
+      <!-- Info Section 1 -->
+      <div>
         <div class="info-row">
           <span class="info-label">No. Tiket</span>
-          <span class="info-value">: ${data.noTiket}</span>
+          <span class="info-separator">:</span>
+          <span class="info-value">${data.noTiket}</span>
         </div>
         <div class="info-row">
           <span class="info-label">Tgl/ Jam Masuk</span>
-          <span class="info-value">: ${tanggalMasuk} ${jamMasuk}</span>
+          <span class="info-separator">:</span>
+          <span class="info-value">${tanggalMasuk} - ${jamMasuk}</span>
         </div>
         <div class="info-row">
           <span class="info-label">Tgl/ Jam Keluar</span>
-          <span class="info-value">: ${tanggalKeluar} ${jamKeluar}</span>
+          <span class="info-separator">:</span>
+          <span class="info-value">${tanggalKeluar} - ${jamKeluar}</span>
         </div>
       </div>
 
-      <div class="section">
+      <div class="divider"></div>
+
+      <!-- Info Section 2 -->
+      <div>
         <div class="info-row">
           <span class="info-label">No. Kendaraan</span>
-          <span class="info-value">: ${data.noKendaraan}</span>
+          <span class="info-separator">:</span>
+          <span class="info-value">${data.noKendaraan}</span>
         </div>
-        ${
-          data.noContainer
-            ? `
         <div class="info-row">
-          <span class="info-label">No. Kontainer</span>
-          <span class="info-value">: ${data.noContainer}</span>
+          <span class="info-label">Nama Customer</span>
+          <span class="info-separator">:</span>
+          <span class="info-value">${customerName || '-'}</span>
         </div>
-        `
-            : '<div class="info-row"><span class="info-label">No. Kontainer</span><span class="info-value">: -</span></div>'
-        }
         <div class="info-row">
           <span class="info-label">Nama Barang</span>
-          <span class="info-value">: ${namaBarangDisplay}</span>
+          <span class="info-separator">:</span>
+          <span class="info-value">${namaBarangDisplay}</span>
         </div>
         <div class="info-row">
-          <span class="info-label">No. Refrensi</span>
-          <span class="info-value">: ${noRefrensi}</span>
+          <span class="info-label">Nama Supir</span>
+          <span class="info-separator">:</span>
+          <span class="info-value">${data.namaSupir || '-'}</span>
         </div>
         <div class="info-row">
-          <span class="info-label">Cust / Supplier</span>
-          <span class="info-value">: ${customerSupplier}</span>
+          <span class="info-label">No. Referensi</span>
+          <span class="info-separator">:</span>
+          <span class="info-value">${noRefrensi}</span>
         </div>
       </div>
 
-      <div class="weight-box">
-        <div class="weight-row">
-          <span class="weight-label">Timbangan Pertama</span>
-          <span class="weight-value">: ${bruto}</span>
-        </div>
-        <div class="weight-row">
-          <span class="weight-label">Timbangan Kedua</span>
-          <span class="weight-value">: ${tara}</span>
-        </div>
-        <div class="weight-row">
-          <span class="weight-label">Hasil Akhir</span>
-          <span class="weight-value">: ${nettoKotor}</span>
-        </div>
+      <div class="divider"></div>
 
-        ${
-          data.hasilUjiKelembapan
-            ? `
-        <div style="margin-top: 10px; padding-top: 8px; border-top: 1px dashed #000;">
-          <div class="weight-row">
-            <span>Potong BASAH</span>
-            <span class="weight-value">${potongBASAH}%</span>
-          </div>
-          <div class="weight-row">
-            <span>Potong SAMPAH</span>
-            <span class="weight-value">${potongSAMPAH} Kg</span>
-          </div>
+      <!-- Weight Section -->
+      <div class="weight-section">
+        <div class="weight-row">
+          <span class="weight-label">Berat Bruto</span>
+          <span class="weight-value">
+            : ${bruto}<span class="weight-unit">kg</span>
+          </span>
         </div>
-        `
-            : ''
-        }
-
-        <div class="weight-row final-result">
-          <span>Hasil Akhir Setelah Potongan</span>
-          <span class="weight-value">${hasilAkhir.toFixed(0)}Kg</span>
+        <div class="weight-row">
+          <span class="weight-label">Berat Tarra</span>
+          <span class="weight-value">
+            : ${tara}<span class="weight-unit">kg</span>
+          </span>
+        </div>
+        <div class="weight-row">
+          <span class="weight-label">Berat Pot.</span>
+          <span class="weight-value">
+            : ${potongan}<span class="weight-unit">kg</span>
+          </span>
+        </div>
+        <div class="weight-row" style="border-top: 2px solid #000; padding-top: 8px; margin-top: 8px;">
+          <span class="weight-label">Berat Netto</span>
+          <span class="weight-value">
+            : ${netto}<span class="weight-unit">kg</span>
+          </span>
         </div>
       </div>
 
-      ${
-        data.tipeBahan === 'bahan-baku'
-          ? `
-      <div class="section">
-        <div style="text-align: center; font-weight: bold; margin: 10px 0;">
-          LOCC (SERAK)
-          <span class="barang-type">${namaBarangDisplay}</span>
-        </div>
-      </div>
-      `
-          : ''
-      }
-
+      <!-- Signature Section -->
       <div class="signature-section">
         <div class="signature-box">
-          <div>Ditimbang</div>
-          <div class="signature-line">Nama & Tanda Tangan</div>
+          <div class="signature-label">Ditimbang :</div>
+          <div class="signature-space"></div>
+          <div>Nama & Tanda Tangan</div>
         </div>
         <div class="signature-box">
-          <div>Diketahui</div>
-          <div class="signature-line">Nama & Tanda Tangan</div>
+          <div class="signature-label">DiKetahui :</div>
+          <div class="signature-space"></div>
+          <div>Nama & Tanda Tangan</div>
         </div>
       </div>
+
+      <!-- Company Initial -->
+      <div class="company-initial">
+        ( ADS ) ( )
+      </div>
+
+      <!-- Barcode Section -->
+      <div class="barcode-section">
+        <div class="barcode-lines">|||||||||||||||||||||||||||||||</div>
+        <div class="barcode-text">${barcodeValue}</div>
+      </div>
+
+      <script>
+        // Auto print when loaded
+        window.onload = function() {
+          setTimeout(function() {
+            window.print();
+          }, 500);
+        };
+      </script>
     </body>
     </html>
   `;
 
-    // Open print window
-    const printWindow = window.open('', '_blank', 'width=300,height=600');
+    // Open print window dengan ukuran yang sesuai
+    const printWindow = window.open('', '_blank', 'width=320,height=600');
 
     if (printWindow) {
       printWindow.document.write(printContent);
       printWindow.document.close();
-
-      // Wait for content to load then print
-      printWindow.onload = () => {
-        setTimeout(() => {
-          printWindow.print();
-        }, 250);
-      };
     } else {
       this.showNotification({
         type: 'error',
