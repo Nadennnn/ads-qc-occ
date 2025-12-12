@@ -1,0 +1,249 @@
+// Hide print layout on screen
+.print-only {
+  display: none;
+}
+
+// Screen only content
+.screen-only {
+  display: block;
+}
+
+// Print styles
+@media print {
+  // Hide screen content
+  .screen-only {
+    display: none !important;
+  }
+
+  // Show print content
+  .print-only {
+    display: block !important;
+  }
+
+  // Reset page margins
+  @page {
+    margin: 0.5cm;
+    size: A4 portrait;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    background: white;
+  }
+
+  // Print page container
+  .print-page {
+    width: 100%;
+    font-family: Arial, sans-serif;
+    font-size: 9pt;
+    color: #000;
+    page-break-after: always;
+  }
+
+  // Header
+  .print-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 2px solid #000;
+    padding: 8px 12px;
+    margin-bottom: 10px;
+
+    .header-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: bold;
+      font-size: 11pt;
+
+      .logo-box {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #ff6b6b 0%, #ff4757 100%);
+        border-radius: 4px;
+      }
+    }
+
+    .header-title {
+      flex: 1;
+      text-align: center;
+      font-weight: bold;
+      font-size: 12pt;
+      padding: 0 20px;
+    }
+
+    .header-ref {
+      text-align: right;
+      font-size: 8pt;
+
+      div {
+        line-height: 1.4;
+      }
+    }
+  }
+
+  // Info section
+  .print-info {
+    margin-bottom: 10px;
+
+    .info-row {
+      display: grid;
+      grid-template-columns: auto 1fr auto 1fr auto 1fr;
+      gap: 8px;
+      font-size: 9pt;
+      margin-bottom: 5px;
+    }
+
+    .info-label {
+      font-weight: bold;
+    }
+
+    .info-value {
+      border-bottom: 1px solid #000;
+      padding-bottom: 2px;
+    }
+  }
+
+  // Tables
+  .print-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 8px;
+
+    th,
+    td {
+      border: 1px solid #000;
+      padding: 4px 6px;
+      text-align: center;
+      font-size: 8pt;
+      line-height: 1.3;
+    }
+
+    th {
+      background-color: #f0f0f0;
+      font-weight: bold;
+    }
+
+    td {
+      background-color: #fff;
+    }
+  }
+
+  // Main table
+  .main-table {
+    margin-bottom: 10px;
+
+    th,
+    td {
+      font-size: 8pt;
+    }
+
+    thead tr:first-child th {
+      font-size: 9pt;
+    }
+  }
+
+  // Moisture grid
+  .moisture-grid {
+    td {
+      width: 3.33%;
+      height: 35px;
+      padding: 2px;
+      position: relative;
+      vertical-align: top;
+
+      &.filled {
+        background-color: #f8f8f8;
+      }
+
+      .cell-number {
+        font-size: 7pt;
+        color: #666;
+        font-weight: bold;
+        margin-bottom: 2px;
+      }
+
+      .cell-value {
+        font-size: 9pt;
+        font-weight: bold;
+        color: #000;
+        min-height: 18px;
+      }
+    }
+
+    // Result box
+    .result-box {
+      border: 2px solid #000 !important;
+      padding: 8px !important;
+      vertical-align: middle !important;
+    }
+
+    .moisture-results {
+      .result-header {
+        text-align: center;
+        font-weight: bold;
+        font-size: 10pt;
+        margin-bottom: 6px;
+        border-bottom: 1px solid #000;
+        padding-bottom: 3px;
+      }
+
+      .result-table {
+        width: 100%;
+        border: none;
+
+        th,
+        td {
+          border: 1px solid #000;
+          padding: 4px;
+          font-size: 8pt;
+        }
+
+        th {
+          background-color: #fff;
+          font-weight: bold;
+        }
+
+        strong {
+          font-size: 10pt;
+          color: #000;
+        }
+      }
+    }
+  }
+
+  // Bottom table
+  .bottom-table {
+    margin-top: 15px;
+
+    th,
+    td {
+      font-size: 8pt;
+    }
+  }
+
+  // Print footer
+  .print-bottom {
+    margin-top: 10px;
+  }
+
+  // Remove any shadows or rounded corners
+  * {
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+// Custom body class for better print control
+body.printing {
+  .screen-only {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+}

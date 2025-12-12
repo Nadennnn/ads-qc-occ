@@ -1,0 +1,230 @@
+<!-- src/app/admin/pages/cek-laporan/cek-laporan.component.html -->
+
+<div class="laporan-container">
+  <!-- Header -->
+  <div class="header no-print">
+    <div class="flex justify-start items-center gap-3">
+      <img src="ads-logo1.png" class="w-10 h-auto" alt="PT. Agro Deli Serdang" />
+      <h1 class="title">Laporan Timbangan</h1>
+    </div>
+    <p class="subtitle">Laporan lengkap data timbangan dan uji kelembapan</p>
+  </div>
+
+  <!-- Filter Section -->
+  <div class="filter-section no-print">
+    <form [formGroup]="filterForm" class="filter-form">
+      <!-- Period Filter -->
+      <div class="filter-group">
+        <label class="label">Periode</label>
+        <select formControlName="period" class="select">
+          <option *ngFor="let opt of periodOptions" [value]="opt.value">
+            {{ opt.label }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Custom Date Range -->
+      <div *ngIf="isCustomPeriod" class="filter-group">
+        <label class="label">Tanggal Mulai</label>
+        <input type="date" formControlName="startDate" class="input" />
+      </div>
+
+      <div *ngIf="isCustomPeriod" class="filter-group">
+        <label class="label">Tanggal Akhir</label>
+        <input type="date" formControlName="endDate" class="input" />
+      </div>
+
+      <!-- Status Filter -->
+      <div class="filter-group">
+        <label class="label">Status</label>
+        <select formControlName="status" class="select">
+          <option *ngFor="let opt of statusOptions" [value]="opt.value">
+            {{ opt.label }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Tipe Filter -->
+      <div class="filter-group">
+        <label class="label">Tipe Bahan</label>
+        <select formControlName="tipe" class="select">
+          <option *ngFor="let opt of tipeOptions" [value]="opt.value">
+            {{ opt.label }}
+          </option>
+        </select>
+      </div>
+    </form>
+  </div>
+
+  <!-- Statistics Cards -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon">
+        <lucide-icons [iconsName]="'arrow-left-right'" />
+      </div>
+      <div class="stat-content">
+        <div class="stat-value">{{ stats.totalTransaksi }}</div>
+        <div class="stat-label">Total Transaksi</div>
+      </div>
+    </div>
+
+    <div class="stat-card stat-success">
+      <lucide-icons [iconsName]="'circle-check-big'" [color]="'gray'" />
+      <div class="stat-content">
+        <div class="stat-value">{{ stats.selesai }}</div>
+        <div class="stat-label">Selesai</div>
+      </div>
+    </div>
+
+    <div class="stat-card stat-warning">
+      <lucide-icons [iconsName]="'hourglass'" [color]="'gray'" />
+      <div class="stat-content">
+        <div class="stat-value">{{ stats.menungguTara }}</div>
+        <div class="stat-label">Menunggu Tara</div>
+      </div>
+    </div>
+
+    <div class="stat-card stat-info">
+      <lucide-icons [iconsName]="'scale'" [color]="'gray'" />
+      <div class="stat-content">
+        <div class="stat-value">{{ formatNumber(stats.totalNetto) }} kg</div>
+        <div class="stat-label">Total Netto</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Data Table -->
+  <div class="data-section mb-3">
+    <h3 class="section-title">Data Timbangan ({{ filteredData.length }} data)</h3>
+
+    <div *ngIf="filteredData.length === 0" class="empty-state">
+      <p>Tidak ada data untuk filter yang dipilih</p>
+    </div>
+
+    <div *ngIf="filteredData.length > 0" class="table-container">
+      <table class="data-table">
+        <thead class="text-center">
+          <tr>
+            <th>No.</th>
+            <th>Tanggal</th>
+            <th>No. Tiket</th>
+            <th>No. Kendaraan</th>
+            <th>Supplier</th>
+            <th>Nama Barang</th>
+            <th>Tipe</th>
+            <th>Bruto (kg)</th>
+            <th>Tara (kg)</th>
+            <!-- <th>Kelembapan (%)</th> -->
+            <th>Netto (kg)</th>
+            <!-- <th>Status</th> -->
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of filteredData; let i = index">
+            <td class="text-center">{{ i + 1 }}</td>
+            <td class="text-center">{{ formatDate(item.timestamp) }}</td>
+            <td class="text-center font-semibold">{{ item.noTiket }}</td>
+            <td class="text-center">{{ item.noKendaraan }}</td>
+            <td class="text-center">{{ item.namaRelasi }}</td>
+            <td class="text-center">{{ item.namaBarang }}</td>
+            <td class="text-center">
+              <span class="badge" [ngClass]="getTipeClass(item.tipeBahan)">
+                {{ getTipeBadge(item.tipeBahan) }}
+              </span>
+            </td>
+            <td class="text-center">{{ formatNumber(item.timbanganPertama) }}</td>
+            <td class="text-center">
+              {{ item.timbanganKedua ? formatNumber(item.timbanganKedua) : '-' }}
+            </td>
+            <!-- <td class="text-center">
+              {{ item.kelembapan ? formatNumber(item.kelembapan) : '-' }}
+            </td> -->
+            <td class="text-center font-semibold">
+              {{ item.beratNetto ? formatNumber(item.beratNetto) : '-' }}
+            </td>
+            <!-- <td>
+              <span class="badge" [ngClass]="getStatusClass(item.statusTimbangan)">
+                {{ getStatusBadge(item.statusTimbangan) }}
+              </span>
+            </td> -->
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Detailed Stats -->
+  <div class="detail-stats" *ngIf="isRincianVisible">
+    <h3 class="section-title">Rincian Berat</h3>
+    <div class="stats-table">
+      <div class="stats-row">
+        <span class="stats-label">Total Bruto</span>
+        <span class="stats-value">{{ formatNumber(stats.totalBruto) }} kg</span>
+      </div>
+      <div class="stats-row">
+        <span class="stats-label">Total Tara</span>
+        <span class="stats-value">{{ formatNumber(stats.totalTara) }} kg</span>
+      </div>
+      <div class="stats-row">
+        <span class="stats-label">Total Potongan (Kelembapan)</span>
+        <span class="stats-value text-red-600"> {{ formatNumber(stats.totalPotongan) }} kg </span>
+      </div>
+      <div class="stats-row stats-row-total">
+        <span class="stats-label">Total Netto</span>
+        <span class="stats-value">{{ formatNumber(stats.totalNetto) }} kg</span>
+      </div>
+    </div>
+
+    <h3 class="section-title mt-6">Rincian Tipe Bahan</h3>
+    <div class="stats-table">
+      <div class="stats-row">
+        <span class="stats-label">Bahan Baku</span>
+        <span class="stats-value">{{ stats.bahanBaku }} transaksi</span>
+      </div>
+      <div class="stats-row">
+        <span class="stats-label">• Sudah Diuji</span>
+        <span class="stats-value text-green-600">{{ stats.sudahDiuji }}</span>
+      </div>
+      <div class="stats-row">
+        <span class="stats-label">• Belum Diuji</span>
+        <span class="stats-value text-yellow-600">{{ stats.belumDiuji }}</span>
+      </div>
+      <div class="stats-row">
+        <span class="stats-label">Lainnya</span>
+        <span class="stats-value">{{ stats.lainnya }} transaksi</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="action-buttons no-print">
+    <button
+      class="btn bg-neutral-800 text-white flex justify-center w-auto gap-3 items-center"
+      (click)="toggleShowRincian()"
+    >
+      <lucide-icon name="a-arrow-down"></lucide-icon>
+      <span *ngIf="isRincianVisible">Tutup data rincian</span>
+      <span *ngIf="!isRincianVisible">Tampilkan data rincian</span>
+    </button>
+    <!-- <button
+      class="btn bg-neutral-800 text-white flex justify-center w-auto gap-3 items-center"
+      (click)="exportToExcel()"
+    >
+      <lucide-icons [iconsName]="'sheet'" class="text-white" /> Export ke Excel
+    </button>
+    <button
+      class="btn bg-gray-200 text-neutral-800 flex justify-center w-auto gap-3 items-center"
+      (click)="printLaporan()"
+    >
+      <lucide-icons [iconsName]="'printer-check'" class="text-neutral-800" /> Print Laporan
+    </button> -->
+  </div>
+
+  <!-- Print Header (only visible when printing) -->
+  <div class="print-header">
+    <h1>PT AGRO DELI SERDANG</h1>
+    <h2>Laporan Data Timbangan</h2>
+    <p>Periode: {{ periodLabel }}</p>
+    <p>Tanggal Cetak: {{ formatDate(currentDate) }}</p>
+  </div>
+</div>

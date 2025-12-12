@@ -1,0 +1,50 @@
+/* src/app/admin/components/customer-dropdown/customer-dropdown.component.scss */
+
+:host {
+  display: block;
+  width: 100%;
+}
+
+/* Custom scrollbar untuk dropdown list */
+.overflow-y-auto {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(163 163 163) rgb(245 245 245);
+}
+
+.overflow-y-auto::-webkit-scrollbar {
+  width: 6px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: rgb(245 245 245);
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background: rgb(163 163 163);
+  border-radius: 3px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background: rgb(115 115 115);
+}
+
+/* Animation untuk dropdown */
+.absolute.z-50 {
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Hover effect untuk item */
+button:hover {
+  transition: background-color 0.15s ease-in-out;
+}

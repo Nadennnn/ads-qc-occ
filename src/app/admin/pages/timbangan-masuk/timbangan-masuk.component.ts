@@ -1,0 +1,1292 @@
+// src/app/admin/pages/timbangan-masuk/timbangan-masuk.component.ts
+
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  ElementRef,
+  inject,
+  OnDestroy,
+  OnInit,
+  signal,
+  ViewChild,
+} from '@angular/core';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { debounceTime, lastValueFrom, Subject, takeUntil } from 'rxjs';
+import { CustomerSelectionEvent } from '../../components/customer-dropdown/customer-dropdown.component';
+import { AuthService } from '../../services/auth.service';
+import { ScaleReaderService } from '../../services/scale-reader.service';
+import { TimbanganData, TimbanganService } from '../../services/timbangan.service';
+
+interface BarangOption {
+  value: string;
+  label: string;
+}
+
+type ViewMode = 'form' | 'list';
+
+interface ModalConfig {
+  type: 'success' | 'warning' | 'error' | 'info' | 'confirm';
+  title: string;
+  message: string;
+  details?: Array<{ label: string; value: string | number }>;
+  steps?: string[];
+  showCancel?: boolean;
+  confirmText?: string;
+  cancelText?: string;
+  onConfirm?: () => void;
+  onCancel?: () => void;
+}
+
+@Component({
+  selector: 'app-timbangan-masuk',
+  templateUrl: './timbangan-masuk.component.html',
+  styleUrls: ['./timbangan-masuk.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: false,
+})
+export class TimbanganMasukComponent implements OnInit, OnDestroy {
+  @ViewChild('noTiketInput') noTiketInput!: ElementRef;
+
+  private readonly fb = inject(FormBuilder);
+  private readonly timbanganService = inject(TimbanganService);
+  private readonly scaleReader = inject(ScaleReaderService);
+  private readonly authService = inject(AuthService);
+  private readonly cdr = inject(ChangeDetectorRef);
+
+  form!: FormGroup;
+  taraForm!: FormGroup;
+  showKelembapan = signal(false);
+  isSubmitting = signal(false);
+  currentView = signal<ViewMode>('form');
+  timbanganMasukList = signal<TimbanganData[]>([]);
+  selectedForTara = signal<TimbanganData | null>(null);
+  showTaraModal = signal(false);
+
+  // Scale reader signals
+  scaleConnected = this.scaleReader.isConnected;
+  currentWeight = this.scaleReader.currentWeight;
+  weightStable = this.scaleReader.isStable;
+  scaleError = this.scaleReader.connectionError;
+
+  // Modal state
+  showModal = signal(false);
+  modalConfig = signal<ModalConfig | null>(null);
+
+  // Search
+  searchQuery = signal('');
+  filteredTimbanganList = signal<TimbanganData[]>([]);
+
+  private destroy$ = new Subject<void>();
+
+  // Signal untuk nama penimbang
+  namaPenimbang = signal<string>('');
+  isLoadingProfile = signal<boolean>(true);
+
+  readonly bahanBakuOptions: BarangOption[] = [
+    { value: 'LOCC/OCC', label: 'LOCC/OCC' },
+    { value: 'DLK', label: 'DLK' },
+    { value: 'DUPLEK', label: 'DUPLEK' },
+    { value: 'MIX WASTE', label: 'MIX WASTE' },
+    { value: 'SARANG TELOR', label: 'SARANG TELOR' },
+    { value: 'TUNGKUL', label: 'TUNGKUL' },
+  ];
+
+  readonly bahanLainnyaOptions: BarangOption[] = [
+    { value: 'CHEMICAL', label: 'CHEMICAL' },
+    { value: 'TEPUNG TAPIOKA', label: 'TEPUNG TAPIOKA' },
+    { value: 'ROL KERTAS', label: 'ROL KERTAS' },
+    { value: 'DAN LAIN-LAIN', label: 'DAN LAIN-LAIN' },
+  ];
+
+  readonly tipeBahanOptions: BarangOption[] = [
+    { value: 'bahan-baku', label: 'Bahan Baku' },
+    { value: 'lainnya', label: 'Lainnya' },
+  ];
+
+  currentBarangOptions = signal<BarangOption[]>([]);
+
+  ngOnInit(): void {
+    this.loadUserProfile();
+    this.initForm();
+    this.initTaraForm();
+    this.setupFormListeners();
+    this.loadTimbanganMasukList();
+    this.setupScaleListener();
+
+    if (!('serial' in navigator)) {
+      alert('Browser Anda tidak mendukung Web Serial API. Gunakan Chrome/Edge versi terbaru.');
+      return;
+    }
+    this.cekTara();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+    this.scaleReader.disconnect();
+  }
+
+  ngAfterViewInit(): void {
+    setTimeout(() => this.noTiketInput?.nativeElement?.focus(), 100);
+  }
+
+  private loadUserProfile(): void {
+    if (!this.authService.isLoggedIn()) {
+      this.showNotification({
+        type: 'error',
+        title: 'Sesi Berakhir',
+        message: 'Silakan login kembali untuk melanjutkan',
+        confirmText: 'Login',
+        onConfirm: () => {
+          this.authService.logout();
+        },
+      });
+      return;
+    }
+
+    const cachedProfile = this.authService.getCachedProfile();
+    if (cachedProfile) {
+      this.namaPenimbang.set(cachedProfile.username);
+      this.isLoadingProfile.set(false);
+      console.log('✅ Using cached profile:', cachedProfile.username);
+      return;
+    }
+
+    this.authService
+      .getUserProfile()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (profile) => {
+          if (profile) {
+            this.namaPenimbang.set(profile.username);
+            this.isLoadingProfile.set(false);
+
+            if (this.form) {
+              this.form.patchValue({ namaPenimbang: profile.username });
+            }
+
+            console.log('✅ Profile loaded from API:', profile.username);
+          }
+        },
+        error: (error) => {
+          console.error('❌ Failed to load profile:', error);
+          this.isLoadingProfile.set(false);
+
+          const currentUser = this.authService.currentUserValue;
+          if (currentUser?.username) {
+            this.namaPenimbang.set(currentUser.username);
+            console.warn('⚠️ Using fallback username from localStorage');
+          } else {
+            this.showNotification({
+              type: 'error',
+              title: 'Gagal Memuat Profile',
+              message: 'Tidak dapat memuat data pengguna. Silakan refresh halaman.',
+              confirmText: 'Refresh',
+              onConfirm: () => window.location.reload(),
+            });
+          }
+        },
+      });
+  }
+
+  private initForm(): void {
+    const initialNamaPenimbang = this.namaPenimbang() || '';
+
+    this.form = this.fb.nonNullable.group({
+      noTiket: ['', Validators.required],
+      jenisKendaraan: ['', Validators.required],
+      noKendaraan: ['', Validators.required],
+      noContainer: [''],
+      tipeBahan: ['', Validators.required],
+      namaBarang: ['', Validators.required],
+      namaRelasi: ['', [Validators.required, Validators.minLength(3)]],
+      jenisRelasi: ['supplier'],
+      namaSupir: [''],
+      timbanganPertama: [
+        { value: null as number | null, disabled: true },
+        [Validators.required, Validators.min(1)],
+      ],
+      namaPenimbang: [{ value: initialNamaPenimbang, disabled: true }, Validators.required],
+    });
+  }
+
+  private initTaraForm(): void {
+    this.taraForm = this.fb.group({
+      timbanganKedua: [
+        { value: null as number | null, disabled: true },
+        [Validators.required, Validators.min(1)],
+      ],
+    });
+  }
+
+  private setupFormListeners(): void {
+    // Listener untuk noKendaraan
+    this.form
+      .get('noKendaraan')
+      ?.valueChanges.pipe(debounceTime(300), takeUntil(this.destroy$))
+      .subscribe((value) => {
+        if (value) {
+          const formatted = this.formatNoKendaraan(value);
+          if (formatted !== value) {
+            this.form.patchValue({ noKendaraan: formatted }, { emitEvent: false });
+          }
+        }
+      });
+
+    // Listener untuk jenisKendaraan
+    this.form
+      .get('jenisKendaraan')
+      ?.valueChanges.pipe(takeUntil(this.destroy$))
+      .subscribe((value) => {
+        const noContainerControl = this.form.get('noContainer');
+
+        if (value === 'container') {
+          noContainerControl?.setValidators([Validators.required, Validators.minLength(3)]);
+        } else {
+          noContainerControl?.clearValidators();
+          noContainerControl?.setValue('');
+        }
+
+        noContainerControl?.updateValueAndValidity();
+      });
+
+    // ✅ PERBAIKAN: Listener untuk tipeBahan dengan reset yang lebih agresif
+    this.form
+      .get('tipeBahan')
+      ?.valueChanges.pipe(takeUntil(this.destroy$))
+      .subscribe((value) => {
+        console.log('🔄 Tipe Bahan berubah menjadi:', value);
+
+        // ✅ Reset namaBarang dengan force
+        const namaBarangControl = this.form.get('namaBarang');
+        namaBarangControl?.setValue('', { emitEvent: false });
+        namaBarangControl?.markAsUntouched();
+        namaBarangControl?.markAsPristine();
+
+        // Set options sesuai tipe
+        if (value === 'bahan-baku') {
+          this.currentBarangOptions.set(this.bahanBakuOptions);
+          console.log('📦 Options set ke Bahan Baku:', this.bahanBakuOptions);
+        } else if (value === 'lainnya') {
+          this.currentBarangOptions.set(this.bahanLainnyaOptions);
+          console.log('📦 Options set ke Lainnya:', this.bahanLainnyaOptions);
+        } else {
+          this.currentBarangOptions.set([]);
+          console.log('📦 Options dikosongkan');
+        }
+
+        // ✅ Force change detection
+        this.cdr.detectChanges();
+      });
+  }
+
+  private setupScaleListener(): void {
+    this.scaleReader.weight$.pipe(takeUntil(this.destroy$)).subscribe((reading) => {
+      if (reading && reading.stable) {
+        console.log('📊 Received stable weight:', reading.weight);
+      }
+    });
+  }
+
+  // === SCALE METHODS ===
+
+  async connectScale(): Promise<void> {
+    const success = await this.scaleReader.connect();
+
+    if (success) {
+      this.showNotification({
+        type: 'success',
+        title: 'Timbangan Terhubung',
+        message: 'Timbangan berhasil terhubung. Silakan mulai penimbangan.',
+        confirmText: 'OK',
+      });
+    } else {
+      this.showNotification({
+        type: 'error',
+        title: 'Koneksi Gagal',
+        message:
+          this.scaleError() ||
+          'Gagal terhubung ke timbangan. Pastikan timbangan sudah terhubung ke komputer.',
+        confirmText: 'Tutup',
+      });
+    }
+  }
+
+  async disconnectScale(): Promise<void> {
+    await this.scaleReader.disconnect();
+    this.showNotification({
+      type: 'info',
+      title: 'Timbangan Terputus',
+      message: 'Koneksi ke timbangan telah diputus.',
+      confirmText: 'OK',
+    });
+  }
+
+  captureWeightForBruto(): void {
+    const weight = this.scaleReader.getStableWeight();
+
+    if (weight === null) {
+      this.showNotification({
+        type: 'warning',
+        title: 'Berat Tidak Stabil',
+        message: 'Tunggu hingga berat stabil sebelum mengambil data.',
+        confirmText: 'OK',
+      });
+      return;
+    }
+
+    this.form.patchValue({ timbanganPertama: weight });
+
+    this.showNotification({
+      type: 'success',
+      title: 'Berat Bruto Diambil',
+      message: `Berat bruto ${weight} kg telah diinput.`,
+      confirmText: 'OK',
+    });
+  }
+
+  captureWeightForTara(): void {
+    const weight = this.scaleReader.getStableWeight();
+
+    if (weight === null) {
+      this.showNotification({
+        type: 'warning',
+        title: 'Berat Tidak Stabil',
+        message: 'Tunggu hingga berat stabil sebelum mengambil data.',
+        confirmText: 'OK',
+      });
+      return;
+    }
+
+    this.taraForm.patchValue({ timbanganKedua: weight });
+
+    this.showNotification({
+      type: 'success',
+      title: 'Berat Tara Diambil',
+      message: `Berat tara ${weight} kg telah diinput.`,
+      confirmText: 'OK',
+    });
+  }
+
+  // === SEARCH METHODS ===
+
+  onSearchChange(query: string): void {
+    this.searchQuery.set(query.toLowerCase());
+    this.filterList();
+  }
+
+  private filterList(): void {
+    const query = this.searchQuery();
+    const list = this.timbanganMasukList();
+
+    if (!query.trim()) {
+      this.filteredTimbanganList.set(list);
+      return;
+    }
+
+    const filtered = list.filter(
+      (item) =>
+        item.noTiket.toLowerCase().includes(query) ||
+        item.noKendaraan.toLowerCase().includes(query),
+    );
+
+    this.filteredTimbanganList.set(filtered);
+  }
+
+  private loadTimbanganMasukList(): void {
+    // Subscribe ke menungguTara$ untuk daftar yang menunggu input Tara
+    this.timbanganService.menungguTara$.pipe(takeUntil(this.destroy$)).subscribe((data) => {
+      this.timbanganMasukList.set(data);
+      this.filterList();
+      console.log('📋 Loaded menunggu tara:', data.length, 'items');
+    });
+
+    // Load data menunggu tara
+    this.timbanganService.refreshMenungguTara();
+  }
+
+  private formatNoKendaraan(value: string): string {
+    const cleaned = value.replace(/\s+/g, '').toUpperCase();
+    const match = cleaned.match(/^([A-Z]{1,2})(\d{1,4})([A-Z]{1,3})$/);
+    return match ? `${match[1]} ${match[2]} ${match[3]}` : value.toUpperCase();
+  }
+
+  private showNotification(config: ModalConfig): void {
+    this.modalConfig.set(config);
+    this.showModal.set(true);
+  }
+
+  closeModal(): void {
+    this.showModal.set(false);
+    setTimeout(() => this.modalConfig.set(null), 300);
+  }
+
+  handleModalConfirm(): void {
+    const config = this.modalConfig();
+    if (config?.onConfirm) {
+      config.onConfirm();
+    }
+    this.closeModal();
+  }
+
+  handleModalCancel(): void {
+    const config = this.modalConfig();
+    if (config?.onCancel) {
+      config.onCancel();
+    }
+    this.closeModal();
+  }
+
+  // REVIEW onSubmit
+  async onSubmit(): Promise<void> {
+    if (!this.form.valid || this.isSubmitting()) return;
+
+    this.isSubmitting.set(true);
+
+    try {
+      const rawFormData = this.form.getRawValue();
+
+      console.log('📝 Form Value saat Submit:', {
+        noTiket: rawFormData.noTiket,
+        tipeBahan: rawFormData.tipeBahan,
+        namaBarang: rawFormData.namaBarang,
+        jenisKendaraan: rawFormData.jenisKendaraan,
+        jenisRelasi: rawFormData.jenisRelasi,
+      });
+
+      if (!rawFormData.tipeBahan || !rawFormData.namaBarang) {
+        throw new Error('Tipe Bahan dan Nama Barang wajib diisi!');
+      }
+
+      const response = await lastValueFrom(
+        this.timbanganService.addTimbanganData({
+          noTiket: rawFormData.noTiket,
+          jenisKendaraan: rawFormData.jenisKendaraan,
+          noKendaraan: rawFormData.noKendaraan,
+          noContainer: rawFormData.noContainer || undefined,
+          tipeBahan: rawFormData.tipeBahan,
+          namaBarang: rawFormData.namaBarang,
+          namaRelasi: rawFormData.namaRelasi,
+          jenisRelasi: rawFormData.jenisRelasi,
+          namaSupir: rawFormData.namaSupir,
+          timbanganPertama: rawFormData.timbanganPertama,
+          namaPenimbang: rawFormData.namaPenimbang,
+          timestamp: new Date().toISOString(),
+        }),
+      );
+
+      if (!response.success) {
+        throw new Error(response.message || 'Gagal menyimpan data');
+      }
+
+      console.log('✅ Data saved successfully:', response.message);
+
+      await this.delay(300);
+
+      const tipeBahan = rawFormData.tipeBahan === 'bahan-baku' ? 'Bahan Baku' : 'Lainnya';
+
+      // Tampilkan notifikasi sukses
+      if (rawFormData.tipeBahan === 'bahan-baku') {
+        this.showNotification({
+          type: 'success',
+          title: 'Data Berhasil Disimpan',
+          message: response.message || 'Data timbangan masuk telah tersimpan dengan baik',
+          details: [
+            { label: 'Tipe Bahan', value: tipeBahan },
+            { label: 'Bruto', value: `${rawFormData.timbanganPertama} kg` },
+          ],
+          steps: [
+            'Lakukan Uji Kelembapan terlebih dahulu',
+            'Setelah selesai uji, input Tara saat truk keluar',
+            'Netto akan otomatis dihitung dengan pengurangan kelembapan',
+          ],
+          confirmText: 'Mengerti',
+        });
+      } else {
+        this.showNotification({
+          type: 'success',
+          title: 'Data Berhasil Disimpan',
+          message: response.message || 'Data timbangan masuk telah tersimpan dengan baik',
+          details: [
+            { label: 'Tipe Bahan', value: tipeBahan },
+            { label: 'Bruto', value: `${rawFormData.timbanganPertama} kg` },
+          ],
+          confirmText: 'Mengerti',
+        });
+      }
+
+      this.onReset();
+      this.switchView('list');
+    } catch (error: any) {
+      console.error('❌ Error:', error);
+
+      const errorMessage = error?.message || 'Gagal menyimpan data. Silakan coba lagi.';
+
+      this.showNotification({
+        type: 'error',
+        title: 'Terjadi Kesalahan',
+        message: errorMessage,
+        confirmText: 'Tutup',
+      });
+    } finally {
+      this.isSubmitting.set(false);
+    }
+  }
+
+  openTaraModal(data: TimbanganData): void {
+    if (data.tipeBahan === 'bahan-baku' && data.statusUjiKelembapan === 'pending') {
+      this.showNotification({
+        type: 'warning',
+        title: 'Data Belum Diuji Kelembapan',
+        message:
+          'Untuk bahan baku, wajib melakukan uji kelembapan terlebih dahulu sebelum input Tara.',
+        steps: [
+          'Silakan ke menu Uji Kelembapan',
+          'Lakukan pengujian pada data ini',
+          'Kembali ke sini untuk input Tara',
+        ],
+        confirmText: 'Mengerti',
+      });
+      return;
+    }
+
+    this.selectedForTara.set(data);
+    this.showTaraModal.set(true);
+    this.taraForm.reset();
+  }
+
+  closeTaraModal(): void {
+    this.showTaraModal.set(false);
+    this.selectedForTara.set(null);
+    this.taraForm.reset();
+  }
+
+  // REVIEW submitTara
+  async submitTara(): Promise<void> {
+    const selected = this.selectedForTara();
+    if (!this.taraForm.valid || !selected || this.isSubmitting()) return;
+
+    this.isSubmitting.set(true);
+
+    try {
+      const tara = this.taraForm.getRawValue().timbanganKedua;
+
+      // ✅ Validasi: Tara tidak boleh >= Bruto
+      if (tara >= selected.timbanganPertama) {
+        this.showNotification({
+          type: 'error',
+          title: 'Input Tidak Valid',
+          message: 'Tara tidak boleh lebih besar atau sama dengan Bruto',
+          details: [
+            { label: 'Bruto', value: `${selected.timbanganPertama} kg` },
+            { label: 'Tara yang diinput', value: `${tara} kg` },
+          ],
+          confirmText: 'Tutup',
+        });
+        this.isSubmitting.set(false);
+        return;
+      }
+
+      console.log('📤 Submitting Tara:', {
+        id: selected.id,
+        tara: tara,
+        bruto: selected.timbanganPertama,
+      });
+
+      // ✅ Kirim ke endpoint insert-tara
+      const response = await lastValueFrom(this.timbanganService.updateTaraData(selected.id, tara));
+
+      if (!response.success) {
+        throw new Error(response.message || 'Gagal menyimpan data Tara');
+      }
+
+      console.log('✅ Tara saved successfully:', response.message);
+
+      await this.delay(500);
+
+      // Hitung netto
+      const nettoSebelumPengurangan = selected.timbanganPertama - tara;
+
+      let details: Array<{ label: string; value: string | number }> = [];
+
+      // ✅ Jika bahan baku dengan kelembapan
+      if (selected.tipeBahan === 'bahan-baku' && selected.hasilUjiKelembapan) {
+        const kelembapan = selected.hasilUjiKelembapan.claimPercentage;
+        const pengurangan = nettoSebelumPengurangan * (kelembapan / 100);
+        const nettoAkhir = nettoSebelumPengurangan - pengurangan;
+
+        details = [
+          { label: 'Bruto', value: `${selected.timbanganPertama} kg` },
+          { label: 'Tara', value: `${tara} kg` },
+          { label: 'Netto Kotor', value: `${nettoSebelumPengurangan.toFixed(2)} kg` },
+          { label: 'Kelembapan', value: `${kelembapan.toFixed(2)}%` },
+          { label: 'Pengurangan', value: `${pengurangan.toFixed(2)} kg` },
+          { label: 'Netto Final', value: `${nettoAkhir.toFixed(2)} kg` },
+        ];
+      } else {
+        // ✅ Bahan lainnya atau bahan baku belum diuji
+        details = [
+          { label: 'Bruto', value: `${selected.timbanganPertama} kg` },
+          { label: 'Tara', value: `${tara} kg` },
+          { label: 'Netto', value: `${nettoSebelumPengurangan.toFixed(2)} kg` },
+        ];
+      }
+
+      // ✅ Close modal
+      this.closeTaraModal();
+
+      // ✅ Tampilkan konfirmasi cetak slip
+      this.showNotification({
+        type: 'confirm',
+        title: 'Data Tara Berhasil Disimpan',
+        message: 'Apakah Anda ingin mencetak slip timbangan?',
+        details: details,
+        showCancel: true,
+        confirmText: 'Cetak Slip',
+        cancelText: 'Tidak',
+        onConfirm: () => this.printSlip(selected.id),
+        onCancel: () => {
+          console.log('User memilih tidak cetak slip');
+        },
+      });
+    } catch (error: any) {
+      console.error('❌ Error saat submit tara:', error);
+
+      const errorMessage = error?.message || 'Gagal menyimpan data Tara. Silakan coba lagi.';
+
+      this.showNotification({
+        type: 'error',
+        title: 'Terjadi Kesalahan',
+        message: errorMessage,
+        confirmText: 'Tutup',
+      });
+    } finally {
+      this.isSubmitting.set(false);
+    }
+  }
+
+  // printSlip(id: string): void {
+  //   const url = `/admin/print-slip/${id}`;
+  //   window.open(url, '_blank', 'width=400,height=600');
+  // }
+
+  deleteData(data: TimbanganData): void {
+    this.showNotification({
+      type: 'confirm',
+      title: 'Konfirmasi Hapus',
+      message: `Apakah Anda yakin ingin menghapus data dengan nomor tiket ${data.noTiket}?`,
+      showCancel: true,
+      confirmText: 'Hapus',
+      cancelText: 'Batal',
+      onConfirm: async () => {
+        try {
+          const response = await lastValueFrom(this.timbanganService.deleteTimbanganData(data.id));
+
+          if (response.success) {
+            this.showNotification({
+              type: 'success',
+              title: 'Berhasil Dihapus',
+              message: response.message || 'Data berhasil dihapus dari sistem',
+              confirmText: 'Tutup',
+            });
+          } else {
+            throw new Error(response.message || 'Gagal menghapus data');
+          }
+        } catch (error: any) {
+          this.showNotification({
+            type: 'error',
+            title: 'Gagal Menghapus',
+            message: error?.message || 'Gagal menghapus data. Silakan coba lagi.',
+            confirmText: 'Tutup',
+          });
+        }
+      },
+    });
+  }
+
+  switchView(view: ViewMode): void {
+    this.currentView.set(view);
+  }
+
+  onReset(): void {
+    // ✅ Reset dengan nilai default yang jelas
+    this.form.reset({
+      noTiket: '',
+      jenisKendaraan: '',
+      noKendaraan: '',
+      noContainer: '',
+      tipeBahan: '',
+      namaBarang: '',
+      namaRelasi: '',
+      jenisRelasi: 'supplier',
+      namaSupir: '',
+      timbanganPertama: null,
+      namaPenimbang: this.namaPenimbang(),
+    });
+
+    // ✅ Clear options
+    this.currentBarangOptions.set([]);
+
+    // ✅ Mark all as untouched
+    Object.keys(this.form.controls).forEach((key) => {
+      const control = this.form.get(key);
+      control?.markAsUntouched();
+      control?.markAsPristine();
+    });
+
+    this.showKelembapan.set(false);
+
+    // ✅ Force change detection
+    this.cdr.detectChanges();
+
+    setTimeout(() => this.noTiketInput?.nativeElement?.focus(), 100);
+  }
+
+  getError(controlName: string, form: FormGroup = this.form): string {
+    const control = form.get(controlName);
+    if (!control?.errors || !control.touched) return '';
+
+    const errors = control.errors;
+    if (errors['required']) return 'Wajib diisi';
+    if (errors['minlength']) return `Min ${errors['minlength'].requiredLength} karakter`;
+    if (errors['min']) return `Min ${errors['min'].min}`;
+    if (errors['max']) return `Max ${errors['max'].max}`;
+
+    return 'Input tidak valid';
+  }
+
+  canInputTara(data: TimbanganData): boolean {
+    if (data.tipeBahan !== 'bahan-baku') return true;
+    return data.statusUjiKelembapan === 'completed';
+  }
+
+  getStatusBadge(data: TimbanganData): string {
+    if (data.tipeBahan !== 'bahan-baku') {
+      return 'Siap Input Tara';
+    }
+
+    if (data.statusUjiKelembapan === 'pending') {
+      return 'Perlu Uji Kelembapan';
+    }
+
+    return 'Siap Input Tara';
+  }
+
+  getStatusBadgeClass(data: TimbanganData): string {
+    if (data.tipeBahan !== 'bahan-baku') {
+      return 'bg-blue-100 text-blue-800';
+    }
+
+    if (data.statusUjiKelembapan === 'pending') {
+      return 'bg-yellow-100 text-yellow-800';
+    }
+
+    return 'bg-green-100 text-green-800';
+  }
+
+  formatDate(dateString: string): string {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('id-ID', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  }
+
+  private delay(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  onCustomerSelected(event: CustomerSelectionEvent): void {
+    console.log('🎯 Customer/Supplier selected:', event.nama, 'Type:', event.type);
+
+    this.form.patchValue(
+      {
+        jenisRelasi: event.type,
+      },
+      { emitEvent: false },
+    );
+  }
+
+  refreshList(): void {
+    this.timbanganService.refreshMenungguTara();
+  }
+
+  // ANCHOR Tara selesai
+  // ✅ History Modal State
+  showHistoryModal = signal(false);
+  taraSelesaiList = signal<TimbanganData[]>([]);
+  filteredHistoryList = signal<TimbanganData[]>([]);
+  historySearchQuery = signal('');
+  isLoadingHistory = signal(false);
+
+  cekTara() {
+    this.timbanganService.taraSelesai$.pipe(takeUntil(this.destroy$)).subscribe((data) => {
+      this.taraSelesaiList.set(data);
+      this.filterHistoryList();
+      console.log('📋 Loaded tara selesai:', data.length, 'items');
+    });
+  }
+
+  // ✅ Open History Modal
+  openHistoryModal(): void {
+    this.isLoadingHistory.set(true);
+    this.showHistoryModal.set(true);
+    this.historySearchQuery.set('');
+
+    // Load data dari API
+    this.timbanganService
+      .loadDaftarTaraSelesai()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.isLoadingHistory.set(false);
+        },
+        error: (error) => {
+          console.error('❌ Failed to load history:', error);
+          this.isLoadingHistory.set(false);
+          this.showNotification({
+            type: 'error',
+            title: 'Gagal Memuat Data',
+            message: 'Tidak dapat memuat data history. Silakan coba lagi.',
+            confirmText: 'Tutup',
+          });
+        },
+      });
+  }
+
+  // ✅ Close History Modal
+  closeHistoryModal(): void {
+    this.showHistoryModal.set(false);
+    this.historySearchQuery.set('');
+  }
+
+  // ✅ Search History
+  onHistorySearchChange(query: string): void {
+    this.historySearchQuery.set(query.toLowerCase());
+    this.filterHistoryList();
+  }
+
+  // ✅ Filter History List
+  private filterHistoryList(): void {
+    const query = this.historySearchQuery();
+    const list = this.taraSelesaiList();
+
+    if (!query.trim()) {
+      this.filteredHistoryList.set(list);
+      return;
+    }
+
+    const filtered = list.filter(
+      (item) =>
+        item.noTiket.toLowerCase().includes(query) ||
+        item.noKendaraan.toLowerCase().includes(query) ||
+        item.namaBarang.toLowerCase().includes(query) ||
+        item.namaRelasi.toLowerCase().includes(query),
+    );
+
+    this.filteredHistoryList.set(filtered);
+  }
+
+  // ✅ Print Slip dari History
+  printSlipFromHistory(data: TimbanganData): void {
+    console.log('cek data ini :', data);
+    this.printSlip(data.id);
+  }
+
+  printSlip(id: string): void {
+    // Ambil data lengkap berdasarkan ID
+    const data = this.taraSelesaiList().find((item) => item.id === id);
+
+    if (!data) {
+      this.showNotification({
+        type: 'error',
+        title: 'Data Tidak Ditemukan',
+        message: 'Data slip tidak dapat ditemukan.',
+        confirmText: 'Tutup',
+      });
+      return;
+    }
+
+    // Generate print window
+    this.generatePrintSlip(data);
+  }
+
+  private generatePrintSlip(data: TimbanganData): void {
+    // Format tanggal
+    const date = new Date(data.timestamp);
+    const tanggalMasuk = date.toLocaleDateString('id-ID', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    });
+    const jamMasuk = date.toLocaleTimeString('id-ID', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    });
+
+    // Hitung tanggal keluar (asumsi: tanggal update atau tanggal sekarang)
+    const tanggalKeluar = new Date().toLocaleDateString('id-ID', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    });
+    const jamKeluar = new Date().toLocaleTimeString('id-ID', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    });
+
+    // Hitung hasil akhir
+    const bruto = data.timbanganPertama;
+    const tara = data.timbanganKedua || 0;
+    const nettoKotor = bruto - tara;
+
+    // Perhitungan kelembapan (jika ada)
+    let potongBASAH = 0;
+    let potongSAMPAH = 0;
+    let hasilAkhir = nettoKotor;
+
+    if (data.hasilUjiKelembapan) {
+      const claimPercentage = data.hasilUjiKelembapan.claimPercentage;
+      potongBASAH = claimPercentage;
+      const pengurangan = nettoKotor * (claimPercentage / 100);
+
+      // Asumsi potongan sampah dalam kg (sesuaikan dengan data Anda)
+      potongSAMPAH = 10; // Ganti dengan data aktual jika ada
+
+      hasilAkhir = nettoKotor - pengurangan - potongSAMPAH;
+    }
+
+    // Nama barang dengan keterangan (jika lainnya)
+    let namaBarangDisplay = data.namaBarang;
+    if (data.namaBarang === 'DAN LAIN-LAIN' && data.keteranganBarang) {
+      namaBarangDisplay = data.keteranganBarang;
+    }
+
+    // Referensi number (No. Refrensi)
+    const noRefrensi = `K1100398`; // Bisa disesuaikan dengan logic Anda
+
+    // Customer/Supplier
+    const customerSupplier = data.jenisRelasi === 'customer' ? data.namaRelasi : data.namaRelasi;
+
+    // HTML untuk print
+    const printContent = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <title>Slip Timbangan - ${data.noTiket}</title>
+      <style>
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
+
+        body {
+          font-family: 'Courier New', monospace;
+          font-size: 11px;
+          line-height: 1.4;
+          padding: 10px;
+          width: 80mm;
+        }
+
+        .header {
+          text-align: center;
+          margin-bottom: 10px;
+          border-bottom: 2px solid #000;
+          padding-bottom: 8px;
+        }
+
+        .company-logo {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 5px;
+          margin-bottom: 3px;
+        }
+
+        .logo-icon {
+          width: 20px;
+          height: 20px;
+          background: linear-gradient(135deg, #ff5722 0%, #ff9800 100%);
+          clip-path: polygon(0 0, 100% 0, 100% 70%, 50% 100%, 0 70%);
+        }
+
+        .company-name {
+          font-weight: bold;
+          font-size: 13px;
+        }
+
+        .company-address {
+          font-size: 9px;
+          color: #333;
+        }
+
+        .info-row {
+          display: flex;
+          justify-content: space-between;
+          margin-bottom: 3px;
+          font-size: 10px;
+        }
+
+        .info-label {
+          width: 40%;
+          font-weight: normal;
+        }
+
+        .info-value {
+          width: 60%;
+          text-align: left;
+          font-weight: normal;
+        }
+
+        .section {
+          margin-bottom: 8px;
+        }
+
+        .section-title {
+          font-weight: bold;
+          border-bottom: 1px solid #000;
+          margin-bottom: 5px;
+          padding-bottom: 2px;
+        }
+
+        .weight-box {
+          border: 1px solid #000;
+          padding: 8px;
+          margin: 8px 0;
+          background: #f9f9f9;
+        }
+
+        .weight-row {
+          display: flex;
+          justify-content: space-between;
+          margin-bottom: 4px;
+        }
+
+        .weight-label {
+          font-weight: bold;
+        }
+
+        .weight-value {
+          font-weight: bold;
+          text-align: right;
+        }
+
+        .final-result {
+          border-top: 2px solid #000;
+          padding-top: 5px;
+          margin-top: 5px;
+          font-size: 12px;
+          font-weight: bold;
+        }
+
+        .signature-section {
+          margin-top: 15px;
+          display: flex;
+          justify-content: space-between;
+          border-top: 1px dashed #000;
+          padding-top: 10px;
+        }
+
+        .signature-box {
+          text-align: center;
+          width: 45%;
+        }
+
+        .signature-line {
+          margin-top: 40px;
+          border-top: 1px solid #000;
+          padding-top: 3px;
+        }
+
+        .barang-type {
+          display: inline-block;
+          padding: 2px 8px;
+          border: 1px solid #000;
+          border-radius: 3px;
+          font-weight: bold;
+          font-size: 9px;
+          margin-left: 5px;
+        }
+
+        @media print {
+          body {
+            padding: 0;
+          }
+
+          @page {
+            size: 80mm auto;
+            margin: 0;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="header">
+        <div class="company-logo">
+          <div class="logo-icon"></div>
+          <div class="company-name">PT. AGRO DELI SERDANG</div>
+        </div>
+        <div class="company-address">Dusun VII, Dalu Sepuluh-A</div>
+      </div>
+
+      <div class="section">
+        <div class="info-row">
+          <span class="info-label">No. Tiket</span>
+          <span class="info-value">: ${data.noTiket}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Tgl/ Jam Masuk</span>
+          <span class="info-value">: ${tanggalMasuk} ${jamMasuk}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Tgl/ Jam Keluar</span>
+          <span class="info-value">: ${tanggalKeluar} ${jamKeluar}</span>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="info-row">
+          <span class="info-label">No. Kendaraan</span>
+          <span class="info-value">: ${data.noKendaraan}</span>
+        </div>
+        ${
+          data.noContainer
+            ? `
+        <div class="info-row">
+          <span class="info-label">No. Kontainer</span>
+          <span class="info-value">: ${data.noContainer}</span>
+        </div>
+        `
+            : '<div class="info-row"><span class="info-label">No. Kontainer</span><span class="info-value">: -</span></div>'
+        }
+        <div class="info-row">
+          <span class="info-label">Nama Barang</span>
+          <span class="info-value">: ${namaBarangDisplay}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">No. Refrensi</span>
+          <span class="info-value">: ${noRefrensi}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Cust / Supplier</span>
+          <span class="info-value">: ${customerSupplier}</span>
+        </div>
+      </div>
+
+      <div class="weight-box">
+        <div class="weight-row">
+          <span class="weight-label">Timbangan Pertama</span>
+          <span class="weight-value">: ${bruto}</span>
+        </div>
+        <div class="weight-row">
+          <span class="weight-label">Timbangan Kedua</span>
+          <span class="weight-value">: ${tara}</span>
+        </div>
+        <div class="weight-row">
+          <span class="weight-label">Hasil Akhir</span>
+          <span class="weight-value">: ${nettoKotor}</span>
+        </div>
+
+        ${
+          data.hasilUjiKelembapan
+            ? `
+        <div style="margin-top: 10px; padding-top: 8px; border-top: 1px dashed #000;">
+          <div class="weight-row">
+            <span>Potong BASAH</span>
+            <span class="weight-value">${potongBASAH}%</span>
+          </div>
+          <div class="weight-row">
+            <span>Potong SAMPAH</span>
+            <span class="weight-value">${potongSAMPAH} Kg</span>
+          </div>
+        </div>
+        `
+            : ''
+        }
+
+        <div class="weight-row final-result">
+          <span>Hasil Akhir Setelah Potongan</span>
+          <span class="weight-value">${hasilAkhir.toFixed(0)}Kg</span>
+        </div>
+      </div>
+
+      ${
+        data.tipeBahan === 'bahan-baku'
+          ? `
+      <div class="section">
+        <div style="text-align: center; font-weight: bold; margin: 10px 0;">
+          LOCC (SERAK)
+          <span class="barang-type">${namaBarangDisplay}</span>
+        </div>
+      </div>
+      `
+          : ''
+      }
+
+      <div class="signature-section">
+        <div class="signature-box">
+          <div>Ditimbang</div>
+          <div class="signature-line">Nama & Tanda Tangan</div>
+        </div>
+        <div class="signature-box">
+          <div>Diketahui</div>
+          <div class="signature-line">Nama & Tanda Tangan</div>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+    // Open print window
+    const printWindow = window.open('', '_blank', 'width=300,height=600');
+
+    if (printWindow) {
+      printWindow.document.write(printContent);
+      printWindow.document.close();
+
+      // Wait for content to load then print
+      printWindow.onload = () => {
+        setTimeout(() => {
+          printWindow.print();
+        }, 250);
+      };
+    } else {
+      this.showNotification({
+        type: 'error',
+        title: 'Gagal Membuka Print',
+        message: 'Browser memblokir popup. Izinkan popup untuk mencetak slip.',
+        confirmText: 'Tutup',
+      });
+    }
+  }
+
+  // ✅ Refresh History List
+  refreshHistoryList(): void {
+    this.isLoadingHistory.set(true);
+    this.timbanganService
+      .loadDaftarTaraSelesai()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.isLoadingHistory.set(false);
+          this.showNotification({
+            type: 'success',
+            title: 'Data Diperbarui',
+            message: 'History data berhasil diperbarui.',
+            confirmText: 'OK',
+          });
+        },
+        error: () => {
+          this.isLoadingHistory.set(false);
+        },
+      });
+  }
+}

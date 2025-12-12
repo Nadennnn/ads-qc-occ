@@ -1,0 +1,281 @@
+// src/app/admin/components/print-slip/print-slip.component.scss
+
+.print-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  background: #f5f5f5;
+  min-height: 100vh;
+}
+
+.print-slip {
+  width: 80mm;
+  background: white;
+  padding: 10mm;
+  font-family: 'Courier New', monospace;
+  font-size: 10pt;
+  line-height: 1.4;
+  color: #333;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 8px;
+
+  h1 {
+    font-size: 14pt;
+    font-weight: bold;
+    margin: 0;
+    letter-spacing: 1px;
+  }
+
+  .subtitle {
+    font-size: 10pt;
+    margin: 4px 0 0 0;
+  }
+}
+
+.divider {
+  border-top: 2px solid #333;
+  margin: 8px 0;
+}
+
+.divider-thin {
+  border-top: 1px solid #999;
+  margin: 6px 0;
+}
+
+.info-section,
+.detail-section {
+  .info-row {
+    display: flex;
+    margin-bottom: 4px;
+
+    .label {
+      width: 120px;
+      flex-shrink: 0;
+    }
+
+    .value {
+      flex: 1;
+      font-weight: 500;
+    }
+  }
+}
+
+.weight-section {
+  .weight-row {
+    display: flex;
+    align-items: baseline;
+    margin-bottom: 4px;
+    font-size: 11pt;
+
+    .weight-label {
+      width: 100px;
+      flex-shrink: 0;
+      font-weight: bold;
+    }
+
+    .weight-separator {
+      width: 20px;
+      text-align: center;
+    }
+
+    .weight-value {
+      flex: 1;
+      text-align: right;
+      font-size: 12pt;
+      font-weight: bold;
+      padding-right: 8px;
+    }
+
+    .weight-unit {
+      width: 30px;
+      font-weight: bold;
+    }
+
+    &.weight-row-total {
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid #999;
+
+      .weight-label,
+      .weight-value {
+        font-size: 13pt;
+      }
+    }
+  }
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12px;
+
+  .signature {
+    flex: 1;
+    text-align: center;
+
+    span {
+      display: block;
+      font-size: 9pt;
+      margin-bottom: 4px;
+    }
+
+    .signature-space {
+      height: 40px;
+      border-bottom: 1px solid #333;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      font-size: 9pt;
+      padding-bottom: 2px;
+    }
+  }
+}
+
+.company-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 9pt;
+  margin-top: 4px;
+}
+
+.barcode-section {
+  margin-top: 12px;
+  text-align: center;
+
+  .barcode {
+    width: 150px;
+    height: 40px;
+    margin: 0 auto;
+  }
+
+  .barcode-text {
+    font-size: 11pt;
+    font-weight: bold;
+    margin-top: 4px;
+    letter-spacing: 4px;
+  }
+}
+
+.print-actions {
+  margin-top: 20px;
+  display: flex;
+  gap: 12px;
+
+  .btn-print,
+  .btn-close {
+    padding: 12px 32px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+  }
+
+  .btn-print {
+    background: #2563eb;
+    color: white;
+
+    &:hover {
+      background: #1d4ed8;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    }
+  }
+
+  .btn-close {
+    background: #6b7280;
+    color: white;
+
+    &:hover {
+      background: #4b5563;
+    }
+  }
+}
+
+.not-found {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 20px;
+  text-align: center;
+
+  h2 {
+    font-size: 24px;
+    color: #dc2626;
+    margin-bottom: 12px;
+  }
+
+  p {
+    font-size: 16px;
+    color: #6b7280;
+    margin-bottom: 24px;
+  }
+
+  .btn-close {
+    padding: 12px 32px;
+    background: #6b7280;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+      background: #4b5563;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+  }
+}
+
+// Print Styles
+@media print {
+  .print-container {
+    padding: 0;
+    background: white;
+  }
+
+  .print-slip {
+    width: 80mm;
+    box-shadow: none;
+    margin: 0;
+    padding: 5mm;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .divider {
+    border-color: #000 !important;
+  }
+
+  // Ensure proper printing
+  @page {
+    size: 80mm auto;
+    margin: 0;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+  }
+}

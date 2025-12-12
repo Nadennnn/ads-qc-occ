@@ -1,0 +1,502 @@
+<div class="ganti-bg min-h-screen flex flex-col items-center justify-center p-4 sm:p-6">
+  <!-- Loading State when fetching roles -->
+  <div
+    *ngIf="isLoadingRoles"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/10"
+  >
+    <div class="bg-white p-6 rounded-lg shadow-xl flex flex-col items-center gap-3">
+      <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-neutral-800"></div>
+      <p class="text-sm text-neutral-600">Loading data...</p>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <div class="mb-16 text-center">
+    <div class="flex justify-center items-center gap-3 sm:gap-4">
+      <img src="./ads-logo1.png" class="w-auto h-10 sm:h-12" alt="PT. Agro Deli Serdang" />
+      <div class="h-10 sm:h-12 w-px bg-neutral-700"></div>
+      <h1 class="sm:text-[60px] xs:text-3xl font-bold text-neutral-800 tracking-tight text-center">
+        PT. AGRO DELI SERDANG
+      </h1>
+    </div>
+    <!-- <h1 class="text-2xl sm:text-3xl font-semibold text-neutral-800 tracking-tight my-3">
+      {{
+        hasAnyRole(['1', '2']) ? 'Weighing System' : hasRole('5') ? '' : 'Raw Material Warehouse'
+      }}
+    </h1> -->
+
+    <!-- User Info & Logout -->
+    <div class="flex items-center justify-center gap-3 mt-7">
+      <div
+        class="text-sm text-neutral-600 hover:text-red-700 hover:underline transition-colors flex justify-center items-center gap-1"
+      >
+        <lucide-icons [iconsName]="'user-round'" [color]="'gray'" />
+        <span>{{ dataCurrentUser?.username?.toUpperCase() || 'User Name' }}</span>
+      </div>
+
+      <!-- Show Users Control button only for Admin/Superadmin (role 1) -->
+      <ng-container *ngIf="hasRole('1')">
+        <div class="h-4 w-px bg-neutral-300"></div>
+        <button
+          (click)="navigateTo('users-control')"
+          class="text-sm text-neutral-600 hover:text-red-700 hover:underline transition-colors flex justify-center items-center gap-1"
+        >
+          <lucide-icons [iconsName]="'users-round'" [color]="'gray'" />
+          USERS CONTROL
+        </button>
+      </ng-container>
+
+      <div class="h-4 w-px bg-neutral-300"></div>
+      <button
+        (click)="logout()"
+        class="text-red-600 hover:text-red-700 hover:underline transition-colors w-auto flex justify-center items-center gap-1"
+      >
+        <lucide-icons [iconsName]="'power'" [color]="'red'" />
+        LOGOUT
+      </button>
+    </div>
+  </div>
+
+  <!-- Grid Menu - only display after roles are loaded -->
+  <div
+    class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl w-full"
+    *ngIf="!isLoadingRoles"
+  >
+    <!-- Weighing Input - Admin (1) or Weighing Operator (3) -->
+    <button
+      *ngIf="hasAnyRole(['1', '3'])"
+      class="group relative bg-white p-8 rounded-lg border border-neutral-200 hover:border-neutral-800 transition-all duration-300 text-left overflow-hidden shadow-sm"
+      (click)="navigateTo('timbangan-masuk')"
+    >
+      <div
+        class="absolute top-0 left-0 w-1 h-full bg-neutral-800 transform scale-y-0 group-hover:scale-y-100 transition-transform duration-300 origin-top"
+      ></div>
+      <span
+        class="text-lg font-medium text-neutral-700 group-hover:text-neutral-900 transition-colors block"
+      >
+        Weighing Input
+      </span>
+      <span class="text-sm text-neutral-400 mt-1 block">Input incoming data</span>
+    </button>
+
+    <!-- Customer Code - Admin (1) or Customer Manager (4) -->
+    <button
+      *ngIf="hasAnyRole(['1', '4'])"
+      class="group relative bg-white p-8 rounded-lg border border-neutral-200 hover:border-neutral-800 transition-all duration-300 text-left overflow-hidden shadow-sm"
+      (click)="navigateTo('code-customer')"
+    >
+      <div
+        class="absolute top-0 left-0 w-1 h-full bg-neutral-800 transform scale-y-0 group-hover:scale-y-100 transition-transform duration-300 origin-top"
+      ></div>
+      <span
+        class="text-lg font-medium text-neutral-700 group-hover:text-neutral-900 transition-colors block"
+      >
+        Customer Code
+      </span>
+      <span class="text-sm text-neutral-400 mt-1 block">Manage customer codes</span>
+    </button>
+
+    <!-- Supplier Code - Admin (1) or Supplier Manager (5) -->
+    <button
+      *ngIf="hasAnyRole(['1', '5'])"
+      class="group relative bg-white p-8 rounded-lg border border-neutral-200 hover:border-neutral-800 transition-all duration-300 text-left overflow-hidden shadow-sm"
+      (click)="navigateTo('code-supplier')"
+    >
+      <div
+        class="absolute top-0 left-0 w-1 h-full bg-neutral-800 transform scale-y-0 group-hover:scale-y-100 transition-transform duration-300 origin-top"
+      ></div>
+      <span
+        class="text-lg font-medium text-neutral-700 group-hover:text-neutral-900 transition-colors block"
+      >
+        Supplier Code
+      </span>
+      <span class="text-sm text-neutral-400 mt-1 block">Manage supplier codes</span>
+    </button>
+
+    <!-- View Reports - Admin (1) or Supervisor (7) -->
+    <button
+      *ngIf="hasAnyRole(['1', '7'])"
+      class="group relative bg-white p-8 rounded-lg border border-neutral-200 hover:border-neutral-800 transition-all duration-300 text-left overflow-hidden shadow-sm"
+      (click)="navigateTo('cek-laporan')"
+    >
+      <div
+        class="absolute top-0 left-0 w-1 h-full bg-neutral-800 transform scale-y-0 group-hover:scale-y-100 transition-transform duration-300 origin-top"
+      ></div>
+      <span
+        class="text-lg font-medium text-neutral-700 group-hover:text-neutral-900 transition-colors block"
+      >
+        View Reports
+      </span>
+      <span class="text-sm text-neutral-400 mt-1 block">View data reports</span>
+    </button>
+
+    <!-- Change Password - Admin Only (1) -->
+    <button
+      class="group relative bg-white p-8 rounded-lg border border-neutral-200 hover:border-neutral-800 transition-all duration-300 text-left overflow-hidden shadow-sm"
+      (click)="openChangePasswordModal()"
+    >
+      <div
+        class="absolute top-0 left-0 w-1 h-full bg-neutral-800 transform scale-y-0 group-hover:scale-y-100 transition-transform duration-300 origin-top"
+      ></div>
+      <span
+        class="text-lg font-medium text-neutral-700 group-hover:text-neutral-900 transition-colors block"
+      >
+        Change Password
+      </span>
+      <span class="text-sm text-neutral-400 mt-1 block">Account security</span>
+    </button>
+
+    <!-- Moisture Test - Admin (1) or Lab Staff (6) -->
+    <button
+      *ngIf="hasAnyRole(['1', '6'])"
+      (click)="navigateTo('uji-kelembapan')"
+      class="group relative bg-white p-8 rounded-lg border border-neutral-200 hover:border-neutral-800 transition-all duration-300 text-left overflow-hidden shadow-sm"
+    >
+      <div
+        class="absolute top-0 left-0 w-1 h-full bg-neutral-800 transform scale-y-0 group-hover:scale-y-100 transition-transform duration-300 origin-top"
+      ></div>
+      <span
+        class="text-lg font-medium text-neutral-700 group-hover:text-neutral-900 transition-colors block"
+      >
+        Moisture Measurement
+      </span>
+      <span class="text-sm text-neutral-400 mt-1 block">Moisture testing</span>
+    </button>
+  </div>
+
+  <!-- Logout Modal -->
+  <div
+    *ngIf="showLogoutModal"
+    class="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fadeIn"
+    style="animation: fadeIn 0.2s ease-out"
+  >
+    <div class="absolute inset-0 bg-black/30" (click)="cancelLogout()"></div>
+
+    <div
+      class="relative bg-white rounded-xl shadow-2xl max-w-md w-full transform"
+      style="animation: slideUp 0.3s ease-out"
+      (click)="$event.stopPropagation()"
+    >
+      <button
+        (click)="cancelLogout()"
+        class="absolute top-4 right-4 text-neutral-400 hover:text-neutral-600 transition-colors"
+      >
+        <lucide-icons [iconsName]="'x'" [color]="'gray'" class="w-5 h-5"></lucide-icons>
+      </button>
+
+      <div class="p-8 text-center">
+        <div class="mx-auto w-[4dvw] rounded-full flex items-center justify-center mb-4">
+          <img src="./ads-logo1.png" class="w-10 h-10" alt="" />
+        </div>
+        <h3 class="text-2xl font-bold text-neutral-900 mb-2">Logout Confirmation</h3>
+        <p class="text-neutral-600">Are you sure you want to logout from the system?</p>
+        <p class="text-sm text-neutral-500 mt-2">
+          You will need to login again to access the system
+        </p>
+      </div>
+
+      <div class="px-8 pb-8 flex flex-col sm:flex-row gap-3">
+        <button
+          (click)="cancelLogout()"
+          class="flex-1 px-6 py-3 rounded-lg border-2 border-neutral-300 text-neutral-700 font-semibold hover:bg-neutral-50 active:scale-95 transition-all"
+        >
+          Cancel
+        </button>
+        <button
+          (click)="confirmLogout()"
+          class="flex-1 px-6 py-3 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 active:scale-95 transition-all flex items-center justify-center gap-2"
+        >
+          Yes, Logout
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="mt-12 text-center text-sm text-neutral-400">
+    <p>© {{ currentYear }} PT Agro Deli Serdang. All rights reserved.</p>
+  </div>
+
+  <!-- Change Password Modal -->
+  <!-- ============================================ -->
+  <!-- Change Password Modal -->
+  <!-- Add this at the bottom before closing div -->
+  <!-- ============================================ -->
+  <div
+    *ngIf="showChangePasswordModal"
+    class="fixed inset-0 z-50 flex items-center justify-center p-4"
+    style="animation: fadeIn 0.2s ease-out"
+  >
+    <!-- Backdrop -->
+    <div
+      class="absolute inset-0 bg-black/40 backdrop-blur-sm"
+      (click)="closeChangePasswordModal()"
+    ></div>
+
+    <!-- Modal Content -->
+    <div
+      class="relative bg-white rounded-2xl shadow-2xl max-w-md w-full transform overflow-hidden"
+      style="animation: slideUp 0.3s ease-out"
+      (click)="$event.stopPropagation()"
+    >
+      <!-- Header -->
+      <div class="bg-gradient-to-r from-neutral-800 to-neutral-700 px-6 py-5">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center">
+              <lucide-icons [iconsName]="'lock'" [color]="'white'" class="w-5 h-5"></lucide-icons>
+            </div>
+            <div>
+              <h3 class="text-xl font-bold text-white">Change Password</h3>
+              <p class="text-sm text-neutral-200">Update your account password</p>
+            </div>
+          </div>
+          <button
+            (click)="closeChangePasswordModal()"
+            class="text-white/60 hover:text-white transition-colors p-1 hover:bg-white/10 rounded-lg"
+            [disabled]="isChangingPassword"
+          >
+            <lucide-icons [iconsName]="'x'" [color]="'white'" class="w-5 h-5"></lucide-icons>
+          </button>
+        </div>
+      </div>
+
+      <!-- Form -->
+      <div class="p-6 space-y-5">
+        <!-- User Info -->
+        <div class="bg-neutral-50 rounded-lg p-4 border border-neutral-200">
+          <div class="flex items-center gap-2 text-sm text-neutral-600">
+            <lucide-icons
+              [iconsName]="'user-round'"
+              [color]="'gray'"
+              class="w-4 h-4"
+            ></lucide-icons>
+            <span class="font-medium">Username:</span>
+            <span class="text-neutral-800 font-semibold">{{ dataCurrentUser?.username }}</span>
+          </div>
+        </div>
+
+        <!-- General Error Alert -->
+        <div
+          *ngIf="changePasswordErrors.general"
+          class="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3"
+        >
+          <lucide-icons
+            [iconsName]="'alert-circle'"
+            [color]="'red'"
+            class="w-5 h-5 flex-shrink-0 mt-0.5"
+          ></lucide-icons>
+          <div class="flex-1">
+            <p class="text-sm font-medium text-red-800">Error</p>
+            <p class="text-sm text-red-600">{{ changePasswordErrors.general }}</p>
+          </div>
+        </div>
+
+        <!-- New Username -->
+        <div class="space-y-2">
+          <label class="block text-sm font-medium text-neutral-700">
+            New Username <span class="text-red-500">(Optional)</span>
+          </label>
+          <div class="relative">
+            <input
+              id="newUsername"
+              type="text"
+              [(ngModel)]="changePasswordForm.newUsername"
+              [disabled]="isChangingPassword"
+              class="w-full px-4 py-3 pr-11 border rounded-lg focus:ring-2 focus:ring-neutral-500 focus:border-transparent transition-all"
+              [class.border-red-300]="changePasswordErrors.newUsername"
+              [class.border-neutral-300]="!changePasswordErrors.newUsername"
+              placeholder="Type New Username here ..."
+              (input)="changePasswordErrors.newUsername = ''"
+            />
+          </div>
+        </div>
+
+        <!-- Current Password -->
+        <div class="space-y-2">
+          <label class="block text-sm font-medium text-neutral-700">
+            Current Password <span class="text-red-500">*</span>
+          </label>
+          <div class="relative">
+            <input
+              id="currentPassword"
+              type="password"
+              [(ngModel)]="changePasswordForm.currentPassword"
+              [disabled]="isChangingPassword"
+              class="w-full px-4 py-3 pr-11 border rounded-lg focus:ring-2 focus:ring-neutral-500 focus:border-transparent transition-all"
+              [class.border-red-300]="changePasswordErrors.currentPassword"
+              [class.border-neutral-300]="!changePasswordErrors.currentPassword"
+              placeholder="Enter current password"
+              (input)="changePasswordErrors.currentPassword = ''"
+            />
+            <button
+              type="button"
+              (click)="togglePasswordVisibility('current')"
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
+              [disabled]="isChangingPassword"
+            >
+              <lucide-icons [iconsName]="'eye'" [color]="'gray'" class="w-5 h-5"></lucide-icons>
+            </button>
+          </div>
+          <p
+            *ngIf="changePasswordErrors.currentPassword"
+            class="text-sm text-red-600 flex items-center gap-1"
+          >
+            <lucide-icons
+              [iconsName]="'alert-circle'"
+              [color]="'red'"
+              class="w-4 h-4"
+            ></lucide-icons>
+            {{ changePasswordErrors.currentPassword }}
+          </p>
+        </div>
+
+        <!-- New Password -->
+        <div class="space-y-2">
+          <label class="block text-sm font-medium text-neutral-700">
+            New Password <span class="text-red-500">*</span>
+          </label>
+          <div class="relative">
+            <input
+              id="newPassword"
+              type="password"
+              [(ngModel)]="changePasswordForm.newPassword"
+              [disabled]="isChangingPassword"
+              class="w-full px-4 py-3 pr-11 border rounded-lg focus:ring-2 focus:ring-neutral-500 focus:border-transparent transition-all"
+              [class.border-red-300]="changePasswordErrors.newPassword"
+              [class.border-neutral-300]="!changePasswordErrors.newPassword"
+              placeholder="Enter new password"
+              (input)="changePasswordErrors.newPassword = ''"
+            />
+            <button
+              type="button"
+              (click)="togglePasswordVisibility('new')"
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
+              [disabled]="isChangingPassword"
+            >
+              <lucide-icons [iconsName]="'eye'" [color]="'gray'" class="w-5 h-5"></lucide-icons>
+            </button>
+          </div>
+        </div>
+
+        <!-- Confirm Password -->
+        <div class="space-y-2">
+          <label class="block text-sm font-medium text-neutral-700">
+            Confirm New Password <span class="text-red-500">*</span>
+          </label>
+          <div class="relative">
+            <input
+              id="confirmPassword"
+              type="password"
+              [(ngModel)]="changePasswordForm.confirmPassword"
+              [disabled]="isChangingPassword"
+              class="w-full px-4 py-3 pr-11 border rounded-lg focus:ring-2 focus:ring-neutral-500 focus:border-transparent transition-all"
+              [class.border-red-300]="changePasswordErrors.confirmPassword"
+              [class.border-neutral-300]="!changePasswordErrors.confirmPassword"
+              placeholder="Re-enter new password"
+              (input)="changePasswordErrors.confirmPassword = ''"
+            />
+            <button
+              type="button"
+              (click)="togglePasswordVisibility('confirm')"
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
+              [disabled]="isChangingPassword"
+            >
+              <lucide-icons [iconsName]="'eye'" [color]="'gray'" class="w-5 h-5"></lucide-icons>
+            </button>
+          </div>
+          <p
+            *ngIf="changePasswordErrors.confirmPassword"
+            class="text-sm text-red-600 flex items-center gap-1"
+          >
+            <lucide-icons
+              [iconsName]="'alert-circle'"
+              [color]="'red'"
+              class="w-4 h-4"
+            ></lucide-icons>
+            {{ changePasswordErrors.confirmPassword }}
+          </p>
+        </div>
+
+        <!-- Password Strength Indicator (Optional) -->
+        <div *ngIf="changePasswordForm.newPassword.length > 0" class="space-y-2">
+          <div class="flex items-center gap-2">
+            <div class="flex-1 h-2 bg-neutral-200 rounded-full overflow-hidden">
+              <div class="h-full transition-all duration-300"
+              [class.w-1/3]="changePasswordForm.newPassword.length < 6"
+              [class.w-2/3]="changePasswordForm.newPassword.length >= 6 &&
+              changePasswordForm.newPassword.length < 10"
+              [class.w-full]="changePasswordForm.newPassword.length >= 10"
+              [class.bg-red-500]="changePasswordForm.newPassword.length < 6"
+              [class.bg-yellow-500]="changePasswordForm.newPassword.length >= 6 &&
+              changePasswordForm.newPassword.length < 10"
+              [class.bg-green-500]="changePasswordForm.newPassword.length >= 10" >
+            </div>
+          </div>
+          <span
+            class="text-xs font-medium"
+            [class.text-red-600]="changePasswordForm.newPassword.length < 6"
+            [class.text-yellow-600]="
+              changePasswordForm.newPassword.length >= 6 &&
+              changePasswordForm.newPassword.length < 10
+            "
+            [class.text-green-600]="changePasswordForm.newPassword.length >= 10"
+          >
+            {{
+              changePasswordForm.newPassword.length < 6
+                ? 'Weak'
+                : changePasswordForm.newPassword.length < 10
+                ? 'Medium'
+                : 'Strong'
+            }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Warning Notice -->
+      <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 flex items-start gap-3">
+        <lucide-icons
+          [iconsName]="'alert-triangle'"
+          [color]="'orange'"
+          class="w-5 h-5 flex-shrink-0 mt-0.5"
+        ></lucide-icons>
+        <div class="flex-1">
+          <p class="text-sm font-medium text-yellow-800">Notice</p>
+          <p class="text-sm text-yellow-700">
+            After your password is successfully changed, you will be automatically logged out and
+            need to login again with your new password.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer Actions -->
+    <div class="px-6 pb-6 flex flex-col sm:flex-row gap-3">
+      <button
+        (click)="closeChangePasswordModal()"
+        [disabled]="isChangingPassword"
+        class="flex-1 px-5 py-3 rounded-lg border-2 border-neutral-300 text-neutral-700 font-semibold hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 transition-all flex items-center justify-center gap-2"
+      >
+        <lucide-icons [iconsName]="'x'" [color]="'gray'" class="w-5 h-5"></lucide-icons>
+        Cancel
+      </button>
+      <button
+        (click)="submitChangePassword()"
+        [disabled]="isChangingPassword"
+        class="flex-1 px-5 py-3 rounded-lg bg-neutral-800 text-white font-semibold hover:bg-neutral-900 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 transition-all flex items-center justify-center gap-2"
+      >
+        <lucide-icons
+          *ngIf="!isChangingPassword"
+          [iconsName]="'check'"
+          [color]="'white'"
+          class="w-5 h-5"
+        ></lucide-icons>
+        <div
+          *ngIf="isChangingPassword"
+          class="animate-spin rounded-full h-5 w-5 border-b-2 border-white"
+        ></div>
+        {{ isChangingPassword ? 'Changing...' : 'Change Password' }}
+      </button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,137 @@
+<!-- src/app/admin/components/print-slip/print-slip.component.html -->
+
+<div class="print-container" *ngIf="data">
+  <div class="print-slip">
+    <!-- Header -->
+    <div class="header">
+      <h1>PT AGRO DELI SERDANG</h1>
+      <p class="subtitle">Dusun VII, Dalu Sepuluh-A</p>
+    </div>
+
+    <!-- Divider -->
+    <div class="divider"></div>
+
+    <!-- Info Section -->
+    <div class="info-section">
+      <div class="info-row">
+        <span class="label">No. Tiket</span>
+        <span class="value">: {{ data.noTiket }}</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Tgl/ Jam Masuk</span>
+        <span class="value">: {{ formatDateTime(data.timestamp) }}</span>
+      </div>
+      <div class="info-row" *ngIf="data.statusTimbangan === 'selesai'">
+        <span class="label">Tgl/ Jam Keluar</span>
+        <span class="value">: {{ formatDateTime(currentDateTime) }}</span>
+      </div>
+    </div>
+
+    <div class="divider-thin"></div>
+
+    <!-- Detail Section -->
+    <div class="detail-section">
+      <div class="info-row">
+        <span class="label">No. Kendaraan</span>
+        <span class="value">: {{ data.noKendaraan }}</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Nama Customer</span>
+        <span class="value">: {{ data.namaRelasi }}</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Nama Barang</span>
+        <span class="value">: {{ data.namaBarang }}</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Nama Supir</span>
+        <span class="value">: {{ data.namaSupir }}</span>
+      </div>
+      <div class="info-row" *ngIf="data.hasilUjiKelembapan">
+        <span class="label">No. Referensi</span>
+        <span class="value">: UJI-{{ data.id.slice(-6) }}</span>
+      </div>
+    </div>
+
+    <div class="divider-thin"></div>
+
+    <!-- Weight Section -->
+    <div class="weight-section">
+      <div class="weight-row">
+        <span class="weight-label">Berat Bruto</span>
+        <span class="weight-separator">:</span>
+        <span class="weight-value">{{ data.timbanganPertama }}</span>
+        <span class="weight-unit">kg</span>
+      </div>
+      <div class="weight-row">
+        <span class="weight-label">Berat Tarra</span>
+        <span class="weight-separator">:</span>
+        <span class="weight-value">{{ data.timbanganKedua || 0 }}</span>
+        <span class="weight-unit">kg</span>
+      </div>
+      <div class="weight-row" *ngIf="beratPotongan > 0">
+        <span class="weight-label">Berat Pot.</span>
+        <span class="weight-separator">:</span>
+        <span class="weight-value">{{ beratPotongan.toFixed(0) }}</span>
+        <span class="weight-unit">kg</span>
+      </div>
+      <div class="weight-row weight-row-total">
+        <span class="weight-label">Berat Netto</span>
+        <span class="weight-separator">:</span>
+        <span class="weight-value">{{ data.beratNetto || 0 }}</span>
+        <span class="weight-unit">kg</span>
+      </div>
+    </div>
+
+    <div class="divider-thin"></div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <div class="signature">
+        <span>Ditimbang :</span>
+        <div class="signature-space">{{ data.namaPenimbang }}</div>
+      </div>
+      <div class="signature">
+        <span>DiKetahui :</span>
+        <div class="signature-space"></div>
+      </div>
+    </div>
+
+    <!-- Company Label -->
+    <div class="company-label">
+      <span>( ADS )</span>
+      <span>( )</span>
+    </div>
+
+    <!-- Barcode -->
+    <div class="barcode-section">
+      <svg class="barcode" viewBox="0 0 200 40">
+        <rect x="0" y="0" width="3" height="40" fill="black" />
+        <rect x="5" y="0" width="2" height="40" fill="black" />
+        <rect x="9" y="0" width="4" height="40" fill="black" />
+        <rect x="15" y="0" width="2" height="40" fill="black" />
+        <rect x="19" y="0" width="3" height="40" fill="black" />
+        <rect x="24" y="0" width="2" height="40" fill="black" />
+        <rect x="28" y="0" width="4" height="40" fill="black" />
+        <rect x="34" y="0" width="2" height="40" fill="black" />
+        <rect x="38" y="0" width="3" height="40" fill="black" />
+        <rect x="43" y="0" width="2" height="40" fill="black" />
+        <rect x="47" y="0" width="4" height="40" fill="black" />
+        <rect x="53" y="0" width="2" height="40" fill="black" />
+      </svg>
+      <div class="barcode-text">{{ data.noTiket.replace(/\D/g, '') }}</div>
+    </div>
+  </div>
+
+  <!-- Print Button (Hidden when printing) -->
+  <div class="print-actions no-print">
+    <button class="btn-print" (click)="print()">🖨️ Print Slip</button>
+    <button class="btn-close" (click)="close()">✕ Tutup</button>
+  </div>
+</div>
+
+<div class="not-found" *ngIf="notFound">
+  <h2>Data tidak ditemukan</h2>
+  <p>Data timbangan dengan ID tersebut tidak ditemukan.</p>
+  <button class="btn-close" (click)="close()">Tutup</button>
+</div>

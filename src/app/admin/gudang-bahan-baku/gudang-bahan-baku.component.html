@@ -1,0 +1,36 @@
+<div class="min-h-screen bg-neutral-50 flex flex-col items-center justify-center p-4 sm:p-6">
+  <!-- Header -->
+  <div class="mb-16 text-center">
+    <div class="flex justify-center items-center gap-3 sm:gap-4">
+      <img src="./LOGO_ADS.png" class="w-auto h-10 sm:h-12" alt="PT. Agro Deli Serdang" />
+      <div class="h-8 sm:h-10 w-px bg-neutral-300"></div>
+    </div>
+    <h1 class="text-2xl sm:text-3xl font-semibold text-neutral-800 tracking-tight my-3">
+      GUDANG BAHAN BAKU
+    </h1>
+  </div>
+
+  <!-- Grid Menu -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl w-full">
+    <!-- ITEM -->
+    <button
+      (click)="navigateTo('uji-kelembapan')"
+      class="group relative bg-white p-8 rounded-lg border border-neutral-200 hover:border-neutral-800 transition-all duration-300 text-left overflow-hidden"
+    >
+      <div
+        class="absolute top-0 left-0 w-1 h-full bg-neutral-800 transform scale-y-0 group-hover:scale-y-100 transition-transform duration-300 origin-top"
+      ></div>
+      <span
+        class="text-lg font-medium text-neutral-700 group-hover:text-neutral-900 transition-colors block"
+      >
+        Item
+      </span>
+      <span class="text-sm text-neutral-400 mt-1 block">GUDANG BAHAN BAKU</span>
+    </button>
+  </div>
+
+  <!-- Footer Info -->
+  <div class="mt-12 text-center text-sm text-neutral-400">
+    <p>Sistem Gudang Bahan Baku</p>
+  </div>
+</div>

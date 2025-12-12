@@ -1,0 +1,1557 @@
+<!-- src/app/admin/pages/timbangan-masuk/timbangan-masuk.component.html -->
+
+<div class="min-h-screen bg-neutral-50 p-4 sm:p-6">
+  <div class="max-w-6xl mx-auto">
+    <!-- Header with View Toggle -->
+    <div class="mb-8">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="flex justify-center items-center gap-3">
+            <img src="./LOGO_ADS.png" class="w-auto h-7" alt="PT. Agro Deli Serdang" />
+          </div>
+          <div class="w-16 h-1 bg-neutral-800 mt-4 rounded-full"></div>
+          <h1 class="text-xl font-medium text-neutral-800 mt-2">Halaman Timbangan Masuk</h1>
+        </div>
+
+        <!-- Toggle View Buttons -->
+        <div class="flex gap-2 bg-white rounded-lg border border-neutral-200 p-1">
+          <button
+            type="button"
+            (click)="switchView('form')"
+            [class]="
+              currentView() === 'form'
+                ? 'px-4 py-2 bg-neutral-800 text-white rounded-md transition-colors'
+                : 'px-4 py-2 text-neutral-600 hover:text-neutral-800 rounded-md transition-colors'
+            "
+          >
+            <span class="text-sm font-medium">INPUT TIMBANGAN PERTAMA</span>
+          </button>
+          <button
+            type="button"
+            (click)="switchView('list')"
+            [class]="
+              currentView() === 'list'
+                ? 'px-4 py-2 bg-neutral-800 text-white rounded-md transition-colors'
+                : 'px-4 py-2 text-neutral-600 hover:text-neutral-800 rounded-md transition-colors'
+            "
+          >
+            <span class="text-sm font-medium">
+              INPUT TIMBANGAN KEDUA
+              @if (filteredTimbanganList().length > 0) {
+                <span class="ml-1.5 px-1.5 py-0.5 text-xs bg-red-500 text-white rounded-full">
+                  {{ filteredTimbanganList().length }}
+                </span>
+              }
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form View -->
+    @if (currentView() === 'form') {
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-6">
+        <!-- Section: Informasi Tiket & Kendaraan -->
+        <div class="bg-white p-6 rounded-lg border border-neutral-200">
+          <h2 class="text-lg font-medium text-neutral-800 mb-4">Informasi Tiket & Kendaraan</h2>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Nomor Bon -->
+            <div>
+              <label class="block text-sm font-medium text-neutral-700 mb-1.5"> Nomor Bon </label>
+              <input
+                #noTiketInput
+                type="text"
+                formControlName="noTiket"
+                placeholder="TKT-001"
+                class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:border-transparent transition-all"
+                [class.border-red-500]="
+                  form.get('noTiket')?.invalid && form.get('noTiket')?.touched
+                "
+              />
+              @if (form.get('noTiket')?.invalid && form.get('noTiket')?.touched) {
+                <p class="mt-1 text-sm text-red-600">{{ getError('noTiket') }}</p>
+              }
+            </div>
+
+            <!-- Jenis Kendaraan -->
+            <div>
+              <label class="block text-sm font-medium text-neutral-700 mb-1.5">
+                Jenis Kendaraan
+              </label>
+              <select
+                formControlName="jenisKendaraan"
+                class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:border-transparent transition-all bg-white"
+                [class.border-red-500]="
+                  form.get('jenisKendaraan')?.invalid && form.get('jenisKendaraan')?.touched
+                "
+              >
+                <option value="" disabled selected>Pilih jenis kendaraan</option>
+                <option value="truck">Truck</option>
+                <option value="container">Container</option>
+              </select>
+              @if (form.get('jenisKendaraan')?.invalid && form.get('jenisKendaraan')?.touched) {
+                <p class="mt-1 text-sm text-red-600">{{ getError('jenisKendaraan') }}</p>
+              }
+            </div>
+
+            <!-- Nomor Kendaraan -->
+            <div>
+              <label class="block text-sm font-medium text-neutral-700 mb-1.5">
+                Nomor Kendaraan
+              </label>
+              <input
+                type="text"
+                formControlName="noKendaraan"
+                placeholder="BK 1234 GLO"
+                class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:border-transparent transition-all"
+                [class.border-red-500]="
+                  form.get('noKendaraan')?.invalid && form.get('noKendaraan')?.touched
+                "
+              />
+              <p class="mt-1 text-xs text-neutral-500">Format otomatis</p>
+              @if (form.get('noKendaraan')?.invalid && form.get('noKendaraan')?.touched) {
+                <p class="mt-1 text-sm text-red-600">{{ getError('noKendaraan') }}</p>
+              }
+            </div>
+
+            <!-- Nomor Container (hanya muncul jika jenis kendaraan = container) -->
+            @if (form.get('jenisKendaraan')?.value === 'container') {
+              <div>
+                <label class="block text-sm font-medium text-neutral-700 mb-1.5">
+                  Nomor Container
+                  <span class="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  formControlName="noContainer"
+                  placeholder="ABCU1234567"
+                  class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:border-transparent transition-all"
+                  [class.border-red-500]="
+                    form.get('noContainer')?.invalid && form.get('noContainer')?.touched
+                  "
+                />
+                <p class="mt-1 text-xs text-neutral-500">Masukkan nomor container</p>
+                @if (form.get('noContainer')?.invalid && form.get('noContainer')?.touched) {
+                  <p class="mt-1 text-sm text-red-600">{{ getError('noContainer') }}</p>
+                }
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Section: Tipe Bahan -->
+        <div class="bg-white p-6 rounded-lg border border-neutral-200">
+          <h2 class="text-lg font-medium text-neutral-800 mb-4">Kategori Bahan</h2>
+
+          <div>
+            <label class="block text-sm font-medium text-neutral-700 mb-1.5"> Tipe Bahan </label>
+            <select
+              formControlName="tipeBahan"
+              class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:border-transparent transition-all bg-white"
+              [class.border-red-500]="
+                form.get('tipeBahan')?.invalid && form.get('tipeBahan')?.touched
+              "
+            >
+              <option value="" disabled selected>Pilih tipe bahan</option>
+              <option *ngFor="let item of tipeBahanOptions" [value]="item.value">
+                {{ item.label }}
+              </option>
+            </select>
+            @if (form.get('tipeBahan')?.value === 'bahan-baku') {
+              <p class="mt-1 text-xs text-blue-600 flex items-center gap-1">
+                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fill-rule="evenodd"
+                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+                Data ini akan tersedia untuk uji kelembapan setelah Tara diinput
+              </p>
+            }
+            @if (form.get('tipeBahan')?.invalid && form.get('tipeBahan')?.touched) {
+              <p class="mt-1 text-sm text-red-600">{{ getError('tipeBahan') }}</p>
+            }
+          </div>
+        </div>
+
+        <!-- Section: Informasi Barang & Relasi -->
+        <div class="bg-white p-6 rounded-lg border border-neutral-200">
+          <h2 class="text-lg font-medium text-neutral-800 mb-4">Informasi Barang & Relasi</h2>
+
+          <div class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <!-- Nama Barang -->
+              <div>
+                <label class="block text-sm font-medium text-neutral-700 mb-1.5">
+                  Nama Barang
+                </label>
+                <select
+                  formControlName="namaBarang"
+                  class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:border-transparent transition-all bg-white"
+                  [class.border-red-500]="
+                    form.get('namaBarang')?.invalid && form.get('namaBarang')?.touched
+                  "
+                  [disabled]="!form.get('tipeBahan')?.value"
+                >
+                  <option value="" disabled selected>
+                    @if (!form.get('tipeBahan')?.value) {
+                      Pilih tipe bahan terlebih dahulu
+                    } @else {
+                      Pilih barang
+                    }
+                  </option>
+                  <option *ngFor="let item of currentBarangOptions()" [value]="item.value">
+                    {{ item.label }}
+                  </option>
+                </select>
+
+                <!-- Info helper text -->
+                @if (!form.get('tipeBahan')?.value) {
+                  <p class="mt-1 text-xs text-neutral-500">
+                    Pilih tipe bahan terlebih dahulu untuk melihat daftar barang
+                  </p>
+                }
+                @if (form.get('namaBarang')?.invalid && form.get('namaBarang')?.touched) {
+                  <p class="mt-1 text-sm text-red-600">{{ getError('namaBarang') }}</p>
+                }
+              </div>
+
+              <!-- Keterangan Tambahan (hanya muncul jika DAN LAIN-LAIN dipilih) -->
+              @if (
+                form.get('tipeBahan')?.value === 'lainnya' &&
+                form.get('namaBarang')?.value === 'DAN LAIN-LAIN'
+              ) {
+                <div class="md:col-span-2">
+                  <label class="block text-sm font-medium text-neutral-700 mb-1.5">
+                    Keterangan Barang
+                    <span class="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    formControlName="keteranganBarang"
+                    placeholder="Contoh: Plastik Kemasan, Kardus Bekas, dll"
+                    class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:border-transparent transition-all"
+                    [class.border-red-500]="
+                      form.get('keteranganBarang')?.invalid && form.get('keteranganBarang')?.touched
+                    "
+                  />
+                  <p class="mt-1 text-xs text-neutral-500">
+                    Jelaskan jenis barang yang akan ditimbang
+                  </p>
+                  @if (
+                    form.get('keteranganBarang')?.invalid && form.get('keteranganBarang')?.touched
+                  ) {
+                    <p class="mt-1 text-sm text-red-600">{{ getError('keteranganBarang') }}</p>
+                  }
+                </div>
+              }
+
+              <!-- Nama Relasi -->
+              <div>
+                <label class="block text-sm font-medium text-neutral-700 mb-1.5">
+                  Nama Customer/Supplier
+                </label>
+
+                <!-- ✅ Tambahkan event listener (customerSelected) -->
+                <app-customer-dropdown
+                  formControlName="namaRelasi"
+                  (customerSelected)="onCustomerSelected($event)"
+                  [class.border-red-500]="
+                    form.get('namaRelasi')?.invalid && form.get('namaRelasi')?.touched
+                  "
+                ></app-customer-dropdown>
+
+                @if (form.get('namaRelasi')?.invalid && form.get('namaRelasi')?.touched) {
+                  <p class="mt-1 text-sm text-red-600">{{ getError('namaRelasi') }}</p>
+                }
+
+                <!-- ✅ DEBUG: Tampilkan jenis relasi yang dipilih (opsional, bisa dihapus) -->
+                @if (form.get('jenisRelasi')?.value) {
+                  <p class="mt-1 text-xs text-neutral-500">
+                    Dipilih sebagai:
+                    <span class="font-semibold">
+                      {{ form.get('jenisRelasi')?.value === 'customer' ? 'Customer' : 'Supplier' }}
+                    </span>
+                  </p>
+                }
+              </div>
+            </div>
+
+            <!-- Nama Supir -->
+            <div>
+              <label class="block text-sm font-medium text-neutral-700 mb-1.5">
+                Nama Supir <span class="text-blue-500">(opsional)</span>
+              </label>
+              <input
+                type="text"
+                formControlName="namaSupir"
+                placeholder="Nama supir kendaraan"
+                class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:border-transparent transition-all"
+              />
+              <!-- @if (form.get('namaSupir')?.invalid && form.get('namaSupir')?.touched) {
+              <p class="mt-1 text-sm text-red-600">{{ getError('namaSupir') }}</p>
+              } -->
+              <!-- [class.border-red-500]="
+                form.get('namaSupir')?.invalid && form.get('namaSupir')?.touched
+              " -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Section: Data Penimbangan dengan Timbangan Digital -->
+        <div class="bg-white p-6 rounded-lg border border-neutral-200">
+          <h2 class="text-lg font-medium text-neutral-800 mb-4">Data Penimbangan Awal</h2>
+
+          <div class="space-y-4">
+            <!-- Info Banner -->
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div class="flex items-start gap-3">
+                <svg class="w-5 h-5 text-blue-600 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fill-rule="evenodd"
+                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+                <div class="flex-1">
+                  <p class="text-sm font-medium text-blue-900">
+                    Input timbangan pertama dari Timbangan Digital
+                  </p>
+                  <p class="text-xs text-blue-700 mt-1">
+                    Hubungkan timbangan terlebih dahulu, lalu ambil berat saat truk + muatan berada
+                    di atas timbangan
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Connection Status -->
+            <div class="border border-neutral-200 rounded-lg p-4 bg-neutral-50">
+              <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-2">
+                  <span class="text-sm font-medium text-neutral-700">Status Timbangan:</span>
+                  @if (scaleConnected()) {
+                    <span
+                      class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded-full"
+                    >
+                      <span class="w-2 h-2 bg-green-600 rounded-full animate-pulse"></span>
+                      Terhubung
+                    </span>
+                  } @else {
+                    <span
+                      class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-red-100 text-red-800 text-xs font-semibold rounded-full"
+                    >
+                      <span class="w-2 h-2 bg-red-600 rounded-full"></span>
+                      Terputus
+                    </span>
+                  }
+                </div>
+
+                <!-- Connect/Disconnect Button -->
+                @if (!scaleConnected()) {
+                  <button
+                    type="button"
+                    (click)="connectScale()"
+                    class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                  >
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M13 10V3L4 14h7v7l9-11h-7z"
+                      />
+                    </svg>
+                    Hubungkan Timbangan
+                  </button>
+                } @else {
+                  <button
+                    type="button"
+                    (click)="disconnectScale()"
+                    class="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors"
+                  >
+                    Putus Koneksi
+                  </button>
+                }
+              </div>
+
+              <!-- Error Message -->
+              @if (scaleError()) {
+                <div class="bg-red-50 border border-red-200 rounded-lg p-3">
+                  <p class="text-sm text-red-800">
+                    <span class="font-semibold">Error:</span> {{ scaleError() }}
+                  </p>
+                </div>
+              }
+
+              <!-- Live Weight Display -->
+              @if (scaleConnected()) {
+                <div class="mt-4 bg-white border-2 border-neutral-300 rounded-lg p-6">
+                  <div class="text-center">
+                    <p class="text-sm text-neutral-600 mb-2">Berat Real-Time</p>
+                    <div class="flex items-center justify-center gap-3">
+                      <span class="text-5xl font-bold text-neutral-900 font-mono">
+                        {{ currentWeight() !== null ? currentWeight() : '---' }}
+                      </span>
+                      <span class="text-2xl font-medium text-neutral-600">kg</span>
+                    </div>
+
+                    <!-- Stability Indicator -->
+                    <div class="mt-3 flex items-center justify-center gap-2">
+                      @if (weightStable()) {
+                        <span
+                          class="inline-flex items-center gap-1.5 px-3 py-1 bg-green-100 text-green-800 text-sm font-semibold rounded-full"
+                        >
+                          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path
+                              fill-rule="evenodd"
+                              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                              clip-rule="evenodd"
+                            />
+                          </svg>
+                          Stabil
+                        </span>
+                      } @else {
+                        <span
+                          class="inline-flex items-center gap-1.5 px-3 py-1 bg-yellow-100 text-yellow-800 text-sm font-semibold rounded-full"
+                        >
+                          <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                            <circle
+                              class="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              stroke-width="4"
+                            ></circle>
+                            <path
+                              class="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                            ></path>
+                          </svg>
+                          Menunggu Stabil...
+                        </span>
+                      }
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+
+            <!-- Weight Input Field with Capture Button -->
+            <div class="grid grid-cols-1 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-neutral-700 mb-1.5">
+                  Timbangan Pertama (kg)
+                </label>
+                <div class="relative">
+                  <div class="flex justify-center items-center gap-3">
+                    <input
+                      type="number"
+                      formControlName="timbanganPertama"
+                      placeholder="0"
+                      readonly
+                      class="w-1/2 px-3 py-2 pr-10 border border-neutral-300 rounded-lg bg-neutral-50 text-neutral-900 font-medium cursor-not-allowed"
+                      [class.border-red-500]="
+                        form.get('timbanganPertama')?.invalid &&
+                        form.get('timbanganPertama')?.touched
+                      "
+                    />
+                    <div class="flex items-end w-1/2">
+                      <button
+                        type="button"
+                        (click)="captureWeightForBruto()"
+                        [disabled]="!scaleConnected() || !weightStable()"
+                        class="w-full px-4 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 disabled:bg-neutral-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                      >
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
+                        @if (!scaleConnected()) {
+                          <span>Hubungkan Timbangan</span>
+                        } @else if (!weightStable()) {
+                          <span>Tunggu Stabil...</span>
+                        } @else {
+                          <span>Ambil Berat Bruto</span>
+                        }
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <p class="mt-1 text-xs text-neutral-500">Berat otomatis dari timbangan</p>
+                @if (
+                  form.get('timbanganPertama')?.invalid && form.get('timbanganPertama')?.touched
+                ) {
+                  <p class="mt-1 text-sm text-red-600">{{ getError('timbanganPertama') }}</p>
+                }
+              </div>
+            </div>
+
+            <!-- Instructions -->
+            @if (scaleConnected()) {
+              <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                <div class="flex items-start gap-3">
+                  <svg
+                    class="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                      clip-rule="evenodd"
+                    />
+                  </svg>
+                  <div class="flex-1">
+                    <p class="text-sm font-medium text-green-900">Cara Penggunaan:</p>
+                    <ol class="mt-1 text-xs text-green-800 space-y-1 list-decimal list-inside">
+                      <li>Pastikan truk + muatan berada di atas timbangan</li>
+                      <li>Tunggu hingga indikator menunjukkan "Stabil"</li>
+                      <li>Klik tombol "Ambil Berat Bruto" untuk menyimpan nilai</li>
+                    </ol>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Section: Petugas -->
+        <!-- Section: Petugas -->
+        <div class="bg-white p-6 rounded-lg border border-neutral-200">
+          <h2 class="text-lg font-medium text-neutral-800 mb-4">Petugas Penimbang</h2>
+
+          <div>
+            <label class="block text-sm font-medium text-neutral-700 mb-1.5">
+              Nama Penimbang
+            </label>
+
+            @if (isLoadingProfile()) {
+              <!-- Loading State -->
+              <div
+                class="w-full px-3 py-2 border border-neutral-300 rounded-lg bg-neutral-50 animate-pulse"
+              >
+                <div class="h-5 bg-neutral-200 rounded"></div>
+              </div>
+              <p class="mt-1 text-xs text-neutral-500">Memuat data pengguna...</p>
+            } @else {
+              <!-- Loaded State -->
+              <div class="relative">
+                <input
+                  type="text"
+                  formControlName="namaPenimbang"
+                  readonly
+                  class="w-full px-3 py-2 pr-10 border border-neutral-300 rounded-lg bg-neutral-50 text-neutral-900 font-medium cursor-not-allowed focus:outline-none"
+                />
+                <!-- Icon locked -->
+                <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                  <svg
+                    class="w-5 h-5 text-neutral-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                    />
+                  </svg>
+                </div>
+              </div>
+              <p class="mt-1 text-xs text-neutral-500 flex items-center gap-1">
+                <svg class="w-3.5 h-3.5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fill-rule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+                Nama otomatis dari akun yang login
+              </p>
+            }
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex flex-col sm:flex-row gap-3 pt-2">
+          <button
+            type="submit"
+            [disabled]="form.invalid || isSubmitting()"
+            class="flex-1 px-6 py-3 bg-neutral-800 text-white rounded-lg font-medium hover:bg-neutral-900 disabled:bg-neutral-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+          >
+            @if (isSubmitting()) {
+              <svg
+                class="animate-spin h-5 w-5 text-white"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  class="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  stroke-width="4"
+                ></circle>
+                <path
+                  class="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
+              </svg>
+              <span>Menyimpan...</span>
+            } @else {
+              <span>Simpan</span>
+            }
+          </button>
+
+          <button
+            type="button"
+            [disabled]="isSubmitting()"
+            (click)="onReset()"
+            class="flex-1 px-6 py-3 bg-white text-neutral-800 border border-neutral-300 rounded-lg font-medium hover:bg-neutral-50 disabled:bg-neutral-100 disabled:cursor-not-allowed transition-colors"
+          >
+            Reset
+          </button>
+        </div>
+
+        <!-- Form Status -->
+        @if (form.invalid && form.touched) {
+          <div class="text-center text-sm text-neutral-500">
+            Lengkapi semua field yang wajib diisi
+          </div>
+        }
+      </form>
+    }
+
+    <!-- List View -->
+    @if (currentView() === 'list') {
+      <div class="bg-white rounded-lg border border-neutral-200 p-6">
+        <div class="mb-6">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h2 class="text-2xl font-bold text-neutral-900">List Data Untuk Timbangan Kedua</h2>
+              <p class="text-sm text-neutral-600 mt-1">
+                Data yang sudah melalui timbangan pertama, menunggu inputan kedua
+              </p>
+            </div>
+            <div class="flex items-center gap-3">
+              <!-- ANCHOR Refresh Button -->
+              <button
+                type="button"
+                (click)="refreshList()"
+                class="px-4 py-2 bg-white border border-neutral-300 rounded-lg text-sm font-medium text-neutral-700 hover:bg-neutral-50 transition-colors flex items-center gap-2"
+              >
+                <lucide-icons [iconsName]="'refresh-cw'" [color]="'gray'" class="gray" />
+                Refresh
+              </button>
+
+              <!-- ANCHOR History and print -->
+              <button
+                type="button"
+                (click)="openHistoryModal()"
+                class="px-4 py-2 bg-white border border-neutral-300 rounded-lg text-sm font-medium text-neutral-700 hover:bg-neutral-50 transition-colors flex items-center gap-2"
+              >
+                <lucide-icons [iconsName]="'printer'" [color]="'gray'" />
+                History & Print
+              </button>
+
+              <div class="text-sm text-neutral-600">
+                Total:
+                <span class="font-semibold text-neutral-900">{{
+                  filteredTimbanganList().length
+                }}</span>
+                @if (searchQuery()) {
+                  dari {{ timbanganMasukList().length }}
+                }
+                data
+              </div>
+            </div>
+          </div>
+
+          <!-- Search Box -->
+          <div class="relative">
+            <input
+              type="text"
+              [value]="searchQuery()"
+              (input)="onSearchChange($any($event.target).value)"
+              placeholder="Cari berdasarkan Nomor Bon atau No Kendaraan..."
+              class="w-full pl-10 pr-4 py-2.5 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:border-transparent transition-all"
+            />
+            <svg
+              class="absolute left-3 top-3 w-5 h-5 text-neutral-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+            @if (searchQuery()) {
+              <button
+                (click)="onSearchChange('')"
+                class="absolute right-3 top-3 text-neutral-400 hover:text-neutral-600"
+              >
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            }
+          </div>
+        </div>
+
+        <!-- Empty State -->
+        @if (filteredTimbanganList().length === 0) {
+          <div class="text-center py-12">
+            <svg
+              class="mx-auto h-12 w-12 text-neutral-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
+            </svg>
+            <h3 class="mt-2 text-sm font-medium text-neutral-900">Tidak ada data</h3>
+            <p class="mt-1 text-sm text-neutral-500">
+              @if (searchQuery()) {
+                Tidak ada data yang sesuai dengan pencarian "{{ searchQuery() }}"
+              } @else {
+                Semua data sudah diinput Tara
+              }
+            </p>
+          </div>
+        }
+
+        <!-- List Table -->
+        @if (filteredTimbanganList().length > 0) {
+          <div class="overflow-x-auto">
+            <table class="w-full">
+              <thead class="bg-neutral-50 border-b border-neutral-200">
+                <tr>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase">
+                    Nomor Bon
+                  </th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase">
+                    No Kendaraan
+                  </th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase">
+                    Tipe Bahan
+                  </th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase">
+                    Nama Barang
+                  </th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase">
+                    Supplier/Customer
+                  </th>
+                  <th class="px-4 py-3 text-right text-xs font-medium text-neutral-500 uppercase">
+                    Bruto (kg)
+                  </th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase">
+                    Waktu Masuk
+                  </th>
+                  <th class="px-4 py-3 text-center text-xs font-medium text-neutral-500 uppercase">
+                    Aksi
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-neutral-200">
+                <tr
+                  *ngFor="let item of filteredTimbanganList()"
+                  class="hover:bg-neutral-50 transition-colors"
+                >
+                  <td class="px-4 py-3 text-sm font-medium text-neutral-900">{{ item.noTiket }}</td>
+                  <td class="px-4 py-3 text-sm text-neutral-700">{{ item.noKendaraan }}</td>
+                  <td class="px-4 py-3 text-sm">
+                    <span
+                      [class]="
+                        item.tipeBahan === 'bahan-baku'
+                          ? 'inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800'
+                          : 'inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800'
+                      "
+                    >
+                      {{ item.tipeBahan === 'bahan-baku' ? 'Bahan Baku' : 'Lainnya' }}
+                    </span>
+                  </td>
+                  <td class="px-4 py-3 text-sm text-neutral-700">{{ item.namaBarang }}</td>
+                  <td class="px-4 py-3 text-sm text-neutral-700">{{ item.namaRelasi }}</td>
+                  <td class="px-4 py-3 text-sm text-neutral-900 text-right font-medium">
+                    {{ item.timbanganPertama }}
+                  </td>
+                  <td class="px-4 py-3 text-sm text-neutral-600">
+                    {{ formatDate(item.timestamp) }}
+                  </td>
+                  <td class="px-4 py-3 text-center">
+                    <div class="flex items-center justify-center gap-2">
+                      <button
+                        (click)="openTaraModal(item)"
+                        class="flex justify-center items-center"
+                        title="Inputan kedua"
+                      >
+                        <lucide-icons [iconsName]="'square-plus'" [color]="'#00c950'" />
+                      </button>
+                      <!-- <button
+                    (click)="deleteData(item)"
+                    class="inline-flex items-center px-3 py-1.5 bg-red-600 text-white text-sm font-medium rounded hover:bg-red-700 transition-colors"
+                  >
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                      />
+                    </svg>
+                  </button> -->
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>
+
+<!-- Tara Input Modal dengan Timbangan Digital -->
+@if (showTaraModal() && selectedForTara()) {
+  <div class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div class="p-6">
+        <h3 class="text-lg font-semibold text-neutral-900 mb-4">Input Tara (Berat Kosong)</h3>
+
+        <!-- Info -->
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+          <p class="text-sm text-blue-900 font-medium">
+            {{ selectedForTara()!.noTiket }} - {{ selectedForTara()!.noKendaraan }}
+          </p>
+          <p class="text-sm text-blue-700 mt-1">
+            Bruto: <span class="font-semibold">{{ selectedForTara()!.timbanganPertama }} kg</span>
+          </p>
+        </div>
+
+        <!-- Form -->
+        <form [formGroup]="taraForm" (ngSubmit)="submitTara()">
+          <!-- Connection Status Section -->
+          <div class="border border-neutral-200 rounded-lg p-4 bg-neutral-50 mb-4">
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center gap-2">
+                <span class="text-sm font-medium text-neutral-700">Status Timbangan:</span>
+                @if (scaleConnected()) {
+                  <span
+                    class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded-full"
+                  >
+                    <span class="w-2 h-2 bg-green-600 rounded-full animate-pulse"></span>
+                    Terhubung
+                  </span>
+                } @else {
+                  <span
+                    class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-red-100 text-red-800 text-xs font-semibold rounded-full"
+                  >
+                    <span class="w-2 h-2 bg-red-600 rounded-full"></span>
+                    Terputus
+                  </span>
+                }
+              </div>
+
+              <!-- Connect/Disconnect Button -->
+              @if (!scaleConnected()) {
+                <button
+                  type="button"
+                  (click)="connectScale()"
+                  class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                >
+                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M13 10V3L4 14h7v7l9-11h-7z"
+                    />
+                  </svg>
+                  Hubungkan Timbangan
+                </button>
+              } @else {
+                <button
+                  type="button"
+                  (click)="disconnectScale()"
+                  class="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors"
+                >
+                  Putus Koneksi
+                </button>
+              }
+            </div>
+
+            <!-- Error Message -->
+            @if (scaleError()) {
+              <div class="bg-red-50 border border-red-200 rounded-lg p-3">
+                <p class="text-sm text-red-800">
+                  <span class="font-semibold">Error:</span> {{ scaleError() }}
+                </p>
+              </div>
+            }
+
+            <!-- Live Weight Display -->
+            @if (scaleConnected()) {
+              <div class="mt-4 bg-white border-2 border-neutral-300 rounded-lg p-6">
+                <div class="text-center">
+                  <p class="text-sm text-neutral-600 mb-2">Berat Real-Time</p>
+                  <div class="flex items-center justify-center gap-3">
+                    <span class="text-5xl font-bold text-neutral-900 font-mono">
+                      {{ currentWeight() !== null ? currentWeight() : '---' }}
+                    </span>
+                    <span class="text-2xl font-medium text-neutral-600">kg</span>
+                  </div>
+
+                  <!-- Stability Indicator -->
+                  <div class="mt-3 flex items-center justify-center gap-2">
+                    @if (weightStable()) {
+                      <span
+                        class="inline-flex items-center gap-1.5 px-3 py-1 bg-green-100 text-green-800 text-sm font-semibold rounded-full"
+                      >
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                          <path
+                            fill-rule="evenodd"
+                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                            clip-rule="evenodd"
+                          />
+                        </svg>
+                        Stabil
+                      </span>
+                    } @else {
+                      <span
+                        class="inline-flex items-center gap-1.5 px-3 py-1 bg-yellow-100 text-yellow-800 text-sm font-semibold rounded-full"
+                      >
+                        <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                          <circle
+                            class="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            stroke-width="4"
+                          ></circle>
+                          <path
+                            class="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
+                        </svg>
+                        Menunggu Stabil...
+                      </span>
+                    }
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+
+          <!-- Weight Input Field with Capture Button -->
+          <div class="mb-6">
+            <label class="block text-sm font-medium text-neutral-700 mb-1.5">
+              Tara / Berat Kosong (kg)
+            </label>
+
+            <div class="flex gap-3">
+              <input
+                type="number"
+                formControlName="timbanganKedua"
+                placeholder="0"
+                readonly
+                class="w-1/2 px-3 py-2 border border-neutral-300 rounded-lg bg-neutral-50 text-neutral-900 font-medium cursor-not-allowed"
+                [class.border-red-500]="
+                  taraForm.get('timbanganKedua')?.invalid && taraForm.get('timbanganKedua')?.touched
+                "
+              />
+
+              <button
+                type="button"
+                (click)="captureWeightForTara()"
+                [disabled]="!scaleConnected() || !weightStable()"
+                class="w-1/2 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 disabled:bg-neutral-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+              >
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                @if (!scaleConnected()) {
+                  <span>Hubungkan Timbangan</span>
+                } @else if (!weightStable()) {
+                  <span>Tunggu Stabil...</span>
+                } @else {
+                  <span>Ambil Berat Tara</span>
+                }
+              </button>
+            </div>
+
+            <p class="mt-1 text-xs text-neutral-500">
+              Berat truk kosong (setelah bahan diturunkan)
+            </p>
+            @if (
+              taraForm.get('timbanganKedua')?.invalid && taraForm.get('timbanganKedua')?.touched
+            ) {
+              <p class="mt-1 text-sm text-red-600">{{ getError('timbanganKedua', taraForm) }}</p>
+            }
+          </div>
+
+          <!-- Instructions -->
+          @if (scaleConnected()) {
+            <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+              <div class="flex items-start gap-3">
+                <svg
+                  class="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+                <div class="flex-1">
+                  <p class="text-sm font-medium text-green-900">Cara Penggunaan:</p>
+                  <ol class="mt-1 text-xs text-green-800 space-y-1 list-decimal list-inside">
+                    <li>Pastikan truk kosong (tanpa muatan) berada di atas timbangan</li>
+                    <li>Tunggu hingga indikator menunjukkan "Stabil"</li>
+                    <li>Klik tombol "Ambil Berat Tara" untuk menyimpan nilai</li>
+                  </ol>
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- Calculation Preview -->
+          @if (taraForm.get('timbanganKedua')?.value) {
+            <div class="bg-neutral-50 border border-neutral-200 rounded-lg p-3 mb-6">
+              <div class="text-sm text-neutral-600">
+                <div class="flex justify-between mb-1">
+                  <span>Timbangan Pertama (Bruto):</span>
+                  <span class="font-medium">{{ selectedForTara()!.timbanganPertama }} kg</span>
+                </div>
+                <div class="flex justify-between mb-1">
+                  <span>Timbangan Kedua (Tara):</span>
+                  <span class="font-medium">{{ taraForm.get('timbanganKedua')?.value }} kg</span>
+                </div>
+                <div class="border-t border-neutral-300 pt-1 mt-1 flex justify-between">
+                  <span class="font-semibold">Netto:</span>
+                  <span class="font-semibold text-neutral-900">
+                    {{
+                      selectedForTara()!.timbanganPertama - taraForm.get('timbanganKedua')?.value
+                    }}
+                    kg
+                  </span>
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- Buttons -->
+          <div class="flex gap-3">
+            <button
+              type="submit"
+              [disabled]="taraForm.invalid || isSubmitting()"
+              class="flex-1 px-4 py-2 bg-neutral-800 text-white rounded-lg font-medium hover:bg-neutral-900 disabled:bg-neutral-300 disabled:cursor-not-allowed transition-colors"
+            >
+              @if (isSubmitting()) {
+                <span class="flex items-center justify-center gap-2">
+                  <svg
+                    class="animate-spin h-5 w-5 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      class="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      stroke-width="4"
+                    ></circle>
+                    <path
+                      class="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  Menyimpan...
+                </span>
+              } @else {
+                <span>Simpan</span>
+              }
+            </button>
+            <button
+              type="button"
+              (click)="closeTaraModal()"
+              [disabled]="isSubmitting()"
+              class="flex-1 px-4 py-2 bg-white text-neutral-800 border border-neutral-300 rounded-lg font-medium hover:bg-neutral-50 disabled:bg-neutral-100 disabled:cursor-not-allowed transition-colors"
+            >
+              Batal
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Notification Modal -->
+@if (showModal() && modalConfig()) {
+  <div
+    class="fixed inset-0 bg-black bg-opacity-50 z-[60] flex items-center justify-center p-4 animate-fadeIn"
+  >
+    <div class="bg-white rounded-lg shadow-2xl max-w-md w-full animate-slideUp">
+      <!-- Header -->
+      <div class="p-6 border-b border-neutral-200">
+        <div class="flex items-start gap-4">
+          <!-- Icon -->
+          <div class="flex-shrink-0">
+            @if (modalConfig()!.type === 'success') {
+              <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+                <svg
+                  class="w-6 h-6 text-green-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+              </div>
+            } @else if (modalConfig()!.type === 'warning') {
+              <div class="w-12 h-12 rounded-full bg-yellow-100 flex items-center justify-center">
+                <svg
+                  class="w-6 h-6 text-yellow-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                  />
+                </svg>
+              </div>
+            } @else if (modalConfig()!.type === 'error') {
+              <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                <svg
+                  class="w-6 h-6 text-red-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </div>
+            } @else if (modalConfig()!.type === 'confirm') {
+              <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                <svg
+                  class="w-6 h-6 text-blue-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
+            } @else {
+              <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                <svg
+                  class="w-6 h-6 text-blue-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
+            }
+          </div>
+
+          <!-- Title & Message -->
+          <div class="flex-1">
+            <h3 class="text-lg font-semibold text-neutral-900">
+              {{ modalConfig()!.title }}
+            </h3>
+            <p class="text-sm text-neutral-600 mt-1">
+              {{ modalConfig()!.message }}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Content -->
+      <div class="p-6">
+        <!-- Details -->
+        @if (modalConfig()!.details && modalConfig()!.details!.length > 0) {
+          <div class="bg-neutral-50 rounded-lg p-4 mb-4">
+            <div class="space-y-2">
+              @for (detail of modalConfig()!.details; track $index) {
+                <div class="flex justify-between text-sm">
+                  <span class="text-neutral-600">{{ detail.label }}:</span>
+                  <span class="font-medium text-neutral-900">{{ detail.value }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- Steps -->
+        @if (modalConfig()!.steps && modalConfig()!.steps!.length > 0) {
+          <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+            <p class="text-sm font-medium text-blue-900 mb-2">Langkah Selanjutnya:</p>
+            <ol class="space-y-1.5">
+              @for (step of modalConfig()!.steps; track $index) {
+                <li class="text-sm text-blue-800 flex items-start gap-2">
+                  <span class="font-semibold mt-0.5">{{ $index + 1 }}.</span>
+                  <span>{{ step }}</span>
+                </li>
+              }
+            </ol>
+          </div>
+        }
+
+        <!-- Buttons -->
+        <div class="flex gap-3">
+          @if (modalConfig()!.showCancel) {
+            <button
+              (click)="handleModalCancel()"
+              class="flex-1 px-4 py-2.5 bg-white text-neutral-700 border border-neutral-300 rounded-lg font-medium hover:bg-neutral-50 transition-colors"
+            >
+              {{ modalConfig()!.cancelText || 'Batal' }}
+            </button>
+            <button
+              (click)="handleModalConfirm()"
+              class="flex-1 px-4 py-2.5 bg-neutral-800 text-white rounded-lg font-medium hover:bg-neutral-900 transition-colors"
+            >
+              {{ modalConfig()!.confirmText || 'OK' }}
+            </button>
+          } @else {
+            <button
+              (click)="handleModalConfirm()"
+              class="w-full px-4 py-2.5 bg-neutral-800 text-white rounded-lg font-medium hover:bg-neutral-900 transition-colors"
+            >
+              {{ modalConfig()!.confirmText || 'OK' }}
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- REVIEW tara selesai -->
+<!-- History Modal -->
+@if (showHistoryModal()) {
+  <div class="fixed inset-0 bg-black bg-opacity-50 z-999 flex items-center justify-center p-4">
+    <div class="bg-white rounded-lg shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+      <!-- Header -->
+      <div class="sticky top-0 bg-white border-b border-neutral-200 p-6 z-10">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h2 class="text-2xl font-bold text-neutral-900">History Timbangan Selesai</h2>
+            <p class="text-sm text-neutral-600 mt-1">
+              Daftar semua data yang sudah selesai proses penimbangan
+            </p>
+          </div>
+          <button
+            type="button"
+            (click)="closeHistoryModal()"
+            class="p-2 hover:bg-neutral-100 rounded-lg transition-colors"
+          >
+            <svg
+              class="w-6 h-6 text-neutral-500"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+        </div>
+
+        <!-- Search & Actions -->
+        <div class="flex items-center gap-3">
+          <div class="flex-1 relative">
+            <input
+              type="text"
+              [value]="historySearchQuery()"
+              (input)="onHistorySearchChange($any($event.target).value)"
+              placeholder="Cari berdasarkan Nomor Bon, No Kendaraan, Barang, atau Supplier/Customer..."
+              class="w-full pl-10 pr-4 py-2.5 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:border-transparent transition-all"
+            />
+            <svg
+              class="absolute left-3 top-3 w-5 h-5 text-neutral-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+            @if (historySearchQuery()) {
+              <button
+                (click)="onHistorySearchChange('')"
+                class="absolute right-3 top-3 text-neutral-400 hover:text-neutral-600"
+              >
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            }
+          </div>
+
+          <!-- Refresh Button -->
+          <button
+            type="button"
+            (click)="refreshHistoryList()"
+            [disabled]="isLoadingHistory()"
+            class="px-4 py-2.5 bg-white border border-neutral-300 rounded-lg text-sm font-medium text-neutral-700 hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+          >
+            <lucide-icons
+              [iconsName]="'refresh-cw'"
+              [color]="'gray'"
+              [class]="isLoadingHistory() ? 'animate-spin' : ''"
+            />
+            Refresh
+          </button>
+
+          <!-- Total Count -->
+          <div class="text-sm text-neutral-600 whitespace-nowrap">
+            Total:
+            <span class="font-semibold text-neutral-900">{{ filteredHistoryList().length }}</span>
+            @if (historySearchQuery()) {
+              dari {{ taraSelesaiList().length }}
+            }
+            data
+          </div>
+        </div>
+      </div>
+
+      <!-- Content -->
+      <div class="p-6">
+        <!-- Loading State -->
+        @if (isLoadingHistory()) {
+          <div class="flex items-center justify-center py-12">
+            <div class="text-center">
+              <svg
+                class="animate-spin h-12 w-12 text-neutral-400 mx-auto"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  class="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  stroke-width="4"
+                ></circle>
+                <path
+                  class="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
+              </svg>
+              <p class="mt-3 text-sm text-neutral-600">Memuat data...</p>
+            </div>
+          </div>
+        }
+
+        <!-- Empty State -->
+        @if (!isLoadingHistory() && filteredHistoryList().length === 0) {
+          <div class="text-center py-12">
+            <svg
+              class="mx-auto h-12 w-12 text-neutral-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
+            </svg>
+            <h3 class="mt-2 text-sm font-medium text-neutral-900">Tidak ada data</h3>
+            <p class="mt-1 text-sm text-neutral-500">
+              @if (historySearchQuery()) {
+                Tidak ada data yang sesuai dengan pencarian "{{ historySearchQuery() }}"
+              } @else {
+                Belum ada data yang selesai proses penimbangan
+              }
+            </p>
+          </div>
+        }
+
+        <!-- Table -->
+        @if (!isLoadingHistory() && filteredHistoryList().length > 0) {
+          <div class="overflow-x-auto">
+            <table class="w-full">
+              <thead class="bg-neutral-50 border-b border-neutral-200">
+                <tr>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase">
+                    Nomor Bon
+                  </th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase">
+                    No Kendaraan
+                  </th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase">
+                    Tipe Bahan
+                  </th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase">
+                    Nama Barang
+                  </th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase">
+                    Supplier/Customer
+                  </th>
+                  <th class="px-4 py-3 text-right text-xs font-medium text-neutral-500 uppercase">
+                    Bruto (kg)
+                  </th>
+                  <th class="px-4 py-3 text-right text-xs font-medium text-neutral-500 uppercase">
+                    Netto (kg)
+                  </th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase">
+                    Waktu
+                  </th>
+                  <th class="px-4 py-3 text-center text-xs font-medium text-neutral-500 uppercase">
+                    Aksi
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-neutral-200">
+                <tr
+                  *ngFor="let item of filteredHistoryList()"
+                  class="hover:bg-neutral-50 transition-colors"
+                >
+                  <td class="px-4 py-3 text-sm font-medium text-neutral-900">
+                    {{ item.noTiket }}
+                  </td>
+                  <td class="px-4 py-3 text-sm text-neutral-700">
+                    {{ item.noKendaraan }}
+                  </td>
+                  <td class="px-4 py-3 text-sm">
+                    <span
+                      [class]="
+                        item.tipeBahan === 'bahan-baku'
+                          ? 'inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800'
+                          : 'inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800'
+                      "
+                    >
+                      {{ item.tipeBahan === 'bahan-baku' ? 'Bahan Baku' : 'Lainnya' }}
+                    </span>
+                  </td>
+                  <td class="px-4 py-3 text-sm text-neutral-700">
+                    {{ item.namaBarang }}
+                  </td>
+                  <td class="px-4 py-3 text-sm text-neutral-700">
+                    {{ item.namaRelasi }}
+                  </td>
+                  <td class="px-4 py-3 text-sm text-neutral-900 text-right font-medium">
+                    {{ item.timbanganPertama }}
+                  </td>
+                  <td class="px-4 py-3 text-sm text-neutral-900 text-right font-medium">
+                    {{ item.beratNetto || '-' }}
+                  </td>
+                  <td class="px-4 py-3 text-sm text-neutral-600">
+                    {{ formatDate(item.timestamp) }}
+                  </td>
+                  <td class="px-4 py-3 text-center">
+                    <button
+                      (click)="printSlipFromHistory(item)"
+                      title="Cetak Slip"
+                      class="w-5 h-5 rounded-full bg-blue-100 p-5 flex items-center justify-center hover:bg-gray-300 transition-colors"
+                    >
+                      <lucide-icons [iconsName]="'printer'" [color]="'blue'" />
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+
+      <!-- Footer -->
+      <div class="sticky bottom-0 bg-neutral-50 border-t border-neutral-200 p-4">
+        <div class="flex justify-end">
+          <button
+            type="button"
+            (click)="closeHistoryModal()"
+            class="px-6 py-2 bg-neutral-800 text-white rounded-lg font-medium hover:bg-neutral-900 transition-colors"
+          >
+            Tutup
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

@@ -1,0 +1,19 @@
+{
+  "html": {
+    "snippets": {
+      "lucide-icons": "<lucide-icons [iconsName]=\"'user_check'\" [color]=\"'gray'\" class=\"gray\" />"
+    }
+  },
+  "css": {
+    "snippets": {
+      "cb": "color: black",
+      "bsd": "border: 1px solid ${1:red}",
+      "ls": "list-style: ${1}"
+    }
+  },
+  "typescript": {
+    "snippets": {
+      "user-information": "// tambah ini ke constructor\nprivate userData: UserService,\n\n// tambah ini ke constructor\nthis.loadUserData();\n\n// Ini bisa di constructor atau di ngOnInit atau buat initApps trus taro di constructor\nloadUserData() {\n    this.userData.user$.subscribe((state) => {\n        if (state.data) {\n            this.NamaPolisi = state.data.fullname;\n            this.NamaPangkatTerakhir = state.data.last_rank_name;\n            this.NRP = state.data.nrp;\n            this.Jabatan = state.data.last_position_name;\n            this.Operator = state.data.username;\n            this.kodeSatuan = state.data.last_sipp_unit_code;\n            this.namaSatuan = state.data.last_unit_hierarchy;\n        }\n    });\n    this.userData.loadUser();\n}"
+    }
+  }
+}

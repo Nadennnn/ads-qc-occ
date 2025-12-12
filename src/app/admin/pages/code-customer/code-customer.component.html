@@ -1,0 +1,439 @@
+<!-- src/app/admin/pages/code-customer/code-customer.component.html -->
+
+<div class="min-h-screen bg-neutral-50 p-4 sm:p-6">
+  <div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <div class="mb-8">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="flex justify-center items-center gap-3">
+            <img src="./LOGO_ADS.png" class="w-auto h-7" alt="PT. Agro Deli Serdang" />
+          </div>
+          <div class="w-16 h-1 bg-neutral-800 mt-4 rounded-full"></div>
+          <h1 class="text-xl font-medium text-neutral-800 mt-2">Customer Management</h1>
+          <p class="text-sm text-neutral-600 mt-1">Manage company customers and suppliers</p>
+        </div>
+
+        <!-- Add Button -->
+        <button
+          type="button"
+          (click)="openAddModal()"
+          class="px-4 py-2 bg-neutral-800 text-white rounded-lg font-medium hover:bg-neutral-900 transition-colors flex items-center gap-2"
+        >
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 4v16m8-8H4"
+            />
+          </svg>
+          <span>Add Customer</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <div class="bg-white rounded-lg border border-neutral-200 p-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm text-neutral-600">Total Customers</p>
+            <p class="text-2xl font-bold text-neutral-900 mt-1">{{ customerList().length }}</p>
+          </div>
+          <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+            <svg
+              class="w-6 h-6 text-blue-600"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+              />
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-lg border border-neutral-200 p-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm text-neutral-600">Active Customers</p>
+            <p class="text-2xl font-bold text-green-600 mt-1">{{ customerList().length }}</p>
+          </div>
+          <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+            <svg
+              class="w-6 h-6 text-green-600"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-lg border border-neutral-200 p-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm text-neutral-600">Added This Month</p>
+            <p class="text-2xl font-bold text-neutral-900 mt-1">{{ getThisMonthCount() }}</p>
+          </div>
+          <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+            <svg
+              class="w-6 h-6 text-purple-600"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+              />
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Search Box -->
+    <div class="bg-white rounded-lg border border-neutral-200 p-4 mb-6">
+      <div class="relative">
+        <input
+          type="text"
+          [value]="searchQuery()"
+          (input)="onSearchChange($any($event.target).value)"
+          placeholder="Search by customer name..."
+          class="w-full pl-10 pr-4 py-2.5 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:border-transparent transition-all"
+        />
+        <svg
+          class="absolute left-3 top-3 w-5 h-5 text-neutral-400"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+          />
+        </svg>
+        @if (searchQuery()) {
+        <button
+          (click)="onSearchChange('')"
+          class="absolute right-3 top-3 text-neutral-400 hover:text-neutral-600"
+        >
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
+        }
+      </div>
+    </div>
+
+    <!-- Customer List -->
+    <div class="bg-white rounded-lg border border-neutral-200">
+      @if (isLoading()) {
+      <div class="text-center py-12">
+        <div
+          class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-neutral-900"
+        ></div>
+        <p class="mt-4 text-sm text-neutral-600">Loading data...</p>
+      </div>
+      } @else if (filteredCustomerList().length === 0) {
+      <div class="text-center py-12">
+        <svg
+          class="mx-auto h-12 w-12 text-neutral-400"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+          />
+        </svg>
+        <h3 class="mt-2 text-sm font-medium text-neutral-900">No customers found</h3>
+        <p class="mt-1 text-sm text-neutral-500">
+          @if (searchQuery()) { No results found for "{{ searchQuery() }}" } @else { Get started by
+          adding a new customer }
+        </p>
+        @if (!searchQuery()) {
+        <button
+          (click)="openAddModal()"
+          class="mt-4 px-4 py-2 bg-neutral-800 text-white rounded-lg font-medium hover:bg-neutral-900 transition-colors"
+        >
+          Add Customer
+        </button>
+        }
+      </div>
+      } @else {
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead class="bg-neutral-50 border-b border-neutral-200">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">ID</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">
+                Customer Name
+              </th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">
+                Date Created
+              </th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">
+                Last Updated
+              </th>
+              <th class="px-6 py-3 text-center text-xs font-medium text-neutral-500 uppercase">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-neutral-200">
+            <tr
+              *ngFor="let customer of filteredCustomerList()"
+              class="hover:bg-neutral-50 transition-colors"
+            >
+              <td class="px-6 py-4 text-sm font-medium text-neutral-900">
+                {{ customer.id }}
+              </td>
+              <td class="px-6 py-4 text-sm text-neutral-700">{{ customer.nama }}</td>
+              <td class="px-6 py-4 text-sm text-neutral-600">
+                {{ formatDate(customer.created_at) }}
+              </td>
+              <td class="px-6 py-4 text-sm text-neutral-600">
+                <div class="flex items-center gap-2">
+                  <svg
+                    class="w-4 h-4 text-neutral-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  {{ formatDateTime(customer.updated_at) }}
+                </div>
+              </td>
+              <td class="px-6 py-4 text-center">
+                <div class="flex items-center justify-center gap-2">
+                  <button
+                    (click)="openEditModal(customer)"
+                    class="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded hover:bg-blue-700 transition-colors"
+                  >
+                    <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                      />
+                    </svg>
+                    Edit
+                  </button>
+                  <button
+                    (click)="deleteCustomer(customer)"
+                    class="inline-flex items-center px-3 py-1.5 bg-red-600 text-white text-sm font-medium rounded hover:bg-red-700 transition-colors"
+                  >
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      }
+    </div>
+  </div>
+</div>
+
+<!-- Add/Edit Modal -->
+@if (showFormModal()) {
+<div class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+  <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+    <div class="p-6">
+      <h3 class="text-lg font-semibold text-neutral-900 mb-4">
+        {{ editingCustomer() ? 'Edit Customer' : 'Add New Customer' }}
+      </h3>
+
+      <form [formGroup]="customerForm" (ngSubmit)="submitForm()">
+        <!-- Customer Name -->
+        <div class="mb-6">
+          <label class="block text-sm font-medium text-neutral-700 mb-1.5">
+            Customer Name <span class="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            formControlName="nama"
+            placeholder="CV VINCET TECH LTO"
+            class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:border-transparent transition-all"
+            [class.border-red-500]="
+              customerForm.get('nama')?.invalid && customerForm.get('nama')?.touched
+            "
+          />
+          @if (customerForm.get('nama')?.invalid && customerForm.get('nama')?.touched) {
+          <p class="mt-1 text-sm text-red-600">{{ getError('nama') }}</p>
+          }
+        </div>
+
+        <!-- Buttons -->
+        <div class="flex gap-3">
+          <button
+            type="submit"
+            [disabled]="customerForm.invalid || isSubmitting()"
+            class="flex-1 px-4 py-2 bg-neutral-800 text-white rounded-lg font-medium hover:bg-neutral-900 disabled:bg-neutral-300 disabled:cursor-not-allowed transition-colors"
+          >
+            @if (isSubmitting()) {
+            <span class="flex items-center justify-center gap-2">
+              <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                <circle
+                  class="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  stroke-width="4"
+                ></circle>
+                <path
+                  class="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
+              </svg>
+              Saving...
+            </span>
+            } @else { {{ editingCustomer() ? 'Update' : 'Save' }} }
+          </button>
+          <button
+            type="button"
+            (click)="closeFormModal()"
+            [disabled]="isSubmitting()"
+            class="flex-1 px-4 py-2 bg-white text-neutral-800 border border-neutral-300 rounded-lg font-medium hover:bg-neutral-50 disabled:bg-neutral-100 disabled:cursor-not-allowed transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+}
+
+<!-- Notification Modal -->
+@if (showModal() && modalConfig()) {
+<div class="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4 animate-fadeIn">
+  <div class="bg-white rounded-lg shadow-2xl max-w-md w-full animate-slideUp">
+    <div class="p-6 border-b border-neutral-200">
+      <div class="flex items-start gap-4">
+        <div class="flex-shrink-0">
+          @if (modalConfig()!.type === 'success') {
+          <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+            <svg
+              class="w-6 h-6 text-green-600"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M5 13l4 4L19 7"
+              />
+            </svg>
+          </div>
+          } @else if (modalConfig()!.type === 'error') {
+          <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+            <svg class="w-6 h-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </div>
+          } @else if (modalConfig()!.type === 'confirm') {
+          <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+            <svg
+              class="w-6 h-6 text-blue-600"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          </div>
+          }
+        </div>
+
+        <div class="flex-1">
+          <h3 class="text-lg font-semibold text-neutral-900">{{ modalConfig()!.title }}</h3>
+          <p class="text-sm text-neutral-600 mt-1">{{ modalConfig()!.message }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="p-6">
+      <div class="flex gap-3">
+        @if (modalConfig()!.showCancel) {
+        <button
+          (click)="handleModalCancel()"
+          class="flex-1 px-4 py-2.5 bg-white text-neutral-700 border border-neutral-300 rounded-lg font-medium hover:bg-neutral-50 transition-colors"
+        >
+          {{ modalConfig()!.cancelText || 'Cancel' }}
+        </button>
+        <button
+          (click)="handleModalConfirm()"
+          class="flex-1 px-4 py-2.5 bg-neutral-800 text-white rounded-lg font-medium hover:bg-neutral-900 transition-colors"
+        >
+          {{ modalConfig()!.confirmText || 'OK' }}
+        </button>
+        } @else {
+        <button
+          (click)="handleModalConfirm()"
+          class="w-full px-4 py-2.5 bg-neutral-800 text-white rounded-lg font-medium hover:bg-neutral-900 transition-colors"
+        >
+          {{ modalConfig()!.confirmText || 'OK' }}
+        </button>
+        }
+      </div>
+    </div>
+  </div>
+</div>
+}
