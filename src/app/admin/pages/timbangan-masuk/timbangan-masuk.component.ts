@@ -916,340 +916,350 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
   }
 
   private generatePrintSlip(data: TimbanganData): void {
-    // Format tanggal
-    const date = new Date(data.timestamp);
-    const tanggalMasuk = date.toLocaleDateString('id-ID', {
+    // Format tanggal dan waktu
+    const dateMasuk = new Date(data.timestamp);
+    const tanggalMasuk = dateMasuk.toLocaleDateString('id-ID', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
     });
-    const jamMasuk = date.toLocaleTimeString('id-ID', {
+    const jamMasuk = dateMasuk.toLocaleTimeString('id-ID', {
       hour: '2-digit',
       minute: '2-digit',
       second: '2-digit',
+      hour12: false,
     });
 
-    // Tanggal keluar (bisa dari updated_at atau sekarang)
-    const tanggalKeluar = new Date().toLocaleDateString('id-ID', {
+    // Tanggal keluar (asumsi saat ini atau dari updatedAt jika ada)
+    const dateKeluar = new Date();
+    const tanggalKeluar = dateKeluar.toLocaleDateString('id-ID', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
     });
-    const jamKeluar = new Date().toLocaleTimeString('id-ID', {
+    const jamKeluar = dateKeluar.toLocaleTimeString('id-ID', {
       hour: '2-digit',
       minute: '2-digit',
       second: '2-digit',
+      hour12: false,
     });
 
-    // Hitung hasil
-    const bruto = data.timbanganPertama;
+    // Data berat
+    const bruto = data.timbanganPertama || 0;
     const tara = data.timbanganKedua || 0;
-    const potongan = 8; // Sesuaikan dengan data aktual
-    const netto = bruto - tara - potongan;
+    const nettoKotor = bruto - tara;
 
-    // Nama barang
-    let namaBarangDisplay = data.namaBarang;
+    // Hitung potongan dari kelembapan jika ada
+    let potongan = 0;
+    if (data.tipeBahan === 'bahan-baku' && data.hasilUjiKelembapan) {
+      const kelembapan = data.hasilUjiKelembapan.claimPercentage || 0;
+      potongan = Math.round(nettoKotor * (kelembapan / 100));
+    }
+
+    const nettoAkhir = nettoKotor - potongan;
+
+    // Nama barang display
+    let namaBarangDisplay = data.namaBarang || '-';
     if (data.namaBarang === 'DAN LAIN-LAIN' && data.keteranganBarang) {
       namaBarangDisplay = data.keteranganBarang;
     }
 
-    // Customer atau Supplier
-    const customerName = data.jenisRelasi === 'customer' ? data.namaRelasi : '';
-    const supplierName = data.jenisRelasi === 'supplier' ? data.namaRelasi : '';
+    // Supplier/Customer dan Nama Supir
+    const supplierCustomer = data.namaRelasi || '-';
+    const namaSupir = data.namaSupir || '-';
+    const noContainer = data.noContainer || '-';
 
-    // No. Referensi
-    const noRefrensi = 'K1100398'; // Sesuaikan
-
-    // Barcode value
-    const barcodeValue = data.noTiket.padStart(6, '0') + '-162';
-
-    // HTML untuk print
+    // HTML untuk dot matrix printer dengan kertas karbon
     const printContent = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="UTF-8">
-      <title>Slip Timbangan - ${data.noTiket}</title>
-      <style>
-        @page {
-          size: 80mm auto;
-          margin: 0;
-        }
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Slip Timbangan - ${data.noTiket}</title>
+  <style>
+    @page {
+      size: A5 portrait;
+      margin: 0;
+    }
 
-        * {
-          margin: 0;
-          padding: 0;
-          box-sizing: border-box;
-        }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-        body {
-          font-family: 'Courier New', Courier, monospace;
-          font-size: 14px;
-          line-height: 1.5;
-          padding: 15px 10px;
-          width: 80mm;
-          background: white;
-        }
+    body {
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 12px;
+      line-height: 1.5;
+      padding: 20px 25px;
+      width: 148mm;
+      background: white;
+      color: #000;
+    }
 
-        .header {
-          text-align: center;
-          border-bottom: 3px double #000;
-          padding-bottom: 10px;
-          margin-bottom: 15px;
-        }
+    .header {
+      text-align: center;
+      margin-bottom: 12px;
+    }
 
-        .company-name {
-          font-weight: bold;
-          font-size: 18px;
-          letter-spacing: 1px;
-          margin-bottom: 3px;
-        }
+    .title {
+      font-weight: bold;
+      font-size: 15px;
+      letter-spacing: 2px;
+    }
 
-        .company-address {
-          font-size: 13px;
-          color: #000;
-          letter-spacing: 0.5px;
-        }
+    .divider {
+      border-top: 1px solid #000;
+      margin: 10px 0;
+    }
 
-        .info-row {
-          display: flex;
-          margin-bottom: 5px;
-          font-size: 12px;
-        }
+    .double-divider {
+      border-top: 3px double #000;
+      margin: 10px 0;
+    }
 
-        .info-label {
-          width: 42%;
-          display: inline-block;
-        }
+    .info-section {
+      margin-bottom: 10px;
+    }
 
-        .info-separator {
-          width: 8%;
-          display: inline-block;
-          text-align: center;
-        }
+    .row {
+      display: flex;
+      margin-bottom: 5px;
+      font-size: 12px;
+    }
 
-        .info-value {
-          width: 50%;
-          display: inline-block;
-        }
+    .row-label {
+      width: 40%;
+      padding-left: 8px;
+    }
 
-        .divider {
-          border-bottom: 1px solid #000;
-          margin: 12px 0;
-        }
+    .row-separator {
+      width: 5%;
+      text-align: center;
+    }
 
-        .weight-section {
-          margin: 15px 0;
-          padding: 10px 5px;
-          border: 2px solid #000;
-        }
+    .row-value {
+      width: 55%;
+      font-weight: 500;
+    }
 
-        .weight-row {
-          display: flex;
-          justify-content: space-between;
-          margin-bottom: 8px;
-          font-size: 15px;
-        }
+    .weight-section {
+      border: 2px solid #000;
+      padding: 12px 15px;
+      margin: 18px 0;
+    }
 
-        .weight-label {
-          font-weight: bold;
-        }
+    .weight-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 7px;
+      font-size: 13px;
+    }
 
-        .weight-value {
-          font-weight: bold;
-          text-align: right;
-        }
+    .weight-label {
+      font-weight: 600;
+    }
 
-        .weight-unit {
-          margin-left: 5px;
-        }
+    .weight-value {
+      font-weight: 600;
+      text-align: right;
+    }
 
-        .signature-section {
-          margin-top: 20px;
-          display: flex;
-          justify-content: space-between;
-          font-size: 11px;
-        }
+    .weight-result {
+      border-top: 2px solid #000;
+      padding-top: 10px;
+      margin-top: 10px;
+      font-size: 14px;
+    }
 
-        .signature-box {
-          width: 48%;
-          text-align: center;
-        }
+    .signature-section {
+      margin-top: 35px;
+      display: flex;
+      justify-content: space-between;
+    }
 
-        .signature-label {
-          margin-bottom: 3px;
-        }
+    .signature-box {
+      width: 48%;
+      text-align: center;
+      font-size: 11px;
+    }
 
-        .signature-space {
-          height: 50px;
-          border-bottom: 1px solid #000;
-          margin: 5px 0;
-        }
+    .signature-label {
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
 
-        .company-initial {
-          text-align: center;
-          margin: 15px 0;
-          font-size: 13px;
-          font-weight: bold;
-        }
+    .signature-line {
+      height: 55px;
+      border-bottom: 1px solid #000;
+      margin: 10px 15px;
+    }
 
-        .barcode-section {
-          text-align: center;
-          margin-top: 15px;
-          padding-top: 10px;
-          border-top: 1px dashed #000;
-        }
+    .signature-name {
+      font-size: 10px;
+      margin-top: 8px;
+    }
 
-        .barcode-lines {
-          font-family: 'Libre Barcode 128', 'Courier New', monospace;
-          font-size: 40px;
-          letter-spacing: -2px;
-          margin: 5px 0;
-        }
+    .footer {
+      text-align: center;
+      margin-top: 25px;
+      font-size: 13px;
+      font-weight: bold;
+      letter-spacing: 3px;
+    }
 
-        .barcode-text {
-          font-size: 11px;
-          letter-spacing: 3px;
-          margin-top: 3px;
-        }
+    .barcode-section {
+      text-align: center;
+      margin-top: 18px;
+      padding-top: 12px;
+      border-top: 1px dashed #000;
+    }
 
-        @media print {
-          body {
-            padding: 10px 8px;
-          }
+    .barcode-number {
+      font-size: 12px;
+      letter-spacing: 4px;
+      font-weight: bold;
+    }
 
-          .no-print {
-            display: none;
-          }
-        }
-      </style>
-    </head>
-    <body>
-      <!-- Header -->
-      <div class="header">
-        <div class="company-name">PT AGRO DELI SERDANG</div>
-        <div class="company-address">Dusun VII, Dalu Sepuluh-A</div>
-      </div>
+    @media print {
+      body {
+        padding: 15px 20px;
+      }
 
-      <!-- Info Section 1 -->
-      <div>
-        <div class="info-row">
-          <span class="info-label">No. Tiket</span>
-          <span class="info-separator">:</span>
-          <span class="info-value">${data.noTiket}</span>
-        </div>
-        <div class="info-row">
-          <span class="info-label">Tgl/ Jam Masuk</span>
-          <span class="info-separator">:</span>
-          <span class="info-value">${tanggalMasuk} - ${jamMasuk}</span>
-        </div>
-        <div class="info-row">
-          <span class="info-label">Tgl/ Jam Keluar</span>
-          <span class="info-separator">:</span>
-          <span class="info-value">${tanggalKeluar} - ${jamKeluar}</span>
-        </div>
-      </div>
+      @page {
+        margin: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div class="header">
+    <div class="title">BUKTI KRT. TIMBANGAN</div>
+  </div>
 
-      <div class="divider"></div>
+  <div class="double-divider"></div>
 
-      <!-- Info Section 2 -->
-      <div>
-        <div class="info-row">
-          <span class="info-label">No. Kendaraan</span>
-          <span class="info-separator">:</span>
-          <span class="info-value">${data.noKendaraan}</span>
-        </div>
-        <div class="info-row">
-          <span class="info-label">Nama Customer</span>
-          <span class="info-separator">:</span>
-          <span class="info-value">${customerName || '-'}</span>
-        </div>
-        <div class="info-row">
-          <span class="info-label">Nama Barang</span>
-          <span class="info-separator">:</span>
-          <span class="info-value">${namaBarangDisplay}</span>
-        </div>
-        <div class="info-row">
-          <span class="info-label">Nama Supir</span>
-          <span class="info-separator">:</span>
-          <span class="info-value">${data.namaSupir || '-'}</span>
-        </div>
-        <div class="info-row">
-          <span class="info-label">No. Referensi</span>
-          <span class="info-separator">:</span>
-          <span class="info-value">${noRefrensi}</span>
-        </div>
-      </div>
+  <!-- Info Section 1 -->
+  <div class="info-section">
+    <div class="row">
+      <span class="row-label">No. Tiket</span>
+      <span class="row-separator">:</span>
+      <span class="row-value">${data.noTiket}</span>
+    </div>
+    <div class="row">
+      <span class="row-label">Tgl/ Jam Masuk</span>
+      <span class="row-separator">:</span>
+      <span class="row-value">${tanggalMasuk} ${jamMasuk}</span>
+    </div>
+    <div class="row">
+      <span class="row-label">Tgl/ Jam Keluar</span>
+      <span class="row-separator">:</span>
+      <span class="row-value">${tanggalKeluar} ${jamKeluar}</span>
+    </div>
+  </div>
 
-      <div class="divider"></div>
+  <div class="divider"></div>
 
-      <!-- Weight Section -->
-      <div class="weight-section">
-        <div class="weight-row">
-          <span class="weight-label">Berat Bruto</span>
-          <span class="weight-value">
-            : ${bruto}<span class="weight-unit">kg</span>
-          </span>
-        </div>
-        <div class="weight-row">
-          <span class="weight-label">Berat Tarra</span>
-          <span class="weight-value">
-            : ${tara}<span class="weight-unit">kg</span>
-          </span>
-        </div>
-        <div class="weight-row">
-          <span class="weight-label">Berat Pot.</span>
-          <span class="weight-value">
-            : ${potongan}<span class="weight-unit">kg</span>
-          </span>
-        </div>
-        <div class="weight-row" style="border-top: 2px solid #000; padding-top: 8px; margin-top: 8px;">
-          <span class="weight-label">Berat Netto</span>
-          <span class="weight-value">
-            : ${netto}<span class="weight-unit">kg</span>
-          </span>
-        </div>
-      </div>
+  <!-- Info Section 2 -->
+  <div class="info-section">
+    <div class="row">
+      <span class="row-label">No. Kendaraan</span>
+      <span class="row-separator">:</span>
+      <span class="row-value">${data.noKendaraan}</span>
+    </div>
+    <div class="row">
+      <span class="row-label">No. Container</span>
+      <span class="row-separator">:</span>
+      <span class="row-value">${noContainer}</span>
+    </div>
+    <div class="row">
+      <span class="row-label">Nama Barang</span>
+      <span class="row-separator">:</span>
+      <span class="row-value">${namaBarangDisplay}</span>
+    </div>
+    <div class="row">
+      <span class="row-label">No. Referensi</span>
+      <span class="row-separator">:</span>
+      <span class="row-value">${noContainer !== '-' ? noContainer : 'P1100398'}</span>
+    </div>
+    <div class="row">
+      <span class="row-label">Rel. / Supplier</span>
+      <span class="row-separator">:</span>
+      <span class="row-value">${supplierCustomer}</span>
+    </div>
+    <div class="row">
+      <span class="row-label">Nama Supir</span>
+      <span class="row-separator">:</span>
+      <span class="row-value">${namaSupir}</span>
+    </div>
+  </div>
 
-      <!-- Signature Section -->
-      <div class="signature-section">
-        <div class="signature-box">
-          <div class="signature-label">Ditimbang :</div>
-          <div class="signature-space"></div>
-          <div>Nama & Tanda Tangan</div>
-        </div>
-        <div class="signature-box">
-          <div class="signature-label">DiKetahui :</div>
-          <div class="signature-space"></div>
-          <div>Nama & Tanda Tangan</div>
-        </div>
-      </div>
+  <div class="divider"></div>
 
-      <!-- Company Initial -->
-      <div class="company-initial">
-        ( ADS ) ( )
-      </div>
+  <!-- Weight Section -->
+  <div class="weight-section">
+    <div class="weight-row">
+      <span class="weight-label">Timbangan Pertama</span>
+      <span class="weight-value">: ${bruto}</span>
+    </div>
+    <div class="weight-row">
+      <span class="weight-label">Timbangan Kedua</span>
+      <span class="weight-value">: ${tara}</span>
+    </div>
+    <div class="weight-row">
+      <span class="weight-label">Hasil Akhir</span>
+      <span class="weight-value">: ${nettoKotor}</span>
+    </div>
+    <div class="weight-row weight-result">
+      <span class="weight-label">Hasil Akhir Setelah Potongan</span>
+      <span class="weight-value">: ${nettoAkhir}Kg</span>
+    </div>
+  </div>
 
-      <!-- Barcode Section -->
-      <div class="barcode-section">
-        <div class="barcode-lines">|||||||||||||||||||||||||||||||</div>
-        <div class="barcode-text">${barcodeValue}</div>
-      </div>
+  <div class="double-divider"></div>
 
-      <script>
-        // Auto print when loaded
-        window.onload = function() {
-          setTimeout(function() {
-            window.print();
-          }, 500);
+  <!-- Signature Section -->
+  <div class="signature-section">
+    <div class="signature-box">
+      <div class="signature-label">Ditimbang</div>
+      <div class="signature-line"></div>
+      <div class="signature-name">Diketahui</div>
+    </div>
+    <div class="signature-box">
+      <div class="signature-label">&nbsp;</div>
+      <div class="signature-line"></div>
+      <div class="signature-name">Nama & Tanda Tangan</div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    ( ADS )&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(  )
+  </div>
+
+  <!-- Barcode Section -->
+  <div class="barcode-section">
+    <div class="barcode-number">${data.noTiket.padStart(6, '0')}</div>
+  </div>
+
+  <script>
+    window.onload = function() {
+      setTimeout(function() {
+        window.print();
+        window.onafterprint = function() {
+          window.close();
         };
-      </script>
-    </body>
-    </html>
-  `;
+      }, 500);
+    };
+  </script>
+</body>
+</html>
+`;
 
-    // Open print window dengan ukuran yang sesuai
-    const printWindow = window.open('', '_blank', 'width=320,height=600');
+    // Open print window dengan ukuran yang sesuai untuk kertas bon
+    const printWindow = window.open('', '_blank', 'width=600,height=800');
 
     if (printWindow) {
       printWindow.document.write(printContent);
