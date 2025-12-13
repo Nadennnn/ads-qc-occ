@@ -26,13 +26,69 @@
             <h2 class="text-2xl font-bold text-gray-900">Daftar Bahan Baku</h2>
             <p class="text-sm text-gray-600 mt-1">Pilih data untuk melakukan uji kelembapan</p>
           </div>
-          <div class="text-sm text-gray-600">
-            Total: <span class="font-semibold text-gray-900">{{ bahanBakuList.length }}</span> data
+          <div class="flex items-center gap-3">
+            <button
+              (click)="refreshList()"
+              [disabled]="isLoadingList"
+              class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <svg
+                *ngIf="!isLoadingList"
+                class="w-4 h-4 inline mr-1"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                />
+              </svg>
+              <span *ngIf="isLoadingList">Memuat...</span>
+              <span *ngIf="!isLoadingList">Refresh</span>
+            </button>
+            <div class="text-sm text-gray-600">
+              Total:
+              <span class="font-semibold text-gray-900">{{ bahanBakuList.length }}</span> data
+            </div>
+          </div>
+        </div>
+
+        <!-- Loading State -->
+        <div *ngIf="isLoadingList" class="text-center py-12">
+          <div
+            class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"
+          ></div>
+          <p class="mt-4 text-sm text-gray-600">Memuat data bahan baku...</p>
+        </div>
+
+        <!-- Error State -->
+        <div
+          *ngIf="errorMessage && !isLoadingList"
+          class="bg-red-50 border border-red-200 rounded-lg p-4 mb-4"
+        >
+          <div class="flex items-start gap-3">
+            <svg class="w-5 h-5 text-red-600 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+              <path
+                fill-rule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                clip-rule="evenodd"
+              />
+            </svg>
+            <div>
+              <h3 class="text-sm font-medium text-red-900">Error</h3>
+              <p class="mt-1 text-sm text-red-700">{{ errorMessage }}</p>
+            </div>
           </div>
         </div>
 
         <!-- Empty State -->
-        <div *ngIf="bahanBakuList.length === 0" class="text-center py-12">
+        <div
+          *ngIf="!isLoadingList && !errorMessage && bahanBakuList.length === 0"
+          class="text-center py-12"
+        >
           <svg
             class="mx-auto h-12 w-12 text-gray-400"
             fill="none"
@@ -51,12 +107,12 @@
         </div>
 
         <!-- List Table -->
-        <div *ngIf="bahanBakuList.length > 0" class="overflow-x-auto">
+        <div *ngIf="!isLoadingList && bahanBakuList.length > 0" class="overflow-x-auto">
           <table class="w-full">
             <thead class="bg-gray-50 border-b border-gray-200">
               <tr>
                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  No Tiket
+                  No Bon
                 </th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Kendaraan
@@ -67,8 +123,11 @@
                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Supplier
                 </th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Supir
+                </th>
                 <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">
-                  Netto (kg)
+                  Bruto (kg)
                 </th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Waktu
@@ -83,22 +142,23 @@
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
               <tr *ngFor="let item of bahanBakuList" class="hover:bg-gray-50 transition-colors">
-                <td class="px-4 py-3 text-sm font-medium text-gray-900">{{ item.noTiket }}</td>
-                <td class="px-4 py-3 text-sm text-gray-700">{{ item.noKendaraan }}</td>
-                <td class="px-4 py-3 text-sm text-gray-700 capitalize">{{ item.namaBarang }}</td>
-                <td class="px-4 py-3 text-sm text-gray-700">{{ item.namaRelasi }}</td>
+                <td class="px-4 py-3 text-sm font-medium text-gray-900">{{ item.nomor_bon }}</td>
+                <td class="px-4 py-3 text-sm text-gray-700">{{ item.nomor_kendaraan }}</td>
+                <td class="px-4 py-3 text-sm text-gray-700 capitalize">{{ item.barang }}</td>
+                <td class="px-4 py-3 text-sm text-gray-700">{{ item.suplier || '-' }}</td>
+                <td class="px-4 py-3 text-sm text-gray-700">{{ item.supir }}</td>
                 <td class="px-4 py-3 text-sm text-gray-900 text-right font-medium">
-                  {{ item.beratNetto }}
+                  {{ item.berat_bruto }}
                 </td>
-                <td class="px-4 py-3 text-sm text-gray-600">{{ formatDate(item.timestamp) }}</td>
+                <td class="px-4 py-3 text-sm text-gray-600">{{ formatDate(item.created_at) }}</td>
                 <td class="px-4 py-3 text-center">
                   <span
                     [class]="
                       'inline-flex px-2 py-1 text-xs font-semibold rounded-full ' +
-                      getStatusBadgeClass(item.statusUjiKelembapan)
+                      getStatusBadgeClass(item.status)
                     "
                   >
-                    {{ getStatusText(item.statusUjiKelembapan) }}
+                    {{ getStatusText(item.status) }}
                   </span>
                 </td>
                 <td class="px-4 py-3 text-center">
@@ -114,7 +174,7 @@
                         d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
                       />
                     </svg>
-                    {{ item.statusUjiKelembapan === 'completed' ? 'Lihat' : 'Uji' }}
+                    {{ item.status === 'Sudah Diuji' ? 'Lihat' : 'Uji' }}
                   </button>
                 </td>
               </tr>
@@ -167,10 +227,12 @@
           <div class="flex-1">
             <h3 class="text-sm font-medium text-blue-900">Data yang dipilih:</h3>
             <div class="mt-2 text-sm text-blue-800 grid grid-cols-2 md:grid-cols-4 gap-2">
-              <div><span class="font-medium">No Tiket:</span> {{ selectedData.noTiket }}</div>
-              <div><span class="font-medium">Kendaraan:</span> {{ selectedData.noKendaraan }}</div>
-              <div><span class="font-medium">Barang:</span> {{ selectedData.namaBarang }}</div>
-              <div><span class="font-medium">Netto:</span> {{ selectedData.beratNetto }} kg</div>
+              <div><span class="font-medium">No Bon:</span> {{ selectedData.nomor_bon }}</div>
+              <div>
+                <span class="font-medium">Kendaraan:</span> {{ selectedData.nomor_kendaraan }}
+              </div>
+              <div><span class="font-medium">Barang:</span> {{ selectedData.barang }}</div>
+              <div><span class="font-medium">Bruto:</span> {{ selectedData.berat_bruto }} kg</div>
             </div>
           </div>
         </div>
@@ -250,9 +312,17 @@
 
       <!-- Moisture Points Grid -->
       <div class="bg-white border border-gray-300 rounded-lg p-6 mb-6">
-        <h3 class="text-lg font-semibold text-gray-900 mb-4">
-          Pengukuran Moisture per Titik (Standard: {{ STANDARD_MOISTURE }}%)
-        </h3>
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-semibold text-gray-900">
+            Pengukuran Moisture per Titik (Standard: {{ STANDARD_MOISTURE }}%)
+          </h3>
+          <button
+            (click)="fillSampleData()"
+            class="px-3 py-1 text-xs bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
+          >
+            🧪 Fill Sample Data
+          </button>
+        </div>
 
         <div class="grid grid-cols-10 gap-2">
           <div *ngFor="let index of pointsArray" class="relative">
@@ -262,7 +332,11 @@
             <input
               type="number"
               step="0.1"
+              min="0"
+              max="100"
               [(ngModel)]="moisturePoints[index]"
+              (input)="validateMoistureInput($event, index)"
+              [class.border-red-500]="isInvalidMoisture(index)"
               class="w-full px-2 py-2 border border-gray-300 rounded text-center text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="-"
             />
@@ -313,39 +387,42 @@
       </div>
 
       <!-- Action Buttons -->
-      <div class="flex gap-3">
+      <div class="flex gap-3 flex-wrap">
         <button
           (click)="calculateResults()"
-          class="px-6 py-3 bg-blue-600 text-white font-medium rounded hover:bg-blue-700 transition-colors"
+          [disabled]="isLoading"
+          class="px-6 py-3 bg-blue-600 text-white font-medium rounded hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Hitung Hasil
+          🧮 Hitung Hasil
         </button>
         <button
           *ngIf="results"
           (click)="saveResults()"
-          class="px-6 py-3 bg-green-600 text-white font-medium rounded hover:bg-green-700 transition-colors"
+          [disabled]="isSaving"
+          class="px-6 py-3 bg-green-600 text-white font-medium rounded hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          💾 Simpan Hasil
+          <span *ngIf="!isSaving">💾 Simpan Hasil</span>
+          <span *ngIf="isSaving">⏳ Menyimpan...</span>
         </button>
         <button
           (click)="resetForm()"
           class="px-6 py-3 bg-white border border-gray-300 text-gray-700 font-medium rounded hover:bg-gray-50 transition-colors"
         >
-          Reset Form
+          🔄 Reset Form
         </button>
         <button
           *ngIf="results"
           (click)="exportToJson()"
           class="px-6 py-3 bg-purple-600 text-white font-medium rounded hover:bg-purple-700 transition-colors"
         >
-          Export JSON
+          📥 Export JSON
         </button>
         <button
           *ngIf="results"
           (click)="printReport()"
           class="px-6 py-3 bg-gray-600 text-white font-medium rounded hover:bg-gray-700 transition-colors"
         >
-          Print / PDF
+          🖨️ Print / PDF
         </button>
       </div>
     </div>
