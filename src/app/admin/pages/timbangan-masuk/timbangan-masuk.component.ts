@@ -213,10 +213,7 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
 
   private initTaraForm(): void {
     this.taraForm = this.fb.group({
-      timbanganKedua: [
-        { value: null as number | null, disabled: true },
-        [Validators.required, Validators.min(1)],
-      ],
+      timbanganKedua: [{ value: null as number | null }, [Validators.required, Validators.min(1)]],
     });
   }
 
