@@ -1044,7 +1044,6 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
 
     .row-value {
       width: 60%;
-      font-weight: 700;
       word-wrap: break-word;
     }
 
