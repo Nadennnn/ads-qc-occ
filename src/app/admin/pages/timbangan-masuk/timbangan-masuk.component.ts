@@ -565,7 +565,10 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
   // REVIEW submitTara
   async submitTara(): Promise<void> {
     const selected = this.selectedForTara();
-    if (!this.taraForm.valid || !selected || this.isSubmitting()) return;
+    if (!this.taraForm.valid || !selected || this.isSubmitting()) {
+      console.log('invalid form');
+      return;
+    }
 
     this.isSubmitting.set(true);
 
