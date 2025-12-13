@@ -1035,7 +1035,6 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
 
     .row-label {
       width: 35%;
-      font-weight: 600;
     }
 
     .row-separator {
@@ -1210,7 +1209,6 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
     </div>
   </div>
 
-  <div class="divider"></div>
 
   <!-- Weight Section -->
   <div class="weight-section">
@@ -1232,7 +1230,6 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
     </div>
   </div>
 
-  <div class="double-divider"></div>
 
   <!-- Signature Section -->
   <div class="signature-section">
