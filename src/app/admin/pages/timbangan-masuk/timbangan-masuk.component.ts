@@ -978,7 +978,7 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
   <title>Slip Timbangan - ${data.noTiket}</title>
   <style>
     @page {
-      size: 105mm 170mm;
+      size: 105mm 165mm;
       margin: 0;
     }
 
@@ -991,10 +991,10 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
 
     body {
       font-family: Arial, sans-serif;
-      font-size: 16px !important;
+      font-size: 16px;
       line-height: 1.3;
       width: 105mm;
-      min-height: 170mm;
+      min-height: 165mm;
       background: white;
       color: #000;
       padding: 3mm;
@@ -1002,6 +1002,7 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
       display: flex;
       flex-direction: column;
       justify-content: flex-start;
+      margin-bottom:16px;
     }
 
     .header {
@@ -1012,13 +1013,13 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
 
     .title {
       font-weight: bold;
-      font-size: 12px;
+      font-size: 16px;
       letter-spacing: 1px;
       margin-bottom: 1mm;
     }
 
     .subtitle {
-      font-size: 9px;
+      font-size: 14px;
       letter-spacing: 0.5px;
     }
 
@@ -1041,6 +1042,7 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
 
     .row-label {
       width: 35%;
+      font-size:16px !important;
     }
 
     .row-separator {
@@ -1050,6 +1052,7 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
     .row-value {
       width: 60%;
       word-wrap: break-word;
+      font-size:16px !important;
     }
 
     .weight-section {
@@ -1156,8 +1159,8 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
 <body>
   <!-- Header -->
   <div class="header">
-    <div class="title">BUKTI KRT. TIMBANGAN</div>
-    <div class="subtitle">PT AGRO DELI SERDANG</div>
+    <div class="title">PT AGRO DELI SERDANG</div>
+    <div class="subtitle">DUSUN VII, DALU Sepuluh-A</div>
   </div>
 
   <!-- Info Section 1 -->
