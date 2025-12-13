@@ -930,7 +930,7 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
       hour12: false,
     });
 
-    // Tanggal keluar (asumsi saat ini atau dari updatedAt jika ada)
+    // Tanggal keluar
     const dateKeluar = new Date();
     const tanggalKeluar = dateKeluar.toLocaleDateString('id-ID', {
       day: '2-digit',
@@ -964,12 +964,12 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
       namaBarangDisplay = data.keteranganBarang;
     }
 
-    // Supplier/Customer dan Nama Supir
+    // Data lainnya
     const supplierCustomer = data.namaRelasi || '-';
     const namaSupir = data.namaSupir || '-';
     const noContainer = data.noContainer || '-';
 
-    // HTML untuk dot matrix printer dengan kertas A4
+    // HTML untuk printer dot matrix - kertas 10cm x 15cm
     const printContent = `
 <!DOCTYPE html>
 <html>
@@ -978,178 +978,182 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
   <title>Slip Timbangan - ${data.noTiket}</title>
   <style>
     @page {
-      size: A4 portrait;
-      margin: 15mm 10mm;
+      size: 100mm 150mm;
+      margin: 3mm;
     }
 
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
     }
 
     body {
       font-family: 'Courier New', Courier, monospace;
-      font-size: 14px;
-      line-height: 1.6;
+      font-size: 9px;
+      line-height: 1.2;
       padding: 0;
       background: white;
       color: #000;
+      width: 100mm;
+      height: 150mm;
     }
 
     .container {
-      max-width: 190mm;
+      width: 94mm;
       margin: 0 auto;
+      padding: 2mm;
     }
 
     .header {
       text-align: center;
-      margin-bottom: 18px;
-      padding-bottom: 10px;
-      border-bottom: 3px double #000;
+      margin-bottom: 2mm;
+      padding-bottom: 1mm;
+      border-bottom: 2px solid #000;
     }
 
     .title {
       font-weight: bold;
-      font-size: 18px;
-      letter-spacing: 3px;
-      margin-bottom: 4px;
+      font-size: 11px;
+      letter-spacing: 1px;
+      margin-bottom: 1mm;
     }
 
     .subtitle {
-      font-size: 13px;
-      letter-spacing: 1px;
+      font-size: 8px;
+      letter-spacing: 0.5px;
     }
 
     .divider {
       border-top: 1px solid #000;
-      margin: 12px 0;
-    }
-
-    .double-divider {
-      border-top: 3px double #000;
-      margin: 15px 0;
-    }
-
-    .info-section {
-      margin-bottom: 12px;
+      margin: 2mm 0;
     }
 
     .row {
       display: flex;
-      margin-bottom: 6px;
-      font-size: 14px;
+      margin-bottom: 1mm;
+      font-size: 8px;
+      line-height: 1.3;
     }
 
     .row-label {
-      width: 35%;
-      padding-left: 15px;
-      font-weight: 500;
-    }
-
-    .row-separator {
-      width: 5%;
-      text-align: center;
-    }
-
-    .row-value {
-      width: 60%;
+      width: 32%;
+      padding-left: 1mm;
       font-weight: 600;
     }
 
+    .row-separator {
+      width: 3%;
+    }
+
+    .row-value {
+      width: 65%;
+      font-weight: 700;
+      word-break: break-word;
+    }
+
     .weight-section {
-      border: 3px solid #000;
-      padding: 18px 20px;
-      margin: 25px 15px;
-      background: white;
+      border: 2px solid #000;
+      padding: 2mm;
+      margin: 3mm 0;
     }
 
     .weight-row {
       display: flex;
       justify-content: space-between;
-      margin-bottom: 10px;
-      font-size: 15px;
+      margin-bottom: 1.5mm;
+      font-size: 9px;
     }
 
     .weight-label {
       font-weight: 700;
+      font-size: 8px;
     }
 
     .weight-value {
       font-weight: 700;
       text-align: right;
-      min-width: 100px;
+      font-size: 9px;
     }
 
     .weight-result {
-      border-top: 3px double #000;
-      padding-top: 12px;
-      margin-top: 12px;
-      font-size: 16px;
+      border-top: 2px solid #000;
+      padding-top: 2mm;
+      margin-top: 2mm;
+    }
+
+    .weight-result .weight-label {
+      font-size: 9px;
+    }
+
+    .weight-result .weight-value {
+      font-size: 10px;
     }
 
     .signature-section {
-      margin-top: 45px;
+      margin-top: 4mm;
       display: flex;
-      justify-content: space-around;
-      padding: 0 30px;
+      justify-content: space-between;
+      padding: 0 1mm;
     }
 
     .signature-box {
-      width: 40%;
+      width: 48%;
       text-align: center;
-      font-size: 13px;
+      font-size: 7px;
     }
 
     .signature-label {
-      margin-bottom: 10px;
+      margin-bottom: 1mm;
       font-weight: 600;
     }
 
     .signature-line {
-      height: 70px;
-      border-bottom: 2px solid #000;
-      margin: 12px 20px;
+      height: 12mm;
+      border-bottom: 1px solid #000;
+      margin: 1mm 2mm;
     }
 
     .signature-name {
-      font-size: 12px;
-      margin-top: 10px;
-      font-weight: 500;
+      font-size: 6px;
+      margin-top: 1mm;
     }
 
     .footer {
       text-align: center;
-      margin-top: 30px;
-      font-size: 15px;
+      margin-top: 3mm;
+      font-size: 8px;
       font-weight: bold;
-      letter-spacing: 5px;
+      letter-spacing: 2px;
     }
 
     .barcode-section {
       text-align: center;
-      margin-top: 25px;
-      padding-top: 15px;
-      border-top: 2px dashed #000;
+      margin-top: 2mm;
+      padding-top: 2mm;
+      border-top: 1px dashed #000;
     }
 
     .barcode-number {
-      font-size: 14px;
-      letter-spacing: 5px;
+      font-size: 8px;
+      letter-spacing: 2px;
       font-weight: bold;
     }
 
+    /* Anti-blur untuk dot matrix */
     @media print {
       body {
-        padding: 0;
+        -webkit-font-smoothing: none;
+        -moz-osx-font-smoothing: grayscale;
+        font-smoothing: never;
+        text-rendering: optimizeSpeed;
       }
 
-      @page {
-        margin: 15mm 10mm;
-      }
-
-      .no-print {
-        display: none;
+      * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
       }
     }
   </style>
@@ -1163,7 +1167,7 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
     </div>
 
     <!-- Info Section 1 -->
-    <div class="info-section">
+    <div>
       <div class="row">
         <span class="row-label">No. Tiket</span>
         <span class="row-separator">:</span>
@@ -1184,7 +1188,7 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
     <div class="divider"></div>
 
     <!-- Info Section 2 -->
-    <div class="info-section">
+    <div>
       <div class="row">
         <span class="row-label">No. Kendaraan</span>
         <span class="row-separator">:</span>
@@ -1206,7 +1210,7 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
         <span class="row-value">${noContainer !== '-' ? noContainer : 'P1100398'}</span>
       </div>
       <div class="row">
-        <span class="row-label">Rel. / Supplier</span>
+        <span class="row-label">Rel./Supplier</span>
         <span class="row-separator">:</span>
         <span class="row-value">${supplierCustomer}</span>
       </div>
@@ -1234,12 +1238,12 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
         <span class="weight-value">: ${nettoKotor}</span>
       </div>
       <div class="weight-row weight-result">
-        <span class="weight-label">Hasil Akhir Setelah Potongan</span>
-        <span class="weight-value">: ${nettoAkhir} Kg</span>
+        <span class="weight-label">Hasil Akhir Stlh Pot.</span>
+        <span class="weight-value">: ${nettoAkhir}Kg</span>
       </div>
     </div>
 
-    <div class="double-divider"></div>
+    <div class="divider"></div>
 
     <!-- Signature Section -->
     <div class="signature-section">
@@ -1251,13 +1255,13 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
       <div class="signature-box">
         <div class="signature-label">&nbsp;</div>
         <div class="signature-line"></div>
-        <div class="signature-name">Nama & Tanda Tangan</div>
+        <div class="signature-name">Nama & TTD</div>
       </div>
     </div>
 
     <!-- Footer -->
     <div class="footer">
-      ( ADS )&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(  )
+      ( ADS )&nbsp;&nbsp;(  )
     </div>
 
     <!-- Barcode Section -->
@@ -1280,8 +1284,8 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
 </html>
 `;
 
-    // Open print window dengan ukuran A4
-    const printWindow = window.open('', '_blank', 'width=800,height=1000');
+    // Open print window dengan ukuran sesuai kertas
+    const printWindow = window.open('', '_blank', 'width=400,height=600');
 
     if (printWindow) {
       printWindow.document.write(printContent);
