@@ -988,6 +988,10 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
       box-sizing: border-box;
     }
 
+    html {
+      margin: 0;
+      padding: 0;
+    }
 
     body {
       font-family: Arial, sans-serif;
@@ -997,25 +1001,26 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
       min-height: 165mm;
       background: white;
       color: #000;
-      padding: 3mm;
-      padding: top 0 !important;
+      padding: 2mm 3mm 3mm 3mm;
+      margin: 0;
       display: flex;
       flex-direction: column;
       justify-content: flex-start;
-      margin-bottom: 20mm;
     }
 
     .header {
       text-align: center;
-      margin-bottom: 3mm;
-      padding-bottom: 2mm;
+      margin-bottom: 2mm;
+      padding-bottom: 1mm;
+      margin-top: 0;
+      padding-top: 0;
     }
 
     .title {
       font-weight: bold;
       font-size: 16px;
       letter-spacing: 1px;
-      margin-bottom: 1mm;
+      margin-bottom: 0.5mm;
     }
 
     .subtitle {
@@ -1025,40 +1030,41 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
 
     .divider {
       border-top: 1px solid #000;
-      margin: 2.5mm 0;
+      margin: 2mm 0;
     }
 
     .double-divider {
       border-top: 2px solid #000;
-      margin: 3mm 0;
+      margin: 2.5mm 0;
     }
 
     .row {
       display: flex;
       margin-bottom: 1.5mm;
-      font-size: 9px;
+      font-size: 16px;
       line-height: 1.4;
     }
 
     .row-label {
       width: 35%;
-      font-size:16px !important;
+      font-size: 16px;
     }
 
     .row-separator {
       width: 5%;
+      font-size: 16px;
     }
 
     .row-value {
       width: 60%;
       word-wrap: break-word;
-      font-size:16px !important;
+      font-size: 16px;
     }
 
     .weight-section {
       border: 2px solid #000;
-      padding: 3mm 2mm;
-      margin: 4mm 0;
+      padding: 2.5mm 2mm;
+      margin: 3mm 0;
     }
 
     .weight-row {
@@ -1066,36 +1072,36 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
       justify-content: space-between;
       align-items: center;
       margin-bottom: 2mm;
-      font-size: 10px;
+      font-size: 16px;
     }
 
     .weight-label {
       font-weight: 700;
-      font-size: 9px;
+      font-size: 16px;
     }
 
     .weight-value {
       font-weight: 700;
       text-align: right;
-      font-size: 10px;
+      font-size: 16px;
     }
 
     .weight-result {
       border-top: 2px solid #000;
-      padding-top: 2.5mm;
-      margin-top: 2.5mm;
+      padding-top: 2mm;
+      margin-top: 2mm;
     }
 
     .weight-result .weight-label {
-      font-size: 10px;
+      font-size: 16px;
     }
 
     .weight-result .weight-value {
-      font-size: 11px;
+      font-size: 16px;
     }
 
     .signature-section {
-      margin-top: 5mm;
+      margin-top: 4mm;
       display: flex;
       justify-content: space-between;
       padding: 0 2mm;
@@ -1104,7 +1110,7 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
     .signature-box {
       width: 47%;
       text-align: center;
-      font-size: 8px;
+      font-size: 14px;
     }
 
     .signature-label {
@@ -1119,39 +1125,24 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
     }
 
     .signature-name {
-      font-size: 7px;
+      font-size: 12px;
       margin-top: 1.5mm;
     }
 
-    .footer {
-      text-align: center;
-      margin-top: 4mm;
-      font-size: 9px;
-      font-weight: bold;
-      letter-spacing: 3px;
-    }
-
-    .barcode-section {
-      text-align: center;
-      margin-top: 3mm;
-      padding-top: 2mm;
-      border-top: 1px dashed #000;
-    }
-
-    .barcode-number {
-      font-size: 9px;
-      letter-spacing: 3px;
-      font-weight: bold;
-    }
-
     @media print {
-      body {
+      html, body {
+        margin: 0 !important;
+        padding: 0 !important;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
       }
 
+      body {
+        padding: 2mm 3mm 3mm 3mm !important;
+      }
+
       @page {
-        margin: 0;
+        margin: 0 !important;
       }
     }
   </style>
@@ -1218,6 +1209,7 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
     </div>
   </div>
 
+  <div class="divider"></div>
 
   <!-- Weight Section -->
   <div class="weight-section">
@@ -1239,7 +1231,6 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
     </div>
   </div>
 
-
   <!-- Signature Section -->
   <div class="signature-section">
     <div class="signature-box">
@@ -1253,10 +1244,6 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
       <div class="signature-name">Nama & Tanda Tangan</div>
     </div>
   </div>
-
-
-
-
 
   <script>
     window.onload = function() {
