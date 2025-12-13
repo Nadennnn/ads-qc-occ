@@ -978,7 +978,7 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
   <title>Slip Timbangan - ${data.noTiket}</title>
   <style>
     @page {
-      size: 105mm 175mm;
+      size: 105mm 185mm;
       margin: 0;
     }
 
@@ -997,7 +997,7 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
       font-family: Arial, sans-serif;
       line-height: 1;
       width: 105mm;
-      min-height: 175mm;
+      min-height: 185mm;
       background: white;
       color: #000;
       padding: 2mm 3mm 3mm 3mm;
