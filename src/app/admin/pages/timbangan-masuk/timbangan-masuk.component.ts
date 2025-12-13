@@ -969,7 +969,7 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
     const namaSupir = data.namaSupir || '-';
     const noContainer = data.noContainer || '-';
 
-    // HTML untuk printer dot matrix - kertas 10cm x 15cm
+    // HTML untuk printer dot matrix - kertas 10.5cm x 16.5cm
     const printContent = `
 <!DOCTYPE html>
 <html>
@@ -978,296 +978,287 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
   <title>Slip Timbangan - ${data.noTiket}</title>
   <style>
     @page {
-      size: 100mm 150mm;
-      margin: 3mm;
+      size: 105mm 165mm;
+      margin: 0;
     }
 
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
-      -webkit-print-color-adjust: exact;
-      print-color-adjust: exact;
     }
 
     body {
-      font-family: 'Courier New', Courier, monospace;
-      font-size: 9px;
-      line-height: 1.2;
-      padding: 0;
+      font-family: Arial, sans-serif;
+      font-size: 10px;
+      line-height: 1.3;
+      padding: 5mm 4mm;
+      width: 105mm;
+      height: 165mm;
       background: white;
       color: #000;
-      width: 100mm;
-      height: 150mm;
-    }
-
-    .container {
-      width: 94mm;
-      margin: 0 auto;
-      padding: 2mm;
     }
 
     .header {
       text-align: center;
-      margin-bottom: 2mm;
-      padding-bottom: 1mm;
+      margin-bottom: 3mm;
+      padding-bottom: 2mm;
       border-bottom: 2px solid #000;
     }
 
     .title {
       font-weight: bold;
-      font-size: 11px;
+      font-size: 12px;
       letter-spacing: 1px;
       margin-bottom: 1mm;
     }
 
     .subtitle {
-      font-size: 8px;
+      font-size: 9px;
       letter-spacing: 0.5px;
     }
 
     .divider {
       border-top: 1px solid #000;
-      margin: 2mm 0;
+      margin: 2.5mm 0;
+    }
+
+    .double-divider {
+      border-top: 2px solid #000;
+      margin: 3mm 0;
     }
 
     .row {
       display: flex;
-      margin-bottom: 1mm;
-      font-size: 8px;
-      line-height: 1.3;
+      margin-bottom: 1.5mm;
+      font-size: 9px;
+      line-height: 1.4;
     }
 
     .row-label {
-      width: 32%;
-      padding-left: 1mm;
+      width: 35%;
       font-weight: 600;
     }
 
     .row-separator {
-      width: 3%;
+      width: 5%;
     }
 
     .row-value {
-      width: 65%;
+      width: 60%;
       font-weight: 700;
-      word-break: break-word;
+      word-wrap: break-word;
     }
 
     .weight-section {
       border: 2px solid #000;
-      padding: 2mm;
-      margin: 3mm 0;
+      padding: 3mm 2.5mm;
+      margin: 4mm 0;
     }
 
     .weight-row {
       display: flex;
       justify-content: space-between;
-      margin-bottom: 1.5mm;
-      font-size: 9px;
+      align-items: center;
+      margin-bottom: 2mm;
+      font-size: 10px;
     }
 
     .weight-label {
       font-weight: 700;
-      font-size: 8px;
+      font-size: 9px;
     }
 
     .weight-value {
       font-weight: 700;
       text-align: right;
-      font-size: 9px;
+      font-size: 10px;
     }
 
     .weight-result {
       border-top: 2px solid #000;
-      padding-top: 2mm;
-      margin-top: 2mm;
+      padding-top: 2.5mm;
+      margin-top: 2.5mm;
     }
 
     .weight-result .weight-label {
-      font-size: 9px;
-    }
-
-    .weight-result .weight-value {
       font-size: 10px;
     }
 
+    .weight-result .weight-value {
+      font-size: 11px;
+    }
+
     .signature-section {
-      margin-top: 4mm;
+      margin-top: 5mm;
       display: flex;
       justify-content: space-between;
-      padding: 0 1mm;
+      padding: 0 2mm;
     }
 
     .signature-box {
-      width: 48%;
+      width: 47%;
       text-align: center;
-      font-size: 7px;
+      font-size: 8px;
     }
 
     .signature-label {
-      margin-bottom: 1mm;
+      margin-bottom: 2mm;
       font-weight: 600;
     }
 
     .signature-line {
-      height: 12mm;
+      height: 15mm;
       border-bottom: 1px solid #000;
-      margin: 1mm 2mm;
+      margin: 2mm 3mm;
     }
 
     .signature-name {
-      font-size: 6px;
-      margin-top: 1mm;
+      font-size: 7px;
+      margin-top: 1.5mm;
     }
 
     .footer {
       text-align: center;
-      margin-top: 3mm;
-      font-size: 8px;
+      margin-top: 4mm;
+      font-size: 9px;
       font-weight: bold;
-      letter-spacing: 2px;
+      letter-spacing: 3px;
     }
 
     .barcode-section {
       text-align: center;
-      margin-top: 2mm;
+      margin-top: 3mm;
       padding-top: 2mm;
       border-top: 1px dashed #000;
     }
 
     .barcode-number {
-      font-size: 8px;
-      letter-spacing: 2px;
+      font-size: 9px;
+      letter-spacing: 3px;
       font-weight: bold;
     }
 
-    /* Anti-blur untuk dot matrix */
     @media print {
       body {
-        -webkit-font-smoothing: none;
-        -moz-osx-font-smoothing: grayscale;
-        font-smoothing: never;
-        text-rendering: optimizeSpeed;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
       }
 
-      * {
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
+      @page {
+        margin: 0;
       }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <!-- Header -->
-    <div class="header">
-      <div class="title">BUKTI KRT. TIMBANGAN</div>
-      <div class="subtitle">PT AGRO DELI SERDANG</div>
+  <!-- Header -->
+  <div class="header">
+    <div class="title">BUKTI KRT. TIMBANGAN</div>
+    <div class="subtitle">PT AGRO DELI SERDANG</div>
+  </div>
+
+  <!-- Info Section 1 -->
+  <div>
+    <div class="row">
+      <span class="row-label">No. Tiket</span>
+      <span class="row-separator">:</span>
+      <span class="row-value">${data.noTiket}</span>
     </div>
-
-    <!-- Info Section 1 -->
-    <div>
-      <div class="row">
-        <span class="row-label">No. Tiket</span>
-        <span class="row-separator">:</span>
-        <span class="row-value">${data.noTiket}</span>
-      </div>
-      <div class="row">
-        <span class="row-label">Tgl/ Jam Masuk</span>
-        <span class="row-separator">:</span>
-        <span class="row-value">${tanggalMasuk} ${jamMasuk}</span>
-      </div>
-      <div class="row">
-        <span class="row-label">Tgl/ Jam Keluar</span>
-        <span class="row-separator">:</span>
-        <span class="row-value">${tanggalKeluar} ${jamKeluar}</span>
-      </div>
+    <div class="row">
+      <span class="row-label">Tgl/ Jam Masuk</span>
+      <span class="row-separator">:</span>
+      <span class="row-value">${tanggalMasuk} ${jamMasuk}</span>
     </div>
-
-    <div class="divider"></div>
-
-    <!-- Info Section 2 -->
-    <div>
-      <div class="row">
-        <span class="row-label">No. Kendaraan</span>
-        <span class="row-separator">:</span>
-        <span class="row-value">${data.noKendaraan}</span>
-      </div>
-      <div class="row">
-        <span class="row-label">No. Container</span>
-        <span class="row-separator">:</span>
-        <span class="row-value">${noContainer}</span>
-      </div>
-      <div class="row">
-        <span class="row-label">Nama Barang</span>
-        <span class="row-separator">:</span>
-        <span class="row-value">${namaBarangDisplay}</span>
-      </div>
-      <div class="row">
-        <span class="row-label">No. Referensi</span>
-        <span class="row-separator">:</span>
-        <span class="row-value">${noContainer !== '-' ? noContainer : 'P1100398'}</span>
-      </div>
-      <div class="row">
-        <span class="row-label">Rel./Supplier</span>
-        <span class="row-separator">:</span>
-        <span class="row-value">${supplierCustomer}</span>
-      </div>
-      <div class="row">
-        <span class="row-label">Nama Supir</span>
-        <span class="row-separator">:</span>
-        <span class="row-value">${namaSupir}</span>
-      </div>
+    <div class="row">
+      <span class="row-label">Tgl/ Jam Keluar</span>
+      <span class="row-separator">:</span>
+      <span class="row-value">${tanggalKeluar} ${jamKeluar}</span>
     </div>
+  </div>
 
-    <div class="divider"></div>
+  <div class="divider"></div>
 
-    <!-- Weight Section -->
-    <div class="weight-section">
-      <div class="weight-row">
-        <span class="weight-label">Timbangan Pertama</span>
-        <span class="weight-value">: ${bruto}</span>
-      </div>
-      <div class="weight-row">
-        <span class="weight-label">Timbangan Kedua</span>
-        <span class="weight-value">: ${tara}</span>
-      </div>
-      <div class="weight-row">
-        <span class="weight-label">Hasil Akhir</span>
-        <span class="weight-value">: ${nettoKotor}</span>
-      </div>
-      <div class="weight-row weight-result">
-        <span class="weight-label">Hasil Akhir Stlh Pot.</span>
-        <span class="weight-value">: ${nettoAkhir}Kg</span>
-      </div>
+  <!-- Info Section 2 -->
+  <div>
+    <div class="row">
+      <span class="row-label">No. Kendaraan</span>
+      <span class="row-separator">:</span>
+      <span class="row-value">${data.noKendaraan}</span>
     </div>
-
-    <div class="divider"></div>
-
-    <!-- Signature Section -->
-    <div class="signature-section">
-      <div class="signature-box">
-        <div class="signature-label">Ditimbang</div>
-        <div class="signature-line"></div>
-        <div class="signature-name">Diketahui</div>
-      </div>
-      <div class="signature-box">
-        <div class="signature-label">&nbsp;</div>
-        <div class="signature-line"></div>
-        <div class="signature-name">Nama & TTD</div>
-      </div>
+    <div class="row">
+      <span class="row-label">No. Container</span>
+      <span class="row-separator">:</span>
+      <span class="row-value">${noContainer}</span>
     </div>
-
-    <!-- Footer -->
-    <div class="footer">
-      ( ADS )&nbsp;&nbsp;(  )
+    <div class="row">
+      <span class="row-label">Nama Barang</span>
+      <span class="row-separator">:</span>
+      <span class="row-value">${namaBarangDisplay}</span>
     </div>
-
-    <!-- Barcode Section -->
-    <div class="barcode-section">
-      <div class="barcode-number">${data.noTiket.padStart(6, '0')}</div>
+    <div class="row">
+      <span class="row-label">No. Referensi</span>
+      <span class="row-separator">:</span>
+      <span class="row-value">${noContainer !== '-' ? noContainer : 'P1100398'}</span>
     </div>
+    <div class="row">
+      <span class="row-label">Rel. / Supplier</span>
+      <span class="row-separator">:</span>
+      <span class="row-value">${supplierCustomer}</span>
+    </div>
+    <div class="row">
+      <span class="row-label">Nama Supir</span>
+      <span class="row-separator">:</span>
+      <span class="row-value">${namaSupir}</span>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Weight Section -->
+  <div class="weight-section">
+    <div class="weight-row">
+      <span class="weight-label">Timbangan Pertama</span>
+      <span class="weight-value">: ${bruto}</span>
+    </div>
+    <div class="weight-row">
+      <span class="weight-label">Timbangan Kedua</span>
+      <span class="weight-value">: ${tara}</span>
+    </div>
+    <div class="weight-row">
+      <span class="weight-label">Hasil Akhir</span>
+      <span class="weight-value">: ${nettoKotor}</span>
+    </div>
+    <div class="weight-row weight-result">
+      <span class="weight-label">Hasil Akhir Setelah Potongan</span>
+      <span class="weight-value">: ${nettoAkhir}Kg</span>
+    </div>
+  </div>
+
+  <div class="double-divider"></div>
+
+  <!-- Signature Section -->
+  <div class="signature-section">
+    <div class="signature-box">
+      <div class="signature-label">Ditimbang</div>
+      <div class="signature-line"></div>
+      <div class="signature-name">Diketahui</div>
+    </div>
+    <div class="signature-box">
+      <div class="signature-label">&nbsp;</div>
+      <div class="signature-line"></div>
+      <div class="signature-name">Nama & Tanda Tangan</div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    ( ADS )&nbsp;&nbsp;&nbsp;&nbsp;(  )
+  </div>
+
+  <!-- Barcode Section -->
+  <div class="barcode-section">
+    <div class="barcode-number">${data.noTiket.padStart(6, '0')}</div>
   </div>
 
   <script>
@@ -1284,8 +1275,8 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
 </html>
 `;
 
-    // Open print window dengan ukuran sesuai kertas
-    const printWindow = window.open('', '_blank', 'width=400,height=600');
+    // Open print window
+    const printWindow = window.open('', '_blank', 'width=420,height=660');
 
     if (printWindow) {
       printWindow.document.write(printContent);
