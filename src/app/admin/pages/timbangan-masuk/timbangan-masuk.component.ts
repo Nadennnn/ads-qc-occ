@@ -1217,13 +1217,9 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
       <span class="weight-label">Berat Tarra</span>
       <span class="weight-value">: ${tara}kg</span>
     </div>
-    <div class="weight-row">
+    <div class="weight-row weight-result">
       <span class="weight-label">Berat Netto</span>
       <span class="weight-value">: ${nettoKotor}kg</span>
-    </div>
-    <div class="weight-row weight-result">
-      <span class="weight-label">Hasil Akhir Stlh Pot.</span>
-      <span class="weight-value">: ${nettoAkhir}Kg</span>
     </div>
   </div>
 
