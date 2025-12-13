@@ -1064,6 +1064,7 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
     .weight-section {
       padding: 2.5mm 0;
       margin: 3mm 0;
+      padding-right: 2mm;
     }
 
     .weight-row {
