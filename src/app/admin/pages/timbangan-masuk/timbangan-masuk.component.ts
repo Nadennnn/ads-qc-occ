@@ -1045,9 +1045,10 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
       line-height: 1.4;
     }
 
+    // ANCHOR row label
     .row-label {
       width: 35%;
-      font-size: 16px;
+      font-size: 14px;
     }
 
     .row-separator {
@@ -1055,16 +1056,16 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
       font-size: 16px;
     }
 
+    // ANCHOR row value
     .row-value {
       width: 60%;
       word-wrap: break-word;
-      font-size: 16px;
+      font-size: 14px;
     }
 
+    // ANCHOR berat bruto
     .weight-section {
-      border: 2px solid #000;
-      padding: 2.5mm 2mm;
-      margin: 3mm 0;
+      font-size: 20px;
     }
 
     .weight-row {
@@ -1202,11 +1203,6 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
       <span class="row-separator">:</span>
       <span class="row-value">${supplierCustomer}</span>
     </div>
-    <div class="row">
-      <span class="row-label">Nama Supir</span>
-      <span class="row-separator">:</span>
-      <span class="row-value">${namaSupir}</span>
-    </div>
   </div>
 
   <div class="divider"></div>
@@ -1214,19 +1210,19 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
   <!-- Weight Section -->
   <div class="weight-section">
     <div class="weight-row">
-      <span class="weight-label">Timbangan Pertama</span>
-      <span class="weight-value">: ${bruto}</span>
+      <span class="weight-label">Berat Bruto</span>
+      <span class="weight-value">: ${bruto}Kg</span>
     </div>
     <div class="weight-row">
-      <span class="weight-label">Timbangan Kedua</span>
-      <span class="weight-value">: ${tara}</span>
+      <span class="weight-label">Berat Tarra</span>
+      <span class="weight-value">: ${tara}Kg</span>
     </div>
     <div class="weight-row">
-      <span class="weight-label">Hasil Akhir</span>
-      <span class="weight-value">: ${nettoKotor}</span>
+      <span class="weight-label">Berat Netto</span>
+      <span class="weight-value">: ${nettoKotor}Kg</span>
     </div>
     <div class="weight-row weight-result">
-      <span class="weight-label">Hasil Akhir Setelah Potongan</span>
+      <span class="weight-label">Hasil Stlh Potongan</span>
       <span class="weight-value">: ${nettoAkhir}Kg</span>
     </div>
   </div>
