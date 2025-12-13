@@ -993,7 +993,7 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
       font-size: 13px;
       line-height: 1.3;
       width: 105mm;
-      height: 165mm;
+      height: 200mm;
       background: white;
       color: #000;
     }
@@ -1249,15 +1249,9 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
     </div>
   </div>
 
-  <!-- Footer -->
-  <div class="footer">
-    ( ADS )&nbsp;&nbsp;&nbsp;&nbsp;(  )
-  </div>
 
-  <!-- Barcode Section -->
-  <div class="barcode-section">
-    <div class="barcode-number">${data.noTiket.padStart(6, '0')}</div>
-  </div>
+
+
 
   <script>
     window.onload = function() {
