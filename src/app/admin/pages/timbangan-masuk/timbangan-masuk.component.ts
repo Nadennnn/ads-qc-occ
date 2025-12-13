@@ -561,25 +561,25 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
 
   // REVIEW submitTara
   async submitTara(): Promise<void> {
-    const selected = this.selectedForTara();
-    if (!this.taraForm.valid || !selected || this.isSubmitting()) {
-      console.log('invalid form');
-      return;
-    }
+    const tara = this.taraForm.getRawValue().timbanganKedua;
+    // if (!this.taraForm.valid || !selected || this.isSubmitting()) {
+    //   console.log('invalid form');
+    //   return;
+    // }
 
     this.isSubmitting.set(true);
 
     try {
-      const tara = this.taraForm.getRawValue().timbanganKedua;
+      const selected = this.selectedForTara();
 
       // ✅ Validasi: Tara tidak boleh >= Bruto
-      if (tara >= selected.timbanganPertama) {
+      if (tara >= selected!.timbanganPertama) {
         this.showNotification({
           type: 'error',
           title: 'Input Tidak Valid',
           message: 'Tara tidak boleh lebih besar atau sama dengan Bruto',
           details: [
-            { label: 'Bruto', value: `${selected.timbanganPertama} kg` },
+            { label: 'Bruto', value: `${selected!.timbanganPertama} kg` },
             { label: 'Tara yang diinput', value: `${tara} kg` },
           ],
           confirmText: 'Tutup',
@@ -589,13 +589,15 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
       }
 
       console.log('📤 Submitting Tara:', {
-        id: selected.id,
+        id: selected!.id,
         tara: tara,
-        bruto: selected.timbanganPertama,
+        bruto: selected!.timbanganPertama,
       });
 
       // ✅ Kirim ke endpoint insert-tara
-      const response = await lastValueFrom(this.timbanganService.updateTaraData(selected.id, tara));
+      const response = await lastValueFrom(
+        this.timbanganService.updateTaraData(selected!.id, tara),
+      );
 
       if (!response.success) {
         throw new Error(response.message || 'Gagal menyimpan data Tara');
@@ -606,18 +608,18 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
       await this.delay(500);
 
       // Hitung netto
-      const nettoSebelumPengurangan = selected.timbanganPertama - tara;
+      const nettoSebelumPengurangan = selected!.timbanganPertama - tara;
 
       let details: Array<{ label: string; value: string | number }> = [];
 
       // ✅ Jika bahan baku dengan kelembapan
-      if (selected.tipeBahan === 'bahan-baku' && selected.hasilUjiKelembapan) {
-        const kelembapan = selected.hasilUjiKelembapan.claimPercentage;
+      if (selected!.tipeBahan === 'bahan-baku' && selected!.hasilUjiKelembapan) {
+        const kelembapan = selected!.hasilUjiKelembapan.claimPercentage;
         const pengurangan = nettoSebelumPengurangan * (kelembapan / 100);
         const nettoAkhir = nettoSebelumPengurangan - pengurangan;
 
         details = [
-          { label: 'Bruto', value: `${selected.timbanganPertama} kg` },
+          { label: 'Bruto', value: `${selected!.timbanganPertama} kg` },
           { label: 'Tara', value: `${tara} kg` },
           { label: 'Netto Kotor', value: `${nettoSebelumPengurangan.toFixed(2)} kg` },
           { label: 'Kelembapan', value: `${kelembapan.toFixed(2)}%` },
@@ -627,7 +629,7 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
       } else {
         // ✅ Bahan lainnya atau bahan baku belum diuji
         details = [
-          { label: 'Bruto', value: `${selected.timbanganPertama} kg` },
+          { label: 'Bruto', value: `${selected!.timbanganPertama} kg` },
           { label: 'Tara', value: `${tara} kg` },
           { label: 'Netto', value: `${nettoSebelumPengurangan.toFixed(2)} kg` },
         ];
@@ -645,7 +647,7 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
         showCancel: true,
         confirmText: 'Cetak Slip',
         cancelText: 'Tidak',
-        onConfirm: () => this.printSlip(selected.id),
+        onConfirm: () => this.printSlip(selected!.id),
         onCancel: () => {
           console.log('User memilih tidak cetak slip');
         },
