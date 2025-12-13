@@ -1085,6 +1085,7 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
       font-weight: 800;
       text-align: right;
       font-size: 16px;
+      padding-right: 80px;
     }
 
     .weight-result {
