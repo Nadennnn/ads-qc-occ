@@ -1047,7 +1047,7 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
 
     .row-label {
       width: 35%;
-      font-size: 16px;
+      font-size: 14px;
     }
 
     .row-separator {
@@ -1058,12 +1058,12 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
     .row-value {
       width: 60%;
       word-wrap: break-word;
-      font-size: 16px;
+      font-size: 14px;
     }
 
+    // ANCHOR WEIGHSEC
     .weight-section {
-      border: 2px solid #000;
-      padding: 2.5mm 2mm;
+      padding: 2.5mm 0;
       margin: 3mm 0;
     }
 
@@ -1081,7 +1081,7 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
     }
 
     .weight-value {
-      font-weight: 700;
+      font-weight: 800;
       text-align: right;
       font-size: 16px;
     }
@@ -1204,24 +1204,23 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
     </div>
   </div>
 
-  <div class="divider"></div>
 
-  <!-- Weight Section -->
+  <!-- ANCHOR Weight Section -->
   <div class="weight-section">
     <div class="weight-row">
       <span class="weight-label">Berat Bruto</span>
-      <span class="weight-value">: ${bruto}Kg</span>
+      <span class="weight-value">: ${bruto}kg</span>
     </div>
     <div class="weight-row">
       <span class="weight-label">Berat Tarra</span>
-      <span class="weight-value">: ${tara}Kg</span>
+      <span class="weight-value">: ${tara}kg</span>
     </div>
     <div class="weight-row">
       <span class="weight-label">Berat Netto</span>
-      <span class="weight-value">: ${nettoKotor}Kg</span>
+      <span class="weight-value">: ${nettoKotor}kg</span>
     </div>
     <div class="weight-row weight-result">
-      <span class="weight-label">Hasil Akhir Setelah Potongan</span>
+      <span class="weight-label">Hasil Akhir Stlh Pot.</span>
       <span class="weight-value">: ${nettoAkhir}Kg</span>
     </div>
   </div>
@@ -1231,7 +1230,7 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
     <div class="signature-box">
       <div class="signature-label">Ditimbang</div>
       <div class="signature-line"></div>
-      <div class="signature-name">Diketahui</div>
+      <div class="signature-name">(&nbsp;${data.namaPenimbang}&nbsp;)</div>
     </div>
     <div class="signature-box">
       <div class="signature-label">&nbsp;</div>
