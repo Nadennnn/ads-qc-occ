@@ -1017,7 +1017,7 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
 
     .title {
       font-weight: bold;
-      font-size: 16px;
+      font-size: 18px;
       letter-spacing: 1px;
       margin-bottom: 0.5mm;
     }
