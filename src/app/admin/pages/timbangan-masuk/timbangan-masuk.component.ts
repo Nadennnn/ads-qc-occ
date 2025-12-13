@@ -991,7 +991,7 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
 
     body {
       font-family: Arial, sans-serif;
-      font-size: 13px;
+      font-size: 16px;
       line-height: 1.3;
       width: 105mm;
       min-height: 160mm;
@@ -1000,7 +1000,7 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
       padding: 3mm;
       display: flex;
       flex-direction: column;
-      justify-content: flex-start;
+      justify-content: flex-end;
     }
 
     .header {
