@@ -1045,10 +1045,9 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
       line-height: 1.4;
     }
 
-    // ANCHOR row label
     .row-label {
       width: 35%;
-      font-size: 14px;
+      font-size: 16px;
     }
 
     .row-separator {
@@ -1056,16 +1055,16 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
       font-size: 16px;
     }
 
-    // ANCHOR row value
     .row-value {
       width: 60%;
       word-wrap: break-word;
-      font-size: 14px;
+      font-size: 16px;
     }
 
-    // ANCHOR berat bruto
     .weight-section {
-      font-size: 20px;
+      border: 2px solid #000;
+      padding: 2.5mm 2mm;
+      margin: 3mm 0;
     }
 
     .weight-row {
@@ -1222,7 +1221,7 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
       <span class="weight-value">: ${nettoKotor}Kg</span>
     </div>
     <div class="weight-row weight-result">
-      <span class="weight-label">Hasil Stlh Potongan</span>
+      <span class="weight-label">Hasil Akhir Setelah Potongan</span>
       <span class="weight-value">: ${nettoAkhir}Kg</span>
     </div>
   </div>
