@@ -200,6 +200,7 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
       noContainer: [''],
       tipeBahan: ['', Validators.required],
       namaBarang: ['', Validators.required],
+      keteranganBarang: [''],
       namaRelasi: ['', [Validators.required, Validators.minLength(3)]],
       jenisRelasi: ['supplier'],
       namaSupir: [''],
@@ -275,6 +276,28 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
 
         // ✅ Force change detection
         this.cdr.detectChanges();
+      });
+
+    this.form
+      .get('namaBarang')
+      ?.valueChanges.pipe(takeUntil(this.destroy$))
+      .subscribe((value) => {
+        const keteranganControl = this.form.get('keteranganBarang');
+        const tipeBahan = this.form.get('tipeBahan')?.value;
+
+        console.log('🔄 Nama Barang berubah:', value, 'Tipe Bahan:', tipeBahan);
+
+        // Jika Lainnya + DAN LAIN-LAIN, wajibkan keterangan
+        if (tipeBahan === 'lainnya' && value === 'DAN LAIN-LAIN') {
+          keteranganControl?.setValidators([Validators.required, Validators.minLength(3)]);
+          console.log('✅ Keterangan Barang WAJIB diisi');
+        } else {
+          keteranganControl?.clearValidators();
+          keteranganControl?.setValue('');
+          console.log('❌ Keterangan Barang tidak wajib');
+        }
+
+        keteranganControl?.updateValueAndValidity();
       });
   }
 
@@ -456,6 +479,15 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
         throw new Error('Tipe Bahan dan Nama Barang wajib diisi!');
       }
 
+      // ✅ Validasi keterangan jika DAN LAIN-LAIN
+      if (
+        rawFormData.tipeBahan === 'lainnya' &&
+        rawFormData.namaBarang === 'DAN LAIN-LAIN' &&
+        !rawFormData.keteranganBarang
+      ) {
+        throw new Error('Keterangan Barang wajib diisi untuk barang DAN LAIN-LAIN!');
+      }
+
       const response = await lastValueFrom(
         this.timbanganService.addTimbanganData({
           noTiket: rawFormData.noTiket,
@@ -464,6 +496,7 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
           noContainer: rawFormData.noContainer || undefined,
           tipeBahan: rawFormData.tipeBahan,
           namaBarang: rawFormData.namaBarang,
+          keteranganBarang: rawFormData.keteranganBarang || undefined,
           namaRelasi: rawFormData.namaRelasi,
           jenisRelasi: rawFormData.jenisRelasi,
           namaSupir: rawFormData.namaSupir,
@@ -720,6 +753,7 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
       noContainer: '',
       tipeBahan: '',
       namaBarang: '',
+      keteranganBarang: '',
       namaRelasi: '',
       jenisRelasi: 'supplier',
       namaSupir: '',
@@ -926,6 +960,8 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
   private generatePrintSlip(data: TimbanganData): void {
     console.log('📄 Generating print slip with data:', {
       tipeBahan: data.tipeBahan,
+      namaBarang: data.namaBarang,
+      keteranganBarang: data.keteranganBarang,
       hasilTara: data.hasilTara,
       timbanganPertama: data.timbanganPertama,
       timbanganKedua: data.timbanganKedua,
@@ -1008,6 +1044,10 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
     const namaSupir = data.namaSupir || '-';
     const noContainer = data.noContainer || '-';
 
+    // ✅ Check apakah perlu tampilkan keterangan barang
+    const showKeteranganBarang =
+      data.tipeBahan === 'lainnya' && data.namaBarang === 'DAN LAIN-LAIN' && data.keteranganBarang;
+
     // ========================================
     // WEIGHT SECTION - DYNAMIC HTML
     // ========================================
@@ -1017,43 +1057,43 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
     if (data.tipeBahan === 'bahan-baku' && potongan > 0) {
       // ✅ Untuk Bahan Baku: tampilkan Bruto, Tara, Potong Basah, dan Netto
       weightSectionHTML = `
-  <!-- Weight Section - BAHAN BAKU -->
-  <div class="weight-section">
-    <div class="weight-row">
-      <span class="weight-label">Berat Bruto</span>
-      <span class="weight-value">: ${bruto}kg</span>
-    </div>
-    <div class="weight-row">
-      <span class="weight-label">Berat Tarra</span>
-      <span class="weight-value">: ${tara}kg</span>
-    </div>
-    <div class="weight-row">
-      <span class="weight-label">Potong Basah</span>
-      <span class="weight-value">: ${potongan}kg</span>
-    </div>
-    <div class="weight-row weight-result">
-      <span class="weight-label">Berat Netto</span>
-      <span class="weight-value">: ${nettoAkhir}kg</span>
-    </div>
-  </div>`;
+<!-- Weight Section - BAHAN BAKU -->
+<div class="weight-section">
+  <div class="weight-row">
+    <span class="weight-label">Berat Bruto</span>
+    <span class="weight-value">: ${bruto}kg</span>
+  </div>
+  <div class="weight-row">
+    <span class="weight-label">Berat Tarra</span>
+    <span class="weight-value">: ${tara}kg</span>
+  </div>
+  <div class="weight-row">
+    <span class="weight-label">Potong Basah</span>
+    <span class="weight-value">: ${potongan}kg</span>
+  </div>
+  <div class="weight-row weight-result">
+    <span class="weight-label">Berat Netto</span>
+    <span class="weight-value">: ${nettoAkhir}kg</span>
+  </div>
+</div>`;
     } else {
       // ✅ Untuk Lainnya: tampilkan hanya Bruto, Tara, dan Netto
       weightSectionHTML = `
-  <!-- Weight Section - LAINNYA -->
-  <div class="weight-section">
-    <div class="weight-row">
-      <span class="weight-label">Berat Bruto</span>
-      <span class="weight-value">: ${bruto}kg</span>
-    </div>
-    <div class="weight-row">
-      <span class="weight-label">Berat Tarra</span>
-      <span class="weight-value">: ${tara}kg</span>
-    </div>
-    <div class="weight-row weight-result">
-      <span class="weight-label">Berat Netto</span>
-      <span class="weight-value">: ${nettoAkhir}kg</span>
-    </div>
-  </div>`;
+<!-- Weight Section - LAINNYA -->
+<div class="weight-section">
+  <div class="weight-row">
+    <span class="weight-label">Berat Bruto</span>
+    <span class="weight-value">: ${bruto}kg</span>
+  </div>
+  <div class="weight-row">
+    <span class="weight-label">Berat Tarra</span>
+    <span class="weight-value">: ${tara}kg</span>
+  </div>
+  <div class="weight-row weight-result">
+    <span class="weight-label">Berat Netto</span>
+    <span class="weight-value">: ${nettoAkhir}kg</span>
+  </div>
+</div>`;
     }
 
     // ========================================
@@ -1152,6 +1192,27 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
       font-size: 14px;
     }
 
+    /* ✅ Style khusus untuk keterangan barang */
+    .keterangan-row {
+      display: flex;
+      margin-bottom: 1.5mm;
+      font-size: 14px;
+      line-height: 1.4;
+      background-color: #f5f5f5;
+      padding: 1.5mm 2mm;
+      border-radius: 2mm;
+      border: 1px solid #ddd;
+    }
+
+    .keterangan-row .row-label {
+      font-weight: 600;
+    }
+
+    .keterangan-row .row-value {
+      font-weight: 700;
+      color: #333;
+    }
+
     .weight-section {
       padding: 2.5mm 0;
       margin: 3mm 0;
@@ -1236,6 +1297,14 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
       @page {
         margin: 0 !important;
       }
+
+      /* ✅ Pastikan background
+      /* ✅ Pastikan background keterangan tetap muncul saat print */
+      .keterangan-row {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        background-color: #f5f5f5 !important;
+      }
     }
   </style>
 </head>
@@ -1284,6 +1353,20 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
       <span class="row-separator">:</span>
       <span class="row-value">${namaBarangDisplay}</span>
     </div>
+
+    ${
+      showKeteranganBarang
+        ? `
+    <!-- ✅ KETERANGAN BARANG - Hanya muncul jika DAN LAIN-LAIN -->
+    <div class="keterangan-row">
+      <span class="row-label">Keterangan</span>
+      <span class="row-separator">:</span>
+      <span class="row-value">${data.keteranganBarang}</span>
+    </div>
+    `
+        : ''
+    }
+
     <div class="row">
       <span class="row-label">Rel. / Supplier</span>
       <span class="row-separator">:</span>

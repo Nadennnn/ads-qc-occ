@@ -71,6 +71,7 @@ interface ApiTimbanganPayload {
   nomor_container?: string;
   type_bahan: string;
   barang: string;
+  keterangan_barang?: string;
   customer?: string;
   suplier?: string;
   supir: string;
@@ -250,6 +251,10 @@ export class TimbanganService {
     // Tambahkan nomor_container jika ada
     if (data.jenisKendaraan === 'container' && data.noContainer) {
       payload.nomor_container = data.noContainer;
+    }
+
+    if (data.keteranganBarang) {
+      payload.keterangan_barang = data.keteranganBarang;
     }
 
     // Tentukan customer atau supplier
