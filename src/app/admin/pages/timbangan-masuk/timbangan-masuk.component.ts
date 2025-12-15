@@ -1070,10 +1070,6 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
     @page {
       size: 105mm 195mm;
       margin: 0;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-start;
-      align-content: flex-start;
     }
 
     * {
