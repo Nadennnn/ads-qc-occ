@@ -950,7 +950,7 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
       hour12: false,
     });
 
-    // Tanggal Keluar - gunakan updated_at jika ada, atau waktu sekarang
+    // Tanggal Keluar
     const dateKeluar = data.updatedAt ? new Date(data.updatedAt) : new Date();
     const tanggalKeluar = dateKeluar.toLocaleDateString('id-ID', {
       day: '2-digit',
@@ -965,59 +965,43 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
     });
 
     // ========================================
-    // DATA BERAT - GUNAKAN DATA DARI API
+    // DATA BERAT
     // ========================================
 
     const bruto = data.timbanganPertama || 0;
     const tara = data.timbanganKedua || 0;
 
-    // ✅ Ambil potongan moisture dari data.hasilTara (bukan dihitung manual)
     let potongan = 0;
     let nettoAkhir = 0;
 
     if (data.tipeBahan === 'bahan-baku' && data.hasilTara) {
-      // Untuk Bahan Baku: gunakan data dari API
       potongan = parseFloat(data.hasilTara.potonganMoisture || '0');
       nettoAkhir = parseFloat(data.hasilTara.beratNetto || '0');
-
-      console.log('✅ Bahan Baku detected:', {
-        potongan,
-        nettoAkhir,
-        hasilTara: data.hasilTara,
-      });
     } else {
-      // Untuk Lainnya: netto langsung dari API atau bruto - tara
       nettoAkhir = data.beratNetto || bruto - tara;
       potongan = 0;
-
-      console.log('✅ Lainnya detected:', { nettoAkhir, beratNetto: data.beratNetto });
     }
 
     // ========================================
     // DATA LAINNYA
     // ========================================
 
-    // Nama barang display
     let namaBarangDisplay = data.namaBarang || '-';
     if (data.namaBarang === 'DAN LAIN-LAIN' && data.keteranganBarang) {
       namaBarangDisplay = data.keteranganBarang;
     }
 
-    // Data lainnya
     const supplierCustomer = data.namaRelasi || '-';
-    const namaSupir = data.namaSupir || '-';
     const noContainer = data.noContainer || '-';
 
     // ========================================
-    // WEIGHT SECTION - DYNAMIC HTML
+    // WEIGHT SECTION HTML
     // ========================================
 
     let weightSectionHTML = '';
 
     if (data.tipeBahan === 'bahan-baku' && potongan > 0) {
-      // ✅ Untuk Bahan Baku: tampilkan Bruto, Tara, Potong Basah, dan Netto
       weightSectionHTML = `
-  <!-- Weight Section - BAHAN BAKU -->
   <div class="weight-section">
     <div class="weight-row">
       <span class="weight-label">Berat Bruto</span>
@@ -1037,9 +1021,7 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
     </div>
   </div>`;
     } else {
-      // ✅ Untuk Lainnya: tampilkan hanya Bruto, Tara, dan Netto
       weightSectionHTML = `
-  <!-- Weight Section - LAINNYA -->
   <div class="weight-section">
     <div class="weight-row">
       <span class="weight-label">Berat Bruto</span>
@@ -1057,7 +1039,7 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
     }
 
     // ========================================
-    // HTML TEMPLATE UNTUK PRINT
+    // HTML TEMPLATE
     // ========================================
 
     const printContent = `
@@ -1067,22 +1049,22 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
   <meta charset="UTF-8">
   <title>Slip Timbangan - ${data.noTiket}</title>
   <style>
+    /* ✅ CRITICAL: Reset semua margin/padding di level tertinggi */
     @page {
       size: 105mm 195mm;
-      margin: 0;
+      margin: 0 !important;
     }
 
     * {
-      margin: 0;
-      padding: 0;
+      margin: 0 !important;
+      padding: 0 !important;
       box-sizing: border-box;
     }
 
     html {
-      margin: 0;
-      padding: 0;
-      padding-right: 20mm !important;
-      margin-right: 20mm !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      width: 105mm;
     }
 
     body {
@@ -1092,50 +1074,41 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
       min-height: 195mm;
       background: white;
       color: #000;
-      padding: 2mm 3mm 3mm 3mm;
-      margin: 0;
+      /* ✅ Set padding internal saja, TIDAK ada margin */
+      padding: 3mm 4mm !important;
+      margin: 0 !important;
       display: flex;
       flex-direction: column;
-      justify-content: flex-start;
-      align-content: flex-start;
-      padding-right: 20mm !important;
-      margin-right: 20mm !important;
+      position: relative;
     }
 
     .header {
       text-align: center;
-      margin-bottom: 2mm;
-      padding-bottom: 1mm;
-      margin-top: 0;
-      padding-top: 0;
+      margin-bottom: 3mm !important;
+      padding-bottom: 1mm !important;
     }
 
     .title {
       font-weight: bold;
       font-size: 18px;
       letter-spacing: 1px;
-      margin-bottom: 0.5mm;
+      margin-bottom: 0.5mm !important;
     }
 
     .subtitle {
       font-size: 14px;
       letter-spacing: 0.5px;
-      margin-bottom: 5mm;
+      margin-bottom: 5mm !important;
     }
 
     .divider {
       border-top: 1px solid #000;
-      margin: 2mm 0;
-    }
-
-    .double-divider {
-      border-top: 2px solid #000;
-      margin: 2.5mm 0;
+      margin: 2mm 0 !important;
     }
 
     .row {
       display: flex;
-      margin-bottom: 1.5mm;
+      margin-bottom: 1.5mm !important;
       font-size: 16px;
       line-height: 1.4;
     }
@@ -1157,16 +1130,16 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
     }
 
     .weight-section {
-      padding: 2.5mm 0;
-      margin: 3mm 0;
-      padding-right: 2mm;
+      padding: 2.5mm 0 !important;
+      margin: 3mm 0 !important;
+      padding-right: 2mm !important;
     }
 
     .weight-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 2mm;
+      margin-bottom: 2mm !important;
       font-size: 16px;
     }
 
@@ -1179,28 +1152,20 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
       font-weight: 800;
       text-align: right;
       font-size: 16px;
-      padding-right: 80px;
+      padding-right: 80px !important;
     }
 
     .weight-result {
       border-top: 2px solid #000;
-      padding-top: 2mm;
-      margin-top: 2mm;
-    }
-
-    .weight-result .weight-label {
-      font-size: 16px;
-    }
-
-    .weight-result .weight-value {
-      font-size: 16px;
+      padding-top: 2mm !important;
+      margin-top: 2mm !important;
     }
 
     .signature-section {
-      margin-top: 4mm;
+      margin-top: 4mm !important;
       display: flex;
       justify-content: space-between;
-      padding: 0 2mm;
+      padding: 0 2mm !important;
     }
 
     .signature-box {
@@ -1210,35 +1175,46 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
     }
 
     .signature-label {
-      margin-bottom: 2mm;
+      margin-bottom: 2mm !important;
       font-weight: 600;
     }
 
     .signature-line {
       height: 15mm;
       border-bottom: 1px solid #000;
-      margin: 2mm 3mm;
+      margin: 2mm 3mm !important;
     }
 
     .signature-name {
       font-size: 12px;
-      margin-top: 1.5mm;
+      margin-top: 1.5mm !important;
     }
 
+    /* ✅ CRITICAL: Print-specific override */
     @media print {
-      html, body {
+      @page {
+        size: 105mm 195mm;
+        margin: 0 !important;
+      }
+
+      html {
         margin: 0 !important;
         padding: 0 !important;
+        width: 105mm;
+      }
+
+      body {
+        margin: 0 !important;
+        padding: 3mm 4mm !important;
+        width: 105mm;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
       }
 
-      body {
-        padding: 2mm 3mm 3mm 3mm !important;
-      }
-
-      @page {
-        margin: 0 !important;
+      /* ✅ Override browser default margins */
+      * {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
       }
     }
   </style>
@@ -1295,7 +1271,7 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
     </div>
   </div>
 
-  <!-- Weight Section - DYNAMIC -->
+  <!-- Weight Section -->
   ${weightSectionHTML}
 
   <!-- Signature Section -->
