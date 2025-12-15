@@ -1081,10 +1081,6 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
     html {
       margin: 0;
       padding: 0;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-start;
-      align-content: flex-start;
     }
 
     body {
@@ -1100,6 +1096,7 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
       flex-direction: column;
       justify-content: flex-start;
       align-content: flex-start;
+      margin-right: 20mm;
     }
 
     .header {
