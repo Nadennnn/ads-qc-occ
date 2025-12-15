@@ -1368,7 +1368,7 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
     }
 
     <div class="row">
-      <span class="row-label">Rel. / Supplier</span>
+      <span class="row-label">Customer / Supplier</span>
       <span class="row-separator">:</span>
       <span class="row-value">${supplierCustomer}</span>
     </div>
