@@ -1076,15 +1076,15 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-start;
-      align-content: flex-start;
     }
 
     html {
       margin: 0;
       padding: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-content: flex-start;
     }
 
     body {
