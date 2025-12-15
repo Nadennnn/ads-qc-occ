@@ -1070,12 +1070,20 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
     @page {
       size: 105mm 195mm;
       margin: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-content: flex-start;
     }
 
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-content: flex-start;
     }
 
     html {
@@ -1086,7 +1094,7 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
     body {
       font-family: Arial, sans-serif;
       line-height: 1;
-      width: 80mm;
+      width: 105mm;
       min-height: 195mm;
       background: white;
       color: #000;
