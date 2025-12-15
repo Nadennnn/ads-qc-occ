@@ -27,6 +27,7 @@ export interface ApiTimbanganData {
 }
 
 // Interface untuk data internal (tetap untuk compatibility)
+// ✅ STEP 2: Update interface TimbanganData (tambahkan 2 field ini)
 export interface TimbanganData {
   id: string;
   noTiket: string;
@@ -45,9 +46,11 @@ export interface TimbanganData {
   kelembapan: number | null;
   tipeBahan: 'bahan-baku' | 'lainnya';
   timestamp: string;
+  updatedAt?: string; // ✅ TAMBAHKAN INI
   statusTimbangan: 'masuk' | 'selesai';
   statusUjiKelembapan?: 'pending' | 'completed';
   hasilUjiKelembapan?: {
+    id?: string; // ✅ Tambahkan id
     totalMoisture: number;
     averageMoisture: number;
     claimPercentage: number;
@@ -57,6 +60,7 @@ export interface TimbanganData {
     moisturePoints: string[];
     tanggalUji: string;
   };
+  hasilTara?: HasilTara; // ✅ TAMBAHKAN INI
 }
 
 // Interface untuk payload API Backend
@@ -72,6 +76,17 @@ interface ApiTimbanganPayload {
   supir: string;
   berat_bruto: string;
   petugas: string;
+}
+
+export interface HasilTara {
+  id: string | number;
+  timbanganMasukId: string;
+  beratBruto: string;
+  beratTara: string;
+  potonganMoisture: string;
+  beratNetto: string;
+  timestamp?: string;
+  updatedAt?: string;
 }
 
 @Injectable({
@@ -144,7 +159,39 @@ export class TimbanganService {
   /**
    * Konversi data dari API format ke internal format
    */
-  private convertFromApiFormat(apiData: ApiTimbanganData): TimbanganData {
+  private convertFromApiFormat(apiData: any): TimbanganData {
+    // Mapping hasilTara jika ada data tara
+    let hasilTara: HasilTara | undefined = undefined;
+    if (apiData.tara) {
+      hasilTara = {
+        id: apiData.tara.id,
+        timbanganMasukId: apiData.tara.timbangan_masuk_id,
+        beratBruto: apiData.tara.berat_bruto,
+        beratTara: apiData.tara.berat_tara,
+        potonganMoisture: apiData.tara.potongan_moisture,
+        beratNetto: apiData.tara.berat_netto,
+        timestamp: apiData.tara.created_at,
+        updatedAt: apiData.tara.updated_at,
+      };
+    }
+
+    // Mapping hasilUjiKelembapan jika ada
+    let hasilUjiKelembapan: TimbanganData['hasilUjiKelembapan'] = undefined;
+    if (apiData.uji_kelembapan) {
+      const uji = apiData.uji_kelembapan;
+      hasilUjiKelembapan = {
+        id: uji.id?.toString(),
+        totalMoisture: parseFloat(uji.total_moisture?.replace('%', '') || '0'),
+        averageMoisture: parseFloat(uji.avg_moisture?.replace('%', '') || '0'),
+        claimPercentage: parseFloat(uji.nilai_claim?.replace('%', '').replace('+', '') || '0'),
+        beratBahan: parseFloat(uji.berat_bruto || '0'),
+        netto: parseFloat(uji.berat_netto || '0'),
+        pointsChecked: parseInt(uji.jumlah_ball || '0'),
+        moisturePoints: apiData.titik?.map((t: any) => t.nilai?.toString() || '0') || [],
+        tanggalUji: uji.created_at || '',
+      };
+    }
+
     return {
       id: apiData.id.toString(),
       noTiket: apiData.nomor_bon,
@@ -152,18 +199,22 @@ export class TimbanganService {
       jenisKendaraan: apiData.jenis_kendaraan.toLowerCase() === 'truck' ? 'truck' : 'container',
       noContainer: apiData.nomor_container || undefined,
       namaBarang: apiData.barang,
+      keteranganBarang: apiData.keterangan_barang || undefined,
       namaRelasi: apiData.suplier || apiData.customer || '',
       jenisRelasi: apiData.customer ? 'customer' : 'supplier',
       namaSupir: apiData.supir,
       timbanganPertama: parseFloat(apiData.berat_bruto) || 0,
-      timbanganKedua: apiData.berat_netto ? parseFloat(apiData.berat_netto) : null,
-      beratNetto: apiData.berat_netto ? parseFloat(apiData.berat_netto) : null,
+      timbanganKedua: hasilTara ? parseFloat(hasilTara.beratTara) : null,
+      beratNetto: parseFloat(apiData.berat_netto) || null,
       namaPenimbang: apiData.petugas,
       kelembapan: null,
       tipeBahan: apiData.type_bahan === 'Bahan Baku' ? 'bahan-baku' : 'lainnya',
       timestamp: apiData.created_at,
+      updatedAt: apiData.updated_at, // ✅ Mapping updated_at
       statusTimbangan: apiData.is_finished === '1' ? 'selesai' : 'masuk',
       statusUjiKelembapan: apiData.status === 'Belum Diuji' ? 'pending' : 'completed',
+      hasilUjiKelembapan: hasilUjiKelembapan, // ✅ Mapping hasil uji kelembapan
+      hasilTara: hasilTara, // ✅ Mapping hasil tara
     };
   }
 
@@ -375,10 +426,23 @@ export class TimbanganService {
    * Endpoint: GET /daftar-tara-selesai
    */
   loadDaftarTaraSelesai(): Observable<TimbanganData[]> {
-    return this.apiService.get<ApiTimbanganData[]>('daftar-tara-selesai').pipe(
+    return this.apiService.get<any>('daftar-tara-selesai').pipe(
       map((response) => {
         if (response.success && response.data) {
-          const convertedData = response.data.map((item) => this.convertFromApiFormat(item));
+          console.log('📥 Raw API Response:', response.data);
+
+          const convertedData = response.data.map((item: any) => {
+            const converted = this.convertFromApiFormat(item);
+            console.log('🔄 Converted item:', {
+              id: converted.id,
+              noTiket: converted.noTiket,
+              tipeBahan: converted.tipeBahan,
+              hasilTara: converted.hasilTara,
+              beratNetto: converted.beratNetto,
+            });
+            return converted;
+          });
+
           this.taraSelesaiSubject.next(convertedData);
           console.log('✅ Loaded daftar tara selesai:', convertedData.length, 'items');
           return convertedData;

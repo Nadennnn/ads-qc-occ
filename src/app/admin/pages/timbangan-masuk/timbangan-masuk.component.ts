@@ -917,8 +917,26 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
     this.generatePrintSlip(data);
   }
 
+  /**
+   * ✅ METHOD GENERATE PRINT SLIP - FULL UPDATED VERSION
+   * Copy-paste method ini ke timbangan-masuk.component.ts
+   * Ganti method generatePrintSlip yang lama dengan yang ini
+   */
+
   private generatePrintSlip(data: TimbanganData): void {
-    // Format tanggal dan waktu
+    console.log('📄 Generating print slip with data:', {
+      tipeBahan: data.tipeBahan,
+      hasilTara: data.hasilTara,
+      timbanganPertama: data.timbanganPertama,
+      timbanganKedua: data.timbanganKedua,
+      beratNetto: data.beratNetto,
+    });
+
+    // ========================================
+    // FORMAT TANGGAL DAN WAKTU
+    // ========================================
+
+    // Tanggal Masuk
     const dateMasuk = new Date(data.timestamp);
     const tanggalMasuk = dateMasuk.toLocaleDateString('id-ID', {
       day: '2-digit',
@@ -932,8 +950,8 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
       hour12: false,
     });
 
-    // Tanggal keluar
-    const dateKeluar = new Date();
+    // Tanggal Keluar - gunakan updated_at jika ada, atau waktu sekarang
+    const dateKeluar = data.updatedAt ? new Date(data.updatedAt) : new Date();
     const tanggalKeluar = dateKeluar.toLocaleDateString('id-ID', {
       day: '2-digit',
       month: '2-digit',
@@ -946,19 +964,38 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
       hour12: false,
     });
 
-    // Data berat
+    // ========================================
+    // DATA BERAT - GUNAKAN DATA DARI API
+    // ========================================
+
     const bruto = data.timbanganPertama || 0;
     const tara = data.timbanganKedua || 0;
-    const nettoKotor = bruto - tara;
 
-    // Hitung potongan dari kelembapan jika ada
+    // ✅ Ambil potongan moisture dari data.hasilTara (bukan dihitung manual)
     let potongan = 0;
-    if (data.tipeBahan === 'bahan-baku' && data.hasilUjiKelembapan) {
-      const kelembapan = data.hasilUjiKelembapan.claimPercentage || 0;
-      potongan = Math.round(nettoKotor * (kelembapan / 100));
+    let nettoAkhir = 0;
+
+    if (data.tipeBahan === 'bahan-baku' && data.hasilTara) {
+      // Untuk Bahan Baku: gunakan data dari API
+      potongan = parseFloat(data.hasilTara.potonganMoisture || '0');
+      nettoAkhir = parseFloat(data.hasilTara.beratNetto || '0');
+
+      console.log('✅ Bahan Baku detected:', {
+        potongan,
+        nettoAkhir,
+        hasilTara: data.hasilTara,
+      });
+    } else {
+      // Untuk Lainnya: netto langsung dari API atau bruto - tara
+      nettoAkhir = data.beratNetto || bruto - tara;
+      potongan = 0;
+
+      console.log('✅ Lainnya detected:', { nettoAkhir, beratNetto: data.beratNetto });
     }
 
-    const nettoAkhir = nettoKotor - potongan;
+    // ========================================
+    // DATA LAINNYA
+    // ========================================
 
     // Nama barang display
     let namaBarangDisplay = data.namaBarang || '-';
@@ -971,7 +1008,58 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
     const namaSupir = data.namaSupir || '-';
     const noContainer = data.noContainer || '-';
 
-    // HTML untuk printer dot matrix - kertas 10.5cm x 16.5cm
+    // ========================================
+    // WEIGHT SECTION - DYNAMIC HTML
+    // ========================================
+
+    let weightSectionHTML = '';
+
+    if (data.tipeBahan === 'bahan-baku' && potongan > 0) {
+      // ✅ Untuk Bahan Baku: tampilkan Bruto, Tara, Potong Basah, dan Netto
+      weightSectionHTML = `
+  <!-- Weight Section - BAHAN BAKU -->
+  <div class="weight-section">
+    <div class="weight-row">
+      <span class="weight-label">Berat Bruto</span>
+      <span class="weight-value">: ${bruto}kg</span>
+    </div>
+    <div class="weight-row">
+      <span class="weight-label">Berat Tarra</span>
+      <span class="weight-value">: ${tara}kg</span>
+    </div>
+    <div class="weight-row">
+      <span class="weight-label">Potong Basah</span>
+      <span class="weight-value">: ${potongan}kg</span>
+    </div>
+    <div class="weight-row weight-result">
+      <span class="weight-label">Berat Netto</span>
+      <span class="weight-value">: ${nettoAkhir}kg</span>
+    </div>
+  </div>`;
+    } else {
+      // ✅ Untuk Lainnya: tampilkan hanya Bruto, Tara, dan Netto
+      weightSectionHTML = `
+  <!-- Weight Section - LAINNYA -->
+  <div class="weight-section">
+    <div class="weight-row">
+      <span class="weight-label">Berat Bruto</span>
+      <span class="weight-value">: ${bruto}kg</span>
+    </div>
+    <div class="weight-row">
+      <span class="weight-label">Berat Tarra</span>
+      <span class="weight-value">: ${tara}kg</span>
+    </div>
+    <div class="weight-row weight-result">
+      <span class="weight-label">Berat Netto</span>
+      <span class="weight-value">: ${nettoAkhir}kg</span>
+    </div>
+  </div>`;
+    }
+
+    // ========================================
+    // HTML TEMPLATE UNTUK PRINT
+    // ========================================
+
     const printContent = `
 <!DOCTYPE html>
 <html>
@@ -1027,7 +1115,7 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
     .subtitle {
       font-size: 14px;
       letter-spacing: 0.5px;
-      margin-bottom:5mm;
+      margin-bottom: 5mm;
     }
 
     .divider {
@@ -1063,7 +1151,6 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
       font-size: 14px;
     }
 
-    // ANCHOR WEIGHSEC
     .weight-section {
       padding: 2.5mm 0;
       margin: 3mm 0;
@@ -1208,22 +1295,8 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
     </div>
   </div>
 
-
-  <!-- ANCHOR Weight Section -->
-  <div class="weight-section">
-    <div class="weight-row">
-      <span class="weight-label">Berat Bruto</span>
-      <span class="weight-value">: ${bruto}kg</span>
-    </div>
-    <div class="weight-row">
-      <span class="weight-label">Berat Tarra</span>
-      <span class="weight-value">: ${tara}kg</span>
-    </div>
-    <div class="weight-row weight-result">
-      <span class="weight-label">Berat Netto</span>
-      <span class="weight-value">: ${nettoKotor}kg</span>
-    </div>
-  </div>
+  <!-- Weight Section - DYNAMIC -->
+  ${weightSectionHTML}
 
   <!-- Signature Section -->
   <div class="signature-section">
@@ -1253,13 +1326,18 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
 </html>
 `;
 
-    // Open print window
+    // ========================================
+    // OPEN PRINT WINDOW
+    // ========================================
+
     const printWindow = window.open('', '_blank', 'width=420,height=660');
 
     if (printWindow) {
       printWindow.document.write(printContent);
       printWindow.document.close();
+      console.log('✅ Print window opened successfully');
     } else {
+      console.error('❌ Failed to open print window - popup blocked');
       this.showNotification({
         type: 'error',
         title: 'Gagal Membuka Print',
