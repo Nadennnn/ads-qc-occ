@@ -121,6 +121,9 @@
                   Barang
                 </th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Customer
+                </th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Supplier
                 </th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
@@ -145,6 +148,7 @@
                 <td class="px-4 py-3 text-sm font-medium text-gray-900">{{ item.nomor_bon }}</td>
                 <td class="px-4 py-3 text-sm text-gray-700">{{ item.nomor_kendaraan }}</td>
                 <td class="px-4 py-3 text-sm text-gray-700 capitalize">{{ item.barang }}</td>
+                <td class="px-4 py-3 text-sm text-gray-700">{{ item.customer || '-' }}</td>
                 <td class="px-4 py-3 text-sm text-gray-700">{{ item.suplier || '-' }}</td>
                 <td class="px-4 py-3 text-sm text-gray-700">{{ item.supir }}</td>
                 <td class="px-4 py-3 text-sm text-gray-900 text-right font-medium">
