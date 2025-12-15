@@ -1035,9 +1035,9 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
 
     // Nama barang display
     let namaBarangDisplay = data.namaBarang || '-';
-    if (data.namaBarang === 'DAN LAIN-LAIN' && data.keteranganBarang) {
-      namaBarangDisplay = data.keteranganBarang;
-    }
+    // if (data.namaBarang === 'DAN LAIN-LAIN' && data.keteranganBarang) {
+    //   namaBarangDisplay = data.keteranganBarang;
+    // }
 
     // Data lainnya
     const supplierCustomer = data.namaRelasi || '-';
