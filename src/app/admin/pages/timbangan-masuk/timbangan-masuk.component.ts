@@ -1358,7 +1358,7 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
       showKeteranganBarang
         ? `
     <!-- ✅ KETERANGAN BARANG - Hanya muncul jika DAN LAIN-LAIN -->
-    <div class="keterangan-row">
+    <div class="row">
       <span class="row-label">Keterangan</span>
       <span class="row-separator">:</span>
       <span class="row-value">${data.keteranganBarang}</span>
