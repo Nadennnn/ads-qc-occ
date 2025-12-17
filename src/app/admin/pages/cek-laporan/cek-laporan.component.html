@@ -56,8 +56,16 @@
     </form>
   </div>
 
+  <!-- Loading Indicator -->
+  <div *ngIf="isLoading" class="loading-container">
+    <div class="flex flex-col items-center justify-center py-12">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+      <p class="text-gray-600">Memuat data laporan...</p>
+    </div>
+  </div>
+
   <!-- Statistics Cards -->
-  <div class="stats-grid">
+  <div class="stats-grid" *ngIf="!isLoading">
     <div class="stat-card">
       <div class="stat-icon">
         <lucide-icons [iconsName]="'arrow-left-right'" />
@@ -71,7 +79,7 @@
     <div class="stat-card stat-success">
       <lucide-icons [iconsName]="'circle-check-big'" [color]="'gray'" />
       <div class="stat-content">
-        <div class="stat-value">{{ stats.selesai }}</div>
+        <div class="stat-value">{{ stats.totalSelesai }}</div>
         <div class="stat-label">Selesai</div>
       </div>
     </div>
@@ -79,7 +87,7 @@
     <div class="stat-card stat-warning">
       <lucide-icons [iconsName]="'hourglass'" [color]="'gray'" />
       <div class="stat-content">
-        <div class="stat-value">{{ stats.menungguTara }}</div>
+        <div class="stat-value">{{ stats.totalMenunggu }}</div>
         <div class="stat-label">Menunggu Tara</div>
       </div>
     </div>
@@ -94,11 +102,15 @@
   </div>
 
   <!-- Data Table -->
-  <div class="data-section mb-3">
+  <div class="data-section mb-3" *ngIf="!isLoading">
     <h3 class="section-title">Data Timbangan ({{ filteredData.length }} data)</h3>
 
     <div *ngIf="filteredData.length === 0" class="empty-state">
-      <p>Tidak ada data untuk filter yang dipilih</p>
+      <div class="flex flex-col items-center justify-center py-12">
+        <lucide-icons [iconsName]="'inbox'" [size]="48" [color]="'#9CA3AF'" class="mb-4" />
+        <p class="text-gray-500 text-lg font-medium">Tidak ada data untuk filter yang dipilih</p>
+        <p class="text-gray-400 text-sm mt-2">Coba ubah filter atau periode waktu</p>
+      </div>
     </div>
 
     <div *ngIf="filteredData.length > 0" class="table-container">
@@ -109,12 +121,12 @@
             <th>Tanggal</th>
             <th>No. Tiket</th>
             <th>No. Kendaraan</th>
+            <th>Customer</th>
             <th>Supplier</th>
             <th>Nama Barang</th>
             <th>Tipe</th>
             <th>Bruto (kg)</th>
             <th>Tara (kg)</th>
-            <!-- <th>Kelembapan (%)</th> -->
             <th>Netto (kg)</th>
             <!-- <th>Status</th> -->
           </tr>
@@ -125,24 +137,34 @@
             <td class="text-center">{{ formatDate(item.timestamp) }}</td>
             <td class="text-center font-semibold">{{ item.noTiket }}</td>
             <td class="text-center">{{ item.noKendaraan }}</td>
-            <td class="text-center">{{ item.namaRelasi }}</td>
+            <td class="text-center">
+              {{
+                item.laporanCustomer == null || item.laporanCustomer === '---'
+                  ? '-'
+                  : item.laporanCustomer
+              }}
+            </td>
+            <td class="text-center">
+              {{
+                item.laporanSupplier == null || item.laporanSupplier === '---'
+                  ? '-'
+                  : item.laporanSupplier
+              }}
+            </td>
             <td class="text-center">{{ item.namaBarang }}</td>
             <td class="text-center">
               <span class="badge" [ngClass]="getTipeClass(item.tipeBahan)">
                 {{ getTipeBadge(item.tipeBahan) }}
               </span>
             </td>
-            <td class="text-center">{{ formatNumber(item.timbanganPertama) }}</td>
+            <td class="text-center">{{ formatNumber(item.timbanganPertama) + 'Kg' }}</td>
             <td class="text-center">
-              {{ item.timbanganKedua ? formatNumber(item.timbanganKedua) : '-' }}
+              {{ formatNumber(item.timbanganPertama - (item.beratNetto || 0)) + 'Kg' }}
+            </td>
+            <td class="text-center font-semibold">
+              {{ item.beratNetto ? formatNumber(item.beratNetto) + 'Kg' : '-' }}
             </td>
             <!-- <td class="text-center">
-              {{ item.kelembapan ? formatNumber(item.kelembapan) : '-' }}
-            </td> -->
-            <td class="text-center font-semibold">
-              {{ item.beratNetto ? formatNumber(item.beratNetto) : '-' }}
-            </td>
-            <!-- <td>
               <span class="badge" [ngClass]="getStatusClass(item.statusTimbangan)">
                 {{ getStatusBadge(item.statusTimbangan) }}
               </span>
@@ -154,7 +176,7 @@
   </div>
 
   <!-- Detailed Stats -->
-  <div class="detail-stats" *ngIf="isRincianVisible">
+  <div class="detail-stats" *ngIf="isRincianVisible && !isLoading">
     <h3 class="section-title">Rincian Berat</h3>
     <div class="stats-table">
       <div class="stats-row">
@@ -197,27 +219,29 @@
   </div>
 
   <!-- Action Buttons -->
-  <div class="action-buttons no-print">
+  <div class="action-buttons no-print" *ngIf="!isLoading">
     <button
       class="btn bg-neutral-800 text-white flex justify-center w-auto gap-3 items-center"
       (click)="toggleShowRincian()"
     >
-      <lucide-icon name="a-arrow-down"></lucide-icon>
-      <span *ngIf="isRincianVisible">Tutup data rincian</span>
-      <span *ngIf="!isRincianVisible">Tampilkan data rincian</span>
+      <lucide-icon [name]="isRincianVisible ? 'chevron-up' : 'chevron-down'"></lucide-icon>
+      <span *ngIf="isRincianVisible">Sembunyikan Data Rincian</span>
+      <span *ngIf="!isRincianVisible">Tampilkan Data Rincian</span>
     </button>
-    <!-- <button
+    <button
       class="btn bg-neutral-800 text-white flex justify-center w-auto gap-3 items-center"
       (click)="exportToExcel()"
+      [disabled]="filteredData.length === 0"
     >
       <lucide-icons [iconsName]="'sheet'" class="text-white" /> Export ke Excel
     </button>
     <button
       class="btn bg-gray-200 text-neutral-800 flex justify-center w-auto gap-3 items-center"
       (click)="printLaporan()"
+      [disabled]="filteredData.length === 0"
     >
       <lucide-icons [iconsName]="'printer-check'" class="text-neutral-800" /> Print Laporan
-    </button> -->
+    </button>
   </div>
 
   <!-- Print Header (only visible when printing) -->

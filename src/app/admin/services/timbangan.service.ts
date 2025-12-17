@@ -37,10 +37,13 @@ export interface TimbanganData {
   noContainer?: string;
   keteranganBarang?: string;
   namaRelasi: string;
+  laporanCustomer?: string | null;
+  laporanSupplier?: string | null;
   jenisRelasi?: 'customer' | 'supplier';
   namaSupir: string;
   timbanganPertama: number;
   timbanganKedua: number | null;
+  // beratTara2: number | null;
   beratNetto: number | null;
   namaPenimbang: string;
   kelembapan: number | null;
@@ -88,6 +91,26 @@ export interface HasilTara {
   beratNetto: string;
   timestamp?: string;
   updatedAt?: string;
+}
+
+export interface ReportResponse {
+  success: boolean;
+  message: string;
+  statistik: {
+    total: number;
+    finished: number;
+    not_finished: number;
+    netto: string;
+  };
+  data: ApiTimbanganData[];
+}
+
+export interface ReportParams {
+  periode?: string;
+  start_date?: string;
+  end_date?: string;
+  status?: number;
+  type?: string;
 }
 
 @Injectable({
@@ -202,10 +225,13 @@ export class TimbanganService {
       namaBarang: apiData.barang,
       keteranganBarang: apiData.keterangan_barang || undefined,
       namaRelasi: apiData.suplier || apiData.customer || '',
+      laporanCustomer: apiData.customer || null,
+      laporanSupplier: apiData.suplier || null,
       jenisRelasi: apiData.customer ? 'customer' : 'supplier',
       namaSupir: apiData.supir,
       timbanganPertama: parseFloat(apiData.berat_bruto) || 0,
       timbanganKedua: hasilTara ? parseFloat(hasilTara.beratTara) : null,
+      // beratTara2: parseFloat(apiData.berat_bruto) - parseFloat(apiData.berat_netto) || null,
       beratNetto: parseFloat(apiData.berat_netto) || null,
       namaPenimbang: apiData.petugas,
       kelembapan: null,
@@ -475,5 +501,70 @@ export class TimbanganService {
    */
   refreshTaraSelesai(): void {
     this.loadDaftarTaraSelesai().subscribe();
+  }
+
+  /**
+   * ✅ Get report data dengan filter parameters
+   * Endpoint: GET /report
+   */
+  getReportData(params: ReportParams): Observable<ReportResponse> {
+    // Build query params
+    const queryParams: any = {};
+
+    if (params.periode) {
+      queryParams.periode = params.periode;
+    }
+    if (params.start_date) {
+      queryParams.start_date = params.start_date;
+    }
+    if (params.end_date) {
+      queryParams.end_date = params.end_date;
+    }
+    if (params.status !== undefined && params.status !== null) {
+      queryParams.status = params.status;
+    }
+    if (params.type) {
+      queryParams.type = params.type;
+    }
+
+    console.log('📤 Fetching report with params:', queryParams);
+
+    return this.apiService.get<ReportResponse>('report', queryParams).pipe(
+      map((response: any) => {
+        if (response.success && response.data) {
+          console.log('✅ Report data received:', {
+            total: response.statistik?.total,
+            dataLength: response.data?.length,
+          });
+
+          return {
+            success: response.success,
+            message: response.message,
+            statistik: response.statistik || {
+              total: 0,
+              finished: 0,
+              not_finished: 0,
+              netto: '0',
+            },
+            data: response.data || [],
+          };
+        }
+        return {
+          success: false,
+          message: 'No data',
+          statistik: {
+            total: 0,
+            finished: 0,
+            not_finished: 0,
+            netto: '0',
+          },
+          data: [],
+        };
+      }),
+      catchError((error) => {
+        console.error('❌ Error fetching report data:', error);
+        return throwError(() => error);
+      }),
+    );
   }
 }

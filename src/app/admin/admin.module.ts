@@ -9,6 +9,8 @@ import {
   AlertTriangle,
   ArrowLeftRight,
   Check,
+  ChevronDown,
+  ChevronUp,
   CircleCheckBig,
   ContactRound,
   Eye,
@@ -98,6 +100,8 @@ import { AbhiLatihanComponent } from './unused/abhi-latihan.component';
       SquarePlus,
       Printer,
       RefreshCw,
+      ChevronDown,
+      ChevronUp,
     }),
   ],
 })

@@ -3,22 +3,23 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
-import { TimbanganData, TimbanganService } from '../../services/timbangan.service';
+import { ReportParams, TimbanganData, TimbanganService } from '../../services/timbangan.service';
 
 type FilterPeriod = 'harian' | 'mingguan' | 'bulanan' | 'custom';
-type FilterStatus = 'semua' | 'masuk' | 'selesai';
+type FilterStatus = 'semua' | 'menunggu' | 'selesai';
 type FilterTipe = 'semua' | 'bahan-baku' | 'lainnya';
 
 interface LaporanStats {
   totalTransaksi: number;
+  totalSelesai: number;
+  totalMenunggu: number;
+  totalNetto: number;
+  // Stats tambahan bisa dihitung dari data
   totalBruto: number;
   totalTara: number;
-  totalNetto: number;
   totalPotongan: number;
   bahanBaku: number;
   lainnya: number;
-  menungguTara: number;
-  selesai: number;
   sudahDiuji: number;
   belumDiuji: number;
 }
@@ -33,38 +34,41 @@ export class CekLaporanComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   filterForm!: FormGroup;
-  allData: TimbanganData[] = [];
   filteredData: TimbanganData[] = [];
   stats: LaporanStats = this.getEmptyStats();
+  isLoading = false;
 
   readonly periodOptions = [
-    { value: 'harian', label: 'Hari Ini' },
-    { value: 'mingguan', label: 'Minggu Ini' },
-    { value: 'bulanan', label: 'Bulan Ini' },
-    { value: 'custom', label: 'Custom Range' },
+    { value: 'harian', label: 'Hari Ini', apiValue: 'Hari Ini' },
+    { value: 'mingguan', label: 'Minggu Ini', apiValue: 'Minggu Ini' },
+    { value: 'bulanan', label: 'Bulan Ini', apiValue: 'Bulan Ini' },
+    { value: 'custom', label: 'Custom Range', apiValue: 'Custom Range' },
   ];
 
   readonly statusOptions = [
-    { value: 'semua', label: 'Semua Status' },
-    { value: 'masuk', label: 'Menunggu Tara' },
-    { value: 'selesai', label: 'Selesai' },
+    { value: 'semua', label: 'Semua Status', apiValue: null },
+    { value: 'menunggu', label: 'Menunggu Tara', apiValue: 0 },
+    { value: 'selesai', label: 'Selesai', apiValue: 1 },
   ];
 
   readonly tipeOptions = [
-    { value: 'semua', label: 'Semua Tipe' },
-    { value: 'bahan-baku', label: 'Bahan Baku' },
-    { value: 'lainnya', label: 'Lainnya' },
+    { value: 'semua', label: 'Semua Tipe', apiValue: null },
+    { value: 'bahan-baku', label: 'Bahan Baku', apiValue: 'Bahan Baku' },
+    { value: 'lainnya', label: 'Lainnya', apiValue: 'Lainnya' },
   ];
 
-  // Current date for display
   currentDate = new Date().toISOString();
+  isRincianVisible: boolean = false;
 
-  constructor(private fb: FormBuilder, private timbanganService: TimbanganService) {}
+  constructor(
+    private fb: FormBuilder,
+    private timbanganService: TimbanganService,
+  ) {}
 
   ngOnInit(): void {
     this.initForm();
-    this.loadData();
     this.setupFilterListener();
+    this.loadReportData(); // Load initial data
   }
 
   ngOnDestroy(): void {
@@ -84,144 +88,180 @@ export class CekLaporanComponent implements OnInit, OnDestroy {
     });
   }
 
-  private loadData(): void {
-    this.timbanganService.timbanganData$.pipe(takeUntil(this.destroy$)).subscribe((data) => {
-      this.allData = data;
-      this.applyFilters();
-    });
-  }
-
   private setupFilterListener(): void {
     this.filterForm.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => {
-      this.applyFilters();
+      this.loadReportData();
     });
   }
 
-  private applyFilters(): void {
-    const { period, startDate, endDate, status, tipe } = this.filterForm.value;
+  tara: any;
 
-    let filtered = [...this.allData];
+  private loadReportData(): void {
+    const formValues = this.filterForm.value;
+    const params = this.buildReportParams(formValues);
 
-    // Filter by period
-    const dateRange = this.getDateRange(period, startDate, endDate);
-    filtered = filtered.filter((item) => {
-      const itemDate = new Date(item.timestamp);
-      return itemDate >= dateRange.start && itemDate <= dateRange.end;
-    });
+    console.log('🔍 Loading report with params:', params);
+    this.isLoading = true;
 
-    // Filter by status
-    if (status !== 'semua') {
-      filtered = filtered.filter((item) => item.statusTimbangan === status);
-    }
+    this.timbanganService
+      .getReportData(params)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          console.log('📊 Report response:', response);
 
-    // Filter by tipe
-    if (tipe !== 'semua') {
-      filtered = filtered.filter((item) => item.tipeBahan === tipe);
-    }
+          // Convert API data to TimbanganData format
+          this.filteredData = response.data.map((item) => this.convertApiToTimbanganData(item));
 
-    this.filteredData = filtered;
-    this.calculateStats();
+          // Update stats from API response
+          this.stats = {
+            totalTransaksi: response.statistik.total,
+            totalSelesai: response.statistik.finished,
+            totalMenunggu: response.statistik.not_finished,
+            totalNetto: parseFloat(response.statistik.netto),
+            // Calculate additional stats from data
+            ...this.calculateAdditionalStats(this.filteredData),
+          };
+
+          this.isLoading = false;
+          console.log('✅ Report loaded successfully:', {
+            dataCount: this.filteredData.length,
+            stats: this.stats,
+          });
+        },
+        error: (error) => {
+          console.error('❌ Error loading report:', error);
+          this.filteredData = [];
+          this.stats = this.getEmptyStats();
+          this.isLoading = false;
+        },
+      });
   }
 
-  private getDateRange(
-    period: FilterPeriod,
-    startDate: string,
-    endDate: string
-  ): { start: Date; end: Date } {
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  private buildReportParams(formValues: any): ReportParams {
+    const { period, startDate, endDate, status, tipe } = formValues;
 
-    switch (period) {
-      case 'harian':
-        return {
-          start: today,
-          end: new Date(today.getTime() + 24 * 60 * 60 * 1000 - 1),
-        };
+    const params: ReportParams = {};
 
-      case 'mingguan': {
-        const dayOfWeek = today.getDay();
-        const monday = new Date(today);
-        monday.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
-        const sunday = new Date(monday);
-        sunday.setDate(monday.getDate() + 6);
-        sunday.setHours(23, 59, 59, 999);
-        return { start: monday, end: sunday };
-      }
-
-      case 'bulanan': {
-        const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-        const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0, 23, 59, 59, 999);
-        return { start: firstDay, end: lastDay };
-      }
-
-      case 'custom': {
-        const start = new Date(startDate);
-        const end = new Date(endDate);
-        end.setHours(23, 59, 59, 999);
-        return { start, end };
-      }
-
-      default:
-        return { start: today, end: new Date(today.getTime() + 24 * 60 * 60 * 1000 - 1) };
+    // Periode
+    const periodOption = this.periodOptions.find((opt) => opt.value === period);
+    if (periodOption) {
+      params.periode = periodOption.apiValue;
     }
+
+    // Custom date range
+    if (period === 'custom' && startDate && endDate) {
+      params.start_date = startDate;
+      params.end_date = endDate;
+    }
+
+    // Status
+    const statusOption = this.statusOptions.find((opt) => opt.value === status);
+    if (statusOption && statusOption.apiValue !== null) {
+      params.status = statusOption.apiValue;
+    }
+
+    // Type
+    const tipeOption = this.tipeOptions.find((opt) => opt.value === tipe);
+    if (tipeOption && tipeOption.apiValue !== null) {
+      params.type = tipeOption.apiValue;
+    }
+
+    return params;
   }
 
-  private calculateStats(): void {
-    const stats = this.getEmptyStats();
+  private convertApiToTimbanganData(apiData: any): TimbanganData {
+    return {
+      id: apiData.id.toString(),
+      noTiket: apiData.nomor_bon,
+      noKendaraan: apiData.nomor_kendaraan,
+      jenisKendaraan: apiData.jenis_kendaraan.toLowerCase() === 'truck' ? 'truck' : 'container',
+      noContainer: apiData.nomor_container || undefined,
+      namaBarang: apiData.barang,
+      keteranganBarang: apiData.keterangan_barang || undefined,
+      namaRelasi: apiData.suplier || apiData.customer || '',
+      jenisRelasi: apiData.customer ? 'customer' : 'supplier',
+      namaSupir: apiData.supir,
+      timbanganPertama: parseFloat(apiData.berat_bruto) || 0,
+      timbanganKedua: null, // Not provided in this endpoint
+      // beratTara2:
+      //   apiData.berat_bruto - apiData.berat_netto
+      //     ? parseFloat(apiData.berat_bruto) - parseFloat(apiData.berat_netto)
+      //     : null,
+      laporanCustomer: apiData.customer || null,
+      laporanSupplier: apiData.suplier || null,
+      beratNetto: apiData.berat_netto ? parseFloat(apiData.berat_netto) : null,
+      namaPenimbang: apiData.petugas,
+      kelembapan: null,
+      tipeBahan: apiData.type_bahan === 'Bahan Baku' ? 'bahan-baku' : 'lainnya',
+      timestamp: apiData.created_at,
+      updatedAt: apiData.updated_at,
+      statusTimbangan: apiData.is_finished === '1' ? 'selesai' : 'masuk',
+      statusUjiKelembapan: apiData.status === 'Belum Diuji' ? 'pending' : 'completed',
+    };
+  }
 
-    this.filteredData.forEach((item) => {
-      stats.totalTransaksi++;
+  private calculateAdditionalStats(
+    data: TimbanganData[],
+  ): Pick<
+    LaporanStats,
+    | 'totalBruto'
+    | 'totalTara'
+    | 'totalPotongan'
+    | 'bahanBaku'
+    | 'lainnya'
+    | 'sudahDiuji'
+    | 'belumDiuji'
+  > {
+    const stats = {
+      totalBruto: 0,
+      totalTara: 0,
+      totalPotongan: 0,
+      bahanBaku: 0,
+      lainnya: 0,
+      sudahDiuji: 0,
+      belumDiuji: 0,
+    };
+
+    data.forEach((item) => {
       stats.totalBruto += item.timbanganPertama;
 
       if (item.timbanganKedua) {
         stats.totalTara += item.timbanganKedua;
       }
 
-      if (item.beratNetto) {
-        stats.totalNetto += item.beratNetto;
-
-        // Calculate potongan (kelembapan)
-        const nettoKotor = item.timbanganPertama - (item.timbanganKedua || 0);
+      if (item.beratNetto && item.timbanganKedua) {
+        const nettoKotor = item.timbanganPertama - item.timbanganKedua;
         const potongan = nettoKotor - item.beratNetto;
         stats.totalPotongan += potongan;
       }
 
-      // Count by tipe
       if (item.tipeBahan === 'bahan-baku') {
         stats.bahanBaku++;
-
-        // Count uji kelembapan status
         if (item.statusUjiKelembapan === 'completed') {
           stats.sudahDiuji++;
-        } else if (item.statusUjiKelembapan === 'pending') {
+        } else {
           stats.belumDiuji++;
         }
       } else {
         stats.lainnya++;
       }
-
-      // Count by status
-      if (item.statusTimbangan === 'masuk') {
-        stats.menungguTara++;
-      } else {
-        stats.selesai++;
-      }
     });
 
-    this.stats = stats;
+    return stats;
   }
 
   private getEmptyStats(): LaporanStats {
     return {
       totalTransaksi: 0,
+      totalSelesai: 0,
+      totalMenunggu: 0,
+      totalNetto: 0,
       totalBruto: 0,
       totalTara: 0,
-      totalNetto: 0,
       totalPotongan: 0,
       bahanBaku: 0,
       lainnya: 0,
-      menungguTara: 0,
-      selesai: 0,
       sudahDiuji: 0,
       belumDiuji: 0,
     };
@@ -294,14 +334,12 @@ export class CekLaporanComponent implements OnInit, OnDestroy {
     });
   }
 
-  formatNumber(num: number | null | undefined): string {
+  formatNumber(num: number | string | null | undefined): string {
     if (num === null || num === undefined || isNaN(Number(num))) {
-      return '0.00';
+      return '0';
     }
 
-    return Number(num)
-      .toFixed(2)
-      .replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return new Intl.NumberFormat('id-ID').format(Number(num));
   }
 
   getStatusBadge(status: 'masuk' | 'selesai'): string {
@@ -329,8 +367,6 @@ export class CekLaporanComponent implements OnInit, OnDestroy {
     const option = this.periodOptions.find((opt) => opt.value === period);
     return option?.label || '';
   }
-
-  isRincianVisible: boolean = false;
 
   toggleShowRincian(): void {
     this.isRincianVisible = !this.isRincianVisible;
