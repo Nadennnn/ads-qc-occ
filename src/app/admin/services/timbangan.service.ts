@@ -41,6 +41,7 @@ export interface TimbanganData {
   laporanSupplier?: string | null;
   jenisRelasi?: 'customer' | 'supplier';
   namaSupir: string;
+  tipeTransaksi: 'pembelian' | 'penjualan';
   timbanganPertama: number;
   timbanganKedua: number | null;
   // beratTara2: number | null;
@@ -183,6 +184,10 @@ export class TimbanganService {
   /**
    * Konversi data dari API format ke internal format
    */
+  /**
+   * Konversi data dari API format ke internal format
+   * ✅ Auto-detect tipeTransaksi dari customer/supplier
+   */
   private convertFromApiFormat(apiData: any): TimbanganData {
     // Mapping hasilTara jika ada data tara
     let hasilTara: HasilTara | undefined = undefined;
@@ -216,6 +221,19 @@ export class TimbanganService {
       };
     }
 
+    // ✅ DETEKSI TIPE TRANSAKSI DARI CUSTOMER/SUPPLIER
+    // Jika ada customer → Penjualan
+    // Jika ada supplier → Pembelian
+    const tipeTransaksi: 'pembelian' | 'penjualan' = apiData.customer ? 'penjualan' : 'pembelian';
+    const jenisRelasi: 'customer' | 'supplier' = apiData.customer ? 'customer' : 'supplier';
+    const namaRelasi = apiData.customer || apiData.suplier || '';
+
+    console.log('🔍 Detecting transaction type:', {
+      customer: apiData.customer,
+      supplier: apiData.suplier,
+      detected: tipeTransaksi,
+    });
+
     return {
       id: apiData.id.toString(),
       noTiket: apiData.nomor_bon,
@@ -224,24 +242,24 @@ export class TimbanganService {
       noContainer: apiData.nomor_container || undefined,
       namaBarang: apiData.barang,
       keteranganBarang: apiData.keterangan_barang || undefined,
-      namaRelasi: apiData.suplier || apiData.customer || '',
+      namaRelasi: namaRelasi,
       laporanCustomer: apiData.customer || null,
       laporanSupplier: apiData.suplier || null,
-      jenisRelasi: apiData.customer ? 'customer' : 'supplier',
+      jenisRelasi: jenisRelasi, // ✅ Auto-detected
+      tipeTransaksi: tipeTransaksi, // ✅ Auto-detected
       namaSupir: apiData.supir,
       timbanganPertama: parseFloat(apiData.berat_bruto) || 0,
       timbanganKedua: hasilTara ? parseFloat(hasilTara.beratTara) : null,
-      // beratTara2: parseFloat(apiData.berat_bruto) - parseFloat(apiData.berat_netto) || null,
       beratNetto: parseFloat(apiData.berat_netto) || null,
       namaPenimbang: apiData.petugas,
       kelembapan: null,
       tipeBahan: apiData.type_bahan === 'Bahan Baku' ? 'bahan-baku' : 'lainnya',
       timestamp: apiData.created_at,
-      updatedAt: apiData.updated_at, // ✅ Mapping updated_at
+      updatedAt: apiData.updated_at,
       statusTimbangan: apiData.is_finished === '1' ? 'selesai' : 'masuk',
       statusUjiKelembapan: apiData.status === 'Belum Diuji' ? 'pending' : 'completed',
-      hasilUjiKelembapan: hasilUjiKelembapan, // ✅ Mapping hasil uji kelembapan
-      hasilTara: hasilTara, // ✅ Mapping hasil tara
+      hasilUjiKelembapan: hasilUjiKelembapan,
+      hasilTara: hasilTara,
     };
   }
 
