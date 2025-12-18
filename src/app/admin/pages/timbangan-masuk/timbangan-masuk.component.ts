@@ -1194,16 +1194,16 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
 <!-- Weight Section - PENJUALAN - LAINNYA -->
 <div class="weight-section">
   <div class="weight-row">
-    <span class="weight-label">Berat Kosong</span>
-    <span class="weight-value">: ${bruto}kg</span>
+    <span class="weight-label">Berat Bruto</span>
+    <span class="weight-value">: ${tara}kg</span>
   </div>
   <div class="weight-row">
-    <span class="weight-label">Berat Penuh</span>
-    <span class="weight-value">: ${tara}kg</span>
+    <span class="weight-label">Berat Tara</span>
+    <span class="weight-value">: ${bruto}kg</span>
   </div>
   <div class="weight-row weight-result">
     <span class="weight-label">Berat Netto</span>
-    <span class="weight-value">: ${nettoAkhir.toFixed(2)}kg</span>
+    <span class="weight-value">: ${nettoAkhir.toFixed(0)}kg</span>
   </div>
 </div>`;
       }
@@ -1225,11 +1225,11 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
   </div>
   <div class="weight-row">
     <span class="weight-label">Potong Basah</span>
-    <span class="weight-value">: ${potongan.toFixed(2)}kg</span>
+    <span class="weight-value">: ${potongan.toFixed(0)}kg</span>
   </div>
   <div class="weight-row weight-result">
     <span class="weight-label">Berat Netto</span>
-    <span class="weight-value">: ${nettoAkhir.toFixed(2)}kg</span>
+    <span class="weight-value">: ${nettoAkhir.toFixed(0)}kg</span>
   </div>
 </div>`;
       } else {
