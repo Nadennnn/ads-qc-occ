@@ -1014,6 +1014,8 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
       tipeBahan: data.tipeBahan,
       namaBarang: data.namaBarang,
       keteranganBarang: data.keteranganBarang,
+      tipeTransaksi: data.tipeTransaksi,
+      namaRelasi: data.namaRelasi,
       hasilTara: data.hasilTara,
       timbanganPertama: data.timbanganPertama,
       timbanganKedua: data.timbanganKedua,
@@ -1053,63 +1055,165 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
     });
 
     // ========================================
-    // DATA BERAT - GUNAKAN DATA DARI API
+    // ✅ DETEKSI TIPE TRANSAKSI
+    // ========================================
+
+    // Deteksi berdasarkan tipeTransaksi atau fallback ke namaRelasi
+    let isPenjualan = false;
+
+    if (data.tipeTransaksi) {
+      // Jika ada field tipeTransaksi, gunakan itu
+      isPenjualan = data.tipeTransaksi === 'penjualan';
+    } else {
+      // Fallback: deteksi dari namaRelasi
+      // Jika namaRelasi ada isi dan bukan "---", berarti customer (penjualan)
+      // Jika namaRelasi null atau "---", berarti supplier (pembelian)
+      isPenjualan = !!(
+        data.namaRelasi &&
+        data.namaRelasi !== '---' &&
+        data.namaRelasi.trim() !== ''
+      );
+    }
+
+    console.log('🔍 Deteksi Transaksi:', {
+      isPenjualan,
+      tipeTransaksi: data.tipeTransaksi,
+      namaRelasi: data.namaRelasi,
+    });
+
+    // ========================================
+    // ✅ PERHITUNGAN BERAT BERDASARKAN TIPE TRANSAKSI
     // ========================================
 
     const bruto = data.timbanganPertama || 0;
     const tara = data.timbanganKedua || 0;
 
-    // ✅ Ambil potongan moisture dari data.hasilTara (bukan dihitung manual)
     let potongan = 0;
     let nettoAkhir = 0;
+    let nettoKotor = 0; // Untuk display intermediate calculation
 
-    if (data.tipeBahan === 'bahan-baku' && data.hasilTara) {
-      // Untuk Bahan Baku: gunakan data dari API
-      potongan = parseFloat(data.hasilTara.potonganMoisture || '0');
-      nettoAkhir = parseFloat(data.hasilTara.beratNetto || '0');
+    if (isPenjualan) {
+      // ========================================
+      // PENJUALAN: Tara (Truk + Barang) - Bruto (Truk Kosong)
+      // ========================================
+      nettoKotor = tara - bruto;
 
-      console.log('✅ Bahan Baku detected:', {
-        potongan,
-        nettoAkhir,
-        hasilTara: data.hasilTara,
-      });
+      if (data.tipeBahan === 'bahan-baku' && data.hasilTara) {
+        potongan = parseFloat(data.hasilTara.potonganMoisture || '0');
+        nettoAkhir = nettoKotor - potongan;
+
+        console.log('✅ PENJUALAN - Bahan Baku:', {
+          bruto: bruto + ' kg (Truk Kosong)',
+          tara: tara + ' kg (Truk + Barang)',
+          nettoKotor: nettoKotor + ' kg',
+          potongan: potongan + ' kg',
+          nettoAkhir: nettoAkhir + ' kg',
+        });
+      } else {
+        nettoAkhir = nettoKotor;
+
+        console.log('✅ PENJUALAN - Lainnya:', {
+          bruto: bruto + ' kg (Truk Kosong)',
+          tara: tara + ' kg (Truk + Barang)',
+          nettoAkhir: nettoAkhir + ' kg',
+        });
+      }
     } else {
-      // Untuk Lainnya: netto langsung dari API atau bruto - tara
-      nettoAkhir = data.beratNetto || bruto - tara;
-      potongan = 0;
+      // ========================================
+      // PEMBELIAN: Bruto (Truk + Barang) - Tara (Truk Kosong)
+      // ========================================
+      nettoKotor = bruto - tara;
 
-      console.log('✅ Lainnya detected:', { nettoAkhir, beratNetto: data.beratNetto });
+      if (data.tipeBahan === 'bahan-baku' && data.hasilTara) {
+        potongan = parseFloat(data.hasilTara.potonganMoisture || '0');
+        nettoAkhir = nettoKotor - potongan;
+
+        console.log('✅ PEMBELIAN - Bahan Baku:', {
+          bruto: bruto + ' kg (Truk + Barang)',
+          tara: tara + ' kg (Truk Kosong)',
+          nettoKotor: nettoKotor + ' kg',
+          potongan: potongan + ' kg',
+          nettoAkhir: nettoAkhir + ' kg',
+        });
+      } else {
+        nettoAkhir = nettoKotor;
+
+        console.log('✅ PEMBELIAN - Lainnya:', {
+          bruto: bruto + ' kg (Truk + Barang)',
+          tara: tara + ' kg (Truk Kosong)',
+          nettoAkhir: nettoAkhir + ' kg',
+        });
+      }
     }
 
     // ========================================
     // DATA LAINNYA
     // ========================================
 
-    // Nama barang display
     let namaBarangDisplay = data.namaBarang || '-';
-    // if (data.namaBarang === 'DAN LAIN-LAIN' && data.keteranganBarang) {
-    //   namaBarangDisplay = data.keteranganBarang;
-    // }
-
-    // Data lainnya
     const supplierCustomer = data.namaRelasi || '-';
     const namaSupir = data.namaSupir || '-';
     const noContainer = data.noContainer || '-';
 
-    // ✅ Check apakah perlu tampilkan keterangan barang
     const showKeteranganBarang =
       data.tipeBahan === 'lainnya' && data.namaBarang === 'DAN LAIN-LAIN' && data.keteranganBarang;
 
     // ========================================
-    // WEIGHT SECTION - DYNAMIC HTML
+    // ✅ WEIGHT SECTION - DYNAMIC HTML (UPDATED LABELS)
     // ========================================
 
     let weightSectionHTML = '';
 
-    if (data.tipeBahan === 'bahan-baku' && potongan > 0) {
-      // ✅ Untuk Bahan Baku: tampilkan Bruto, Tara, Potong Basah, dan Netto
-      weightSectionHTML = `
-<!-- Weight Section - BAHAN BAKU -->
+    if (isPenjualan) {
+      // ========================================
+      // PENJUALAN: Bruto = Truk Kosong, Tara = Truk + Barang
+      // ========================================
+      if (data.tipeBahan === 'bahan-baku' && potongan > 0) {
+        weightSectionHTML = `
+<!-- Weight Section - PENJUALAN - BAHAN BAKU -->
+<div class="weight-section">
+  <div class="weight-row">
+    <span class="weight-label">Berat Kosong</span>
+    <span class="weight-value">: ${bruto}kg</span>
+  </div>
+  <div class="weight-row">
+    <span class="weight-label">Berat Penuh</span>
+    <span class="weight-value">: ${tara}kg</span>
+  </div>
+  <div class="weight-row">
+    <span class="weight-label">Potong Basah</span>
+    <span class="weight-value">: ${potongan.toFixed(2)}kg</span>
+  </div>
+  <div class="weight-row weight-result">
+    <span class="weight-label">Berat Netto</span>
+    <span class="weight-value">: ${nettoAkhir.toFixed(2)}kg</span>
+  </div>
+</div>`;
+      } else {
+        weightSectionHTML = `
+<!-- Weight Section - PENJUALAN - LAINNYA -->
+<div class="weight-section">
+  <div class="weight-row">
+    <span class="weight-label">Berat Kosong</span>
+    <span class="weight-value">: ${bruto}kg</span>
+  </div>
+  <div class="weight-row">
+    <span class="weight-label">Berat Penuh</span>
+    <span class="weight-value">: ${tara}kg</span>
+  </div>
+  <div class="weight-row weight-result">
+    <span class="weight-label">Berat Netto</span>
+    <span class="weight-value">: ${nettoAkhir.toFixed(2)}kg</span>
+  </div>
+</div>`;
+      }
+    } else {
+      // ========================================
+      // PEMBELIAN: Bruto = Truk + Barang, Tara = Truk Kosong
+      // ========================================
+      if (data.tipeBahan === 'bahan-baku' && potongan > 0) {
+        weightSectionHTML = `
+<!-- Weight Section - PEMBELIAN - BAHAN BAKU -->
 <div class="weight-section">
   <div class="weight-row">
     <span class="weight-label">Berat Bruto</span>
@@ -1121,17 +1225,16 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
   </div>
   <div class="weight-row">
     <span class="weight-label">Potong Basah</span>
-    <span class="weight-value">: ${potongan}kg</span>
+    <span class="weight-value">: ${potongan.toFixed(2)}kg</span>
   </div>
   <div class="weight-row weight-result">
     <span class="weight-label">Berat Netto</span>
-    <span class="weight-value">: ${nettoAkhir}kg</span>
+    <span class="weight-value">: ${nettoAkhir.toFixed(2)}kg</span>
   </div>
 </div>`;
-    } else {
-      // ✅ Untuk Lainnya: tampilkan hanya Bruto, Tara, dan Netto
-      weightSectionHTML = `
-<!-- Weight Section - LAINNYA -->
+      } else {
+        weightSectionHTML = `
+<!-- Weight Section - PEMBELIAN - LAINNYA -->
 <div class="weight-section">
   <div class="weight-row">
     <span class="weight-label">Berat Bruto</span>
@@ -1143,13 +1246,14 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
   </div>
   <div class="weight-row weight-result">
     <span class="weight-label">Berat Netto</span>
-    <span class="weight-value">: ${nettoAkhir}kg</span>
+    <span class="weight-value">: ${nettoAkhir.toFixed(2)}kg</span>
   </div>
 </div>`;
+      }
     }
 
     // ========================================
-    // HTML TEMPLATE UNTUK PRINT
+    // HTML TEMPLATE UNTUK PRINT (SAMA SEPERTI SEBELUMNYA)
     // ========================================
 
     const printContent = `
@@ -1244,27 +1348,6 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
       font-size: 14px;
     }
 
-    /* ✅ Style khusus untuk keterangan barang */
-    .keterangan-row {
-      display: flex;
-      margin-bottom: 1.5mm;
-      font-size: 14px;
-      line-height: 1.4;
-      background-color: #f5f5f5;
-      padding: 1.5mm 2mm;
-      border-radius: 2mm;
-      border: 1px solid #ddd;
-    }
-
-    .keterangan-row .row-label {
-      font-weight: 600;
-    }
-
-    .keterangan-row .row-value {
-      font-weight: 700;
-      color: #333;
-    }
-
     .weight-section {
       padding: 2.5mm 0;
       margin: 3mm 0;
@@ -1349,14 +1432,6 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
       @page {
         margin: 0 !important;
       }
-
-      /* ✅ Pastikan background
-      /* ✅ Pastikan background keterangan tetap muncul saat print */
-      .keterangan-row {
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
-        background-color: #f5f5f5 !important;
-      }
     }
   </style>
 </head>
@@ -1409,7 +1484,6 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
     ${
       showKeteranganBarang
         ? `
-    <!-- ✅ KETERANGAN BARANG - Hanya muncul jika DAN LAIN-LAIN -->
     <div class="row">
       <span class="row-label">Keterangan</span>
       <span class="row-separator">:</span>
@@ -1420,7 +1494,7 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
     }
 
     <div class="row">
-      <span class="row-label">Customer / Supplier</span>
+      <span class="row-label">${isPenjualan ? 'Customer' : 'Supplier'}</span>
       <span class="row-separator">:</span>
       <span class="row-value">${supplierCustomer}</span>
     </div>
