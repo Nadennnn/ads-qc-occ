@@ -74,52 +74,6 @@
               }
             </div>
 
-            <div>
-              <label class="block text-sm font-medium text-neutral-700 mb-1.5">
-                Tipe Transaksi
-              </label>
-              <select
-                formControlName="tipeTransaksi"
-                class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:border-transparent transition-all bg-white"
-                [class.border-red-500]="
-                  form.get('tipeTransaksi')?.invalid && form.get('tipeTransaksi')?.touched
-                "
-              >
-                <option value="pembelian">Pembelian (dari Supplier)</option>
-                <option value="penjualan">Penjualan (ke Customer)</option>
-              </select>
-
-              <!-- Helper Text -->
-              @if (form.get('tipeTransaksi')?.value === 'pembelian') {
-                <p class="mt-1 text-xs text-blue-600 flex items-center gap-1">
-                  <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                    <path
-                      fill-rule="evenodd"
-                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                      clip-rule="evenodd"
-                    />
-                  </svg>
-                  Bruto = Truk + Barang | Tara = Truk Kosong
-                </p>
-              }
-              @if (form.get('tipeTransaksi')?.value === 'penjualan') {
-                <p class="mt-1 text-xs text-green-600 flex items-center gap-1">
-                  <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                    <path
-                      fill-rule="evenodd"
-                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                      clip-rule="evenodd"
-                    />
-                  </svg>
-                  Bruto = Truk Kosong | Tara = Truk + Barang
-                </p>
-              }
-
-              @if (form.get('tipeTransaksi')?.invalid && form.get('tipeTransaksi')?.touched) {
-                <p class="mt-1 text-sm text-red-600">{{ getError('tipeTransaksi') }}</p>
-              }
-            </div>
-
             <!-- Jenis Kendaraan -->
             <div>
               <label class="block text-sm font-medium text-neutral-700 mb-1.5">
@@ -487,16 +441,11 @@
               }
             </div>
 
-            <!-- Weight Input Field -->
+            <!-- Weight Input Field with Capture Button -->
             <div class="grid grid-cols-1 gap-4">
               <div>
                 <label class="block text-sm font-medium text-neutral-700 mb-1.5">
-                  <!-- ✅ LABEL DINAMIS -->
-                  @if (form.get('tipeTransaksi')?.value === 'pembelian') {
-                    Timbangan Pertama - Bruto (Truk + Barang) (kg)
-                  } @else {
-                    Timbangan Pertama - Bruto (Truk Kosong) (kg)
-                  }
+                  Timbangan Pertama (kg)
                 </label>
                 <div class="relative">
                   <div class="flex justify-center items-center gap-3">
@@ -564,12 +513,7 @@
                   <div class="flex-1">
                     <p class="text-sm font-medium text-green-900">Cara Penggunaan:</p>
                     <ol class="mt-1 text-xs text-green-800 space-y-1 list-decimal list-inside">
-                      <!-- ✅ INSTRUCTION DINAMIS -->
-                      @if (form.get('tipeTransaksi')?.value === 'pembelian') {
-                        <li>Pastikan truk + muatan berada di atas timbangan</li>
-                      } @else {
-                        <li>Pastikan truk kosong berada di atas timbangan</li>
-                      }
+                      <li>Pastikan truk + muatan berada di atas timbangan</li>
                       <li>Tunggu hingga indikator menunjukkan "Stabil"</li>
                       <li>Klik tombol "Ambil Berat Bruto" untuk menyimpan nilai</li>
                     </ol>
@@ -894,55 +838,144 @@
     }
   </div>
 </div>
-<!-- Tara Input Modal -->
+
+<!-- Tara Input Modal dengan Timbangan Digital -->
 @if (showTaraModal() && selectedForTara()) {
   <div class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
       <div class="p-6">
         <h3 class="text-lg font-semibold text-neutral-900 mb-4">Input Timbangan Kedua</h3>
 
-        <!-- ✅ INFO DENGAN BADGE TIPE TRANSAKSI -->
+        <!-- Info -->
         <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-          <div class="flex items-start gap-2 mb-2">
-            @if (selectedForTara()!.tipeTransaksi === 'pembelian') {
-              <span
-                class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800"
-              >
-                PEMBELIAN
-              </span>
-            } @else {
-              <span
-                class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800"
-              >
-                PENJUALAN
-              </span>
-            }
-          </div>
           <p class="text-sm text-blue-900 font-medium">
             {{ selectedForTara()!.noTiket }} - {{ selectedForTara()!.noKendaraan }}
           </p>
           <p class="text-sm text-blue-700 mt-1">
-            @if (selectedForTara()!.tipeTransaksi === 'pembelian') {
-              Bruto (Truk + Barang):
-              <span class="font-semibold">{{ selectedForTara()!.timbanganPertama }} kg</span>
-            } @else {
-              Bruto (Truk Kosong):
-              <span class="font-semibold">{{ selectedForTara()!.timbanganPertama }} kg</span>
-            }
+            Bruto: <span class="font-semibold">{{ selectedForTara()!.timbanganPertama }} kg</span>
           </p>
         </div>
-        <form [formGroup]="taraForm" (ngSubmit)="submitTara()">
-          <!-- Connection Status Section (existing) -->
-          <!-- ... -->
 
-          <!-- ✅ WEIGHT INPUT DENGAN LABEL DINAMIS -->
+        <!-- Form -->
+        <form [formGroup]="taraForm" (ngSubmit)="submitTara()">
+          <!-- Connection Status Section -->
+          <div class="border border-neutral-200 rounded-lg p-4 bg-neutral-50 mb-4">
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center gap-2">
+                <span class="text-sm font-medium text-neutral-700">Status Timbangan:</span>
+                @if (scaleConnected()) {
+                  <span
+                    class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded-full"
+                  >
+                    <span class="w-2 h-2 bg-green-600 rounded-full animate-pulse"></span>
+                    Terhubung
+                  </span>
+                } @else {
+                  <span
+                    class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-red-100 text-red-800 text-xs font-semibold rounded-full"
+                  >
+                    <span class="w-2 h-2 bg-red-600 rounded-full"></span>
+                    Terputus
+                  </span>
+                }
+              </div>
+
+              <!-- Connect/Disconnect Button -->
+              @if (!scaleConnected()) {
+                <button
+                  type="button"
+                  (click)="connectScale()"
+                  class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                >
+                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M13 10V3L4 14h7v7l9-11h-7z"
+                    />
+                  </svg>
+                  Hubungkan Timbangan
+                </button>
+              } @else {
+                <button
+                  type="button"
+                  (click)="disconnectScale()"
+                  class="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors"
+                >
+                  Putus Koneksi
+                </button>
+              }
+            </div>
+
+            <!-- Error Message -->
+            @if (scaleError()) {
+              <div class="bg-red-50 border border-red-200 rounded-lg p-3">
+                <p class="text-sm text-red-800">
+                  <span class="font-semibold">Error:</span> {{ scaleError() }}
+                </p>
+              </div>
+            }
+
+            <!-- Live Weight Display -->
+            @if (scaleConnected()) {
+              <div class="mt-4 bg-white border-2 border-neutral-300 rounded-lg p-6">
+                <div class="text-center">
+                  <p class="text-sm text-neutral-600 mb-2">Berat Real-Time</p>
+                  <div class="flex items-center justify-center gap-3">
+                    <span class="text-5xl font-bold text-neutral-900 font-mono">
+                      {{ currentWeight() !== null ? currentWeight() : '---' }}
+                    </span>
+                    <span class="text-2xl font-medium text-neutral-600">kg</span>
+                  </div>
+
+                  <!-- Stability Indicator -->
+                  <div class="mt-3 flex items-center justify-center gap-2">
+                    @if (weightStable()) {
+                      <span
+                        class="inline-flex items-center gap-1.5 px-3 py-1 bg-green-100 text-green-800 text-sm font-semibold rounded-full"
+                      >
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                          <path
+                            fill-rule="evenodd"
+                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                            clip-rule="evenodd"
+                          />
+                        </svg>
+                        Stabil
+                      </span>
+                    } @else {
+                      <span
+                        class="inline-flex items-center gap-1.5 px-3 py-1 bg-yellow-100 text-yellow-800 text-sm font-semibold rounded-full"
+                      >
+                        <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                          <circle
+                            class="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            stroke-width="4"
+                          ></circle>
+                          <path
+                            class="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
+                        </svg>
+                        Menunggu Stabil...
+                      </span>
+                    }
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+
+          <!-- Weight Input Field with Capture Button -->
           <div class="mb-6">
             <label class="block text-sm font-medium text-neutral-700 mb-1.5">
-              @if (selectedForTara()!.tipeTransaksi === 'pembelian') {
-                Timbangan Kedua / Tara (Truk Kosong) (kg)
-              } @else {
-                Timbangan Kedua / Tara (Truk + Barang) (kg)
-              }
+              Timbangan Kedua / Berat Kosong (kg)
             </label>
 
             <div class="flex gap-3">
@@ -982,11 +1015,7 @@
             </div>
 
             <p class="mt-1 text-xs text-neutral-500">
-              @if (selectedForTara()!.tipeTransaksi === 'pembelian') {
-                Berat truk kosong (setelah bahan diturunkan)
-              } @else {
-                Berat truk berisi (setelah bahan dimuat)
-              }
+              Berat truk kosong (setelah bahan diturunkan)
             </p>
             @if (
               taraForm.get('timbanganKedua')?.invalid && taraForm.get('timbanganKedua')?.touched
@@ -995,7 +1024,7 @@
             }
           </div>
 
-          <!-- ✅ INSTRUCTIONS DINAMIS -->
+          <!-- Instructions -->
           @if (scaleConnected()) {
             <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
               <div class="flex items-start gap-3">
@@ -1013,11 +1042,7 @@
                 <div class="flex-1">
                   <p class="text-sm font-medium text-green-900">Cara Penggunaan:</p>
                   <ol class="mt-1 text-xs text-green-800 space-y-1 list-decimal list-inside">
-                    @if (selectedForTara()!.tipeTransaksi === 'pembelian') {
-                      <li>Pastikan truk kosong (tanpa muatan) berada di atas timbangan</li>
-                    } @else {
-                      <li>Pastikan truk berisi muatan berada di atas timbangan</li>
-                    }
+                    <li>Pastikan truk kosong (tanpa muatan) berada di atas timbangan</li>
                     <li>Tunggu hingga indikator menunjukkan "Stabil"</li>
                     <li>Klik tombol "Ambil Berat Timbangan" untuk menyimpan nilai</li>
                   </ol>
@@ -1026,52 +1051,33 @@
             </div>
           }
 
-          <!-- ✅ CALCULATION PREVIEW DINAMIS -->
+          <!-- Calculation Preview -->
           @if (taraForm.get('timbanganKedua')?.value) {
             <div class="bg-neutral-50 border border-neutral-200 rounded-lg p-3 mb-6">
               <div class="text-sm text-neutral-600">
-                @if (selectedForTara()!.tipeTransaksi === 'pembelian') {
-                  <div class="flex justify-between mb-1">
-                    <span>Bruto (Truk + Barang):</span>
-                    <span class="font-medium">{{ selectedForTara()!.timbanganPertama }} kg</span>
-                  </div>
-                  <div class="flex justify-between mb-1">
-                    <span>Tara (Truk Kosong):</span>
-                    <span class="font-medium">{{ taraForm.get('timbanganKedua')?.value }} kg</span>
-                  </div>
-                  <div class="border-t border-neutral-300 pt-1 mt-1 flex justify-between">
-                    <span class="font-semibold">Netto (Bruto - Tara):</span>
-                    <span class="font-semibold text-neutral-900">
-                      {{
-                        selectedForTara()!.timbanganPertama - taraForm.get('timbanganKedua')?.value
-                      }}
-                      kg
-                    </span>
-                  </div>
-                } @else {
-                  <div class="flex justify-between mb-1">
-                    <span>Bruto (Truk Kosong):</span>
-                    <span class="font-medium">{{ selectedForTara()!.timbanganPertama }} kg</span>
-                  </div>
-                  <div class="flex justify-between mb-1">
-                    <span>Tara (Truk + Barang):</span>
-                    <span class="font-medium">{{ taraForm.get('timbanganKedua')?.value }} kg</span>
-                  </div>
-                  <div class="border-t border-neutral-300 pt-1 mt-1 flex justify-between">
-                    <span class="font-semibold">Netto (Tara - Bruto):</span>
-                    <span class="font-semibold text-neutral-900">
-                      {{
-                        taraForm.get('timbanganKedua')?.value - selectedForTara()!.timbanganPertama
-                      }}
-                      kg
-                    </span>
-                  </div>
-                }
+                <div class="flex justify-between mb-1">
+                  <span>Timbangan Pertama (Bruto):</span>
+                  <span class="font-medium">{{ selectedForTara()!.timbanganPertama }} kg</span>
+                </div>
+                <div class="flex justify-between mb-1">
+                  <span>Timbangan Kedua (Tara):</span>
+                  <span class="font-medium">{{ taraForm.get('timbanganKedua')?.value }} kg</span>
+                </div>
+                <div class="border-t border-neutral-300 pt-1 mt-1 flex justify-between">
+                  <span class="font-semibold">Netto:</span>
+                  <span class="font-semibold text-neutral-900">
+                    {{
+                      selectedForTara()!.timbanganPertama - taraForm.get('timbanganKedua')?.value
+                    }}
+                    kg
+                  </span>
+                </div>
               </div>
             </div>
           }
 
           <!-- Buttons -->
+          <!-- [disabled]="taraForm.invalid || isSubmitting()" -->
           <div class="flex gap-3">
             <button
               type="submit"

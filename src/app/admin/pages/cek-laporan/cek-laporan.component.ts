@@ -171,7 +171,7 @@ export class CekLaporanComponent implements OnInit, OnDestroy {
   }
 
   private convertApiToTimbanganData(apiData: any): TimbanganData {
-    const tipeTransaksi: 'pembelian' | 'penjualan' = apiData.customer ? 'penjualan' : 'pembelian';
+    // const tipeTransaksi: 'pembelian' | 'penjualan' = apiData.customer ? 'penjualan' : 'pembelian';
     return {
       id: apiData.id.toString(),
       noTiket: apiData.nomor_bon,
@@ -185,7 +185,7 @@ export class CekLaporanComponent implements OnInit, OnDestroy {
       namaSupir: apiData.supir,
       timbanganPertama: parseFloat(apiData.berat_bruto) || 0,
       timbanganKedua: null, // Not provided in this endpoint
-      tipeTransaksi: tipeTransaksi,
+      // tipeTransaksi: tipeTransaksi,
       // beratTara2:
       //   apiData.berat_bruto - apiData.berat_netto
       //     ? parseFloat(apiData.berat_bruto) - parseFloat(apiData.berat_netto)
