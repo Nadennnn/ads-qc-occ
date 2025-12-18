@@ -1020,6 +1020,7 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
       timbanganPertama: data.timbanganPertama,
       timbanganKedua: data.timbanganKedua,
       beratNetto: data.beratNetto,
+      potonganBasah: data.hasilUjiKelembapan?.claimPercentage,
     });
 
     // ========================================
@@ -1087,6 +1088,7 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
 
     const bruto = data.timbanganPertama || 0;
     const tara = data.timbanganKedua || 0;
+    const potonganBasah = data.hasilUjiKelembapan?.claimPercentage;
 
     let potongan = 0;
     let nettoAkhir = 0;
@@ -1134,6 +1136,7 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
           nettoKotor: nettoKotor + ' kg',
           potongan: potongan + ' kg',
           nettoAkhir: nettoAkhir + ' kg',
+          potonganBasah: potonganBasah + '%',
         });
       } else {
         nettoAkhir = nettoKotor;
@@ -1182,7 +1185,7 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
   </div>
   <div class="weight-row">
     <span class="weight-label">Potong Basah</span>
-    <span class="weight-value">: ${potongan.toFixed(0)}kg</span>
+    <span class="weight-value">: ${potongan.toFixed(0)}kg ${potonganBasah}</span>
   </div>
   <div class="weight-row weight-result">
     <span class="weight-label">Berat Netto</span>
@@ -1225,7 +1228,7 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
   </div>
   <div class="weight-row">
     <span class="weight-label">Potong Basah</span>
-    <span class="weight-value">: ${potongan.toFixed(0)}kg</span>
+    <span class="weight-value">: ${potongan.toFixed(0)}kg (${potonganBasah}%)</span>
   </div>
   <div class="weight-row weight-result">
     <span class="weight-label">Berat Netto</span>
