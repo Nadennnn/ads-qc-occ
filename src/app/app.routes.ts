@@ -7,11 +7,17 @@ export const routes: Route[] = [
   {
     path: '',
     pathMatch: 'full',
-    redirectTo: 'login',
+    redirectTo: 'login-bridge',
   },
   {
     path: 'login',
     component: LoginComponent,
+  },
+  {
+    path: 'login-bridge',
+    loadChildren: () =>
+      import('./admin/login-bridge/login-bridge.module').then((m) => m.LoginBridgeModule),
+    // canActivate: [AuthGuard],
   },
   {
     path: 'dashboards', // ✅ This is the correct path
@@ -20,6 +26,6 @@ export const routes: Route[] = [
   },
   {
     path: '**',
-    redirectTo: 'login',
+    redirectTo: 'login-bridge',
   },
 ];
