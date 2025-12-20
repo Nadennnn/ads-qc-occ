@@ -90,7 +90,7 @@
               </select>
 
               <!-- Helper Text -->
-              @if (form.get('tipeTransaksi')?.value === 'pembelian') {
+              <!-- @if (form.get('tipeTransaksi')?.value === 'pembelian') {
                 <p class="mt-1 text-xs text-blue-600 flex items-center gap-1">
                   <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
                     <path
@@ -101,8 +101,8 @@
                   </svg>
                   Bruto = Truk + Barang | Tara = Truk Kosong
                 </p>
-              }
-              @if (form.get('tipeTransaksi')?.value === 'penjualan') {
+              } -->
+              <!-- @if (form.get('tipeTransaksi')?.value === 'penjualan') {
                 <p class="mt-1 text-xs text-green-600 flex items-center gap-1">
                   <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
                     <path
@@ -113,7 +113,7 @@
                   </svg>
                   Bruto = Truk Kosong | Tara = Truk + Barang
                 </p>
-              }
+              } -->
 
               @if (form.get('tipeTransaksi')?.invalid && form.get('tipeTransaksi')?.touched) {
                 <p class="mt-1 text-sm text-red-600">{{ getError('tipeTransaksi') }}</p>
@@ -365,10 +365,7 @@
                   <p class="text-sm font-medium text-blue-900">
                     Input timbangan pertama dari Timbangan Digital
                   </p>
-                  <p class="text-xs text-blue-700 mt-1">
-                    Hubungkan timbangan terlebih dahulu, lalu ambil berat saat truk + muatan berada
-                    di atas timbangan
-                  </p>
+                  <p class="text-xs text-blue-700 mt-1">Hubungkan timbangan terlebih dahulu</p>
                 </div>
               </div>
             </div>
@@ -923,10 +920,10 @@
           </p>
           <p class="text-sm text-blue-700 mt-1">
             @if (selectedForTara()!.tipeTransaksi === 'pembelian') {
-              Bruto (Truk + Barang):
+              Berat Dari Timbangan Pertama:
               <span class="font-semibold">{{ selectedForTara()!.timbanganPertama }} kg</span>
             } @else {
-              Bruto (Truk Kosong):
+              Berat Dari Timbangan Pertama:
               <span class="font-semibold">{{ selectedForTara()!.timbanganPertama }} kg</span>
             }
           </p>

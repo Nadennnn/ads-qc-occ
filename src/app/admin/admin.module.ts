@@ -15,6 +15,7 @@ import {
   ContactRound,
   Eye,
   Hourglass,
+  Inbox,
   Info,
   Lock,
   LucideAngularModule,
@@ -102,6 +103,7 @@ import { AbhiLatihanComponent } from './unused/abhi-latihan.component';
       RefreshCw,
       ChevronDown,
       ChevronUp,
+      Inbox,
     }),
   ],
 })

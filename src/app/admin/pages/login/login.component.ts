@@ -20,12 +20,12 @@ export class LoginComponent implements OnInit {
   constructor(
     private authService: AuthService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
   ) {}
 
   ngOnInit(): void {
     if (this.authService.isLoggedIn()) {
-      this.router.navigate([this.returnUrl]);
+      this.router.navigate(['/dashboards'], { replaceUrl: true });
     }
 
     this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/dashboards';

@@ -20,7 +20,7 @@ export class LoginBridgeComponent implements OnInit {
     if (!isUserAlreadyLoggedIn) {
       this.router.navigate(['/login']);
     } else {
-      this.router.navigate(['/dashboards']);
+      this.router.navigate(['/dashboards'], { replaceUrl: true });
     }
   }
 }
