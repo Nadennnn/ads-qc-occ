@@ -23,6 +23,7 @@ export class LoginComponent implements OnInit {
     private route: ActivatedRoute,
   ) {}
 
+  currentYear: number = new Date().getFullYear();
   ngOnInit(): void {
     if (this.authService.isLoggedIn()) {
       this.router.navigate(['/dashboards'], { replaceUrl: true });
