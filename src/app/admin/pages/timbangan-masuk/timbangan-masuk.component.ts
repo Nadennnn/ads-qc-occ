@@ -1016,11 +1016,9 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
       keteranganBarang: data.keteranganBarang,
       tipeTransaksi: data.tipeTransaksi,
       namaRelasi: data.namaRelasi,
-      hasilTara: data.hasilTara,
       timbanganPertama: data.timbanganPertama,
       timbanganKedua: data.timbanganKedua,
-      beratNetto: data.beratNetto,
-      potonganBasah: data.hasilUjiKelembapan?.claimPercentage,
+      claimPercentage: data.hasilUjiKelembapan?.claimPercentage,
     });
 
     // ========================================
@@ -1083,12 +1081,14 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
     });
 
     // ========================================
-    // ✅ PERHITUNGAN BERAT BERDASARKAN TIPE TRANSAKSI
+    // ✅ PERHITUNGAN BERAT - FIXED VERSION
     // ========================================
 
     const bruto = data.timbanganPertama || 0;
     const tara = data.timbanganKedua || 0;
-    const potonganBasah = data.hasilUjiKelembapan?.claimPercentage;
+
+    // ✅ Ambil persentase claim dari uji kelembapan
+    const claimPercentage = data.hasilUjiKelembapan?.claimPercentage || 0;
 
     let potongan = 0;
     let nettoAkhir = 0;
@@ -1100,16 +1100,18 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
       // ========================================
       nettoKotor = tara - bruto;
 
-      if (data.tipeBahan === 'bahan-baku' && data.hasilTara) {
-        potongan = parseFloat(data.hasilTara.potonganMoisture || '0');
+      if (data.tipeBahan === 'bahan-baku' && claimPercentage > 0) {
+        // ✅ HITUNG ULANG: Potongan dari NETTO KOTOR, bukan dari Bruto
+        potongan = nettoKotor * (claimPercentage / 100);
         nettoAkhir = nettoKotor - potongan;
 
-        console.log('✅ PENJUALAN - Bahan Baku:', {
+        console.log('✅ PENJUALAN - Bahan Baku (RECALCULATED):', {
           bruto: bruto + ' kg (Truk Kosong)',
           tara: tara + ' kg (Truk + Barang)',
           nettoKotor: nettoKotor + ' kg',
-          potongan: potongan + ' kg',
-          nettoAkhir: nettoAkhir + ' kg',
+          claimPercentage: claimPercentage + '%',
+          potongan: potongan.toFixed(2) + ' kg',
+          nettoAkhir: nettoAkhir.toFixed(2) + ' kg',
         });
       } else {
         nettoAkhir = nettoKotor;
@@ -1126,17 +1128,18 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
       // ========================================
       nettoKotor = bruto - tara;
 
-      if (data.tipeBahan === 'bahan-baku' && data.hasilTara) {
-        potongan = parseFloat(data.hasilTara.potonganMoisture || '0');
+      if (data.tipeBahan === 'bahan-baku' && claimPercentage > 0) {
+        // ✅ HITUNG ULANG: Potongan dari NETTO KOTOR, bukan dari Bruto
+        potongan = nettoKotor * (claimPercentage / 100);
         nettoAkhir = nettoKotor - potongan;
 
-        console.log('✅ PEMBELIAN - Bahan Baku:', {
+        console.log('✅ PEMBELIAN - Bahan Baku (RECALCULATED):', {
           bruto: bruto + ' kg (Truk + Barang)',
           tara: tara + ' kg (Truk Kosong)',
           nettoKotor: nettoKotor + ' kg',
-          potongan: potongan + ' kg',
-          nettoAkhir: nettoAkhir + ' kg',
-          potonganBasah: potonganBasah + '%',
+          claimPercentage: claimPercentage + '%',
+          potongan: potongan.toFixed(2) + ' kg',
+          nettoAkhir: nettoAkhir.toFixed(2) + ' kg',
         });
       } else {
         nettoAkhir = nettoKotor;
@@ -1162,7 +1165,7 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
       data.tipeBahan === 'lainnya' && data.namaBarang === 'DAN LAIN-LAIN' && data.keteranganBarang;
 
     // ========================================
-    // ✅ WEIGHT SECTION - DYNAMIC HTML (UPDATED LABELS)
+    // ✅ WEIGHT SECTION - DYNAMIC HTML (UPDATED)
     // ========================================
 
     let weightSectionHTML = '';
@@ -1177,15 +1180,19 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
 <div class="weight-section">
   <div class="weight-row">
     <span class="weight-label">Berat Bruto</span>
-    <span class="weight-value">: ${bruto}kg</span>
+    <span class="weight-value">: ${bruto.toFixed(0)}kg</span>
   </div>
   <div class="weight-row">
     <span class="weight-label">Berat Tarra</span>
-    <span class="weight-value">: ${tara}kg</span>
+    <span class="weight-value">: ${tara.toFixed(0)}kg</span>
+  </div>
+  <div class="weight-row">
+    <span class="weight-label">Netto Kotor</span>
+    <span class="weight-value">: ${nettoKotor.toFixed(0)}kg</span>
   </div>
   <div class="weight-row">
     <span class="weight-label">Potong Basah</span>
-    <span class="weight-value">: ${potongan.toFixed(0)}kg ${potonganBasah}</span>
+    <span class="weight-value">: ${potongan.toFixed(2)}kg (${claimPercentage.toFixed(2)}%)</span>
   </div>
   <div class="weight-row weight-result">
     <span class="weight-label">Berat Netto</span>
@@ -1198,11 +1205,11 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
 <div class="weight-section">
   <div class="weight-row">
     <span class="weight-label">Berat Bruto</span>
-    <span class="weight-value">: ${tara}kg</span>
+    <span class="weight-value">: ${bruto.toFixed(0)}kg</span>
   </div>
   <div class="weight-row">
-    <span class="weight-label">Berat Tara</span>
-    <span class="weight-value">: ${bruto}kg</span>
+    <span class="weight-label">Berat Tarra</span>
+    <span class="weight-value">: ${tara.toFixed(0)}kg</span>
   </div>
   <div class="weight-row weight-result">
     <span class="weight-label">Berat Netto</span>
@@ -1220,15 +1227,19 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
 <div class="weight-section">
   <div class="weight-row">
     <span class="weight-label">Berat Bruto</span>
-    <span class="weight-value">: ${bruto}kg</span>
+    <span class="weight-value">: ${bruto.toFixed(0)}kg</span>
   </div>
   <div class="weight-row">
     <span class="weight-label">Berat Tarra</span>
-    <span class="weight-value">: ${tara}kg</span>
+    <span class="weight-value">: ${tara.toFixed(0)}kg</span>
+  </div>
+  <div class="weight-row">
+    <span class="weight-label">Netto Kotor</span>
+    <span class="weight-value">: ${nettoKotor.toFixed(0)}kg</span>
   </div>
   <div class="weight-row">
     <span class="weight-label">Potong Basah</span>
-    <span class="weight-value">: ${potongan.toFixed(0)}kg (${potonganBasah}%)</span>
+    <span class="weight-value">: ${potongan.toFixed(2)}kg (${claimPercentage.toFixed(2)}%)</span>
   </div>
   <div class="weight-row weight-result">
     <span class="weight-label">Berat Netto</span>
@@ -1241,11 +1252,11 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
 <div class="weight-section">
   <div class="weight-row">
     <span class="weight-label">Berat Bruto</span>
-    <span class="weight-value">: ${bruto}kg</span>
+    <span class="weight-value">: ${bruto.toFixed(0)}kg</span>
   </div>
   <div class="weight-row">
     <span class="weight-label">Berat Tarra</span>
-    <span class="weight-value">: ${tara}kg</span>
+    <span class="weight-value">: ${tara.toFixed(0)}kg</span>
   </div>
   <div class="weight-row weight-result">
     <span class="weight-label">Berat Netto</span>
@@ -1256,7 +1267,7 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
     }
 
     // ========================================
-    // HTML TEMPLATE UNTUK PRINT (SAMA SEPERTI SEBELUMNYA)
+    // HTML TEMPLATE UNTUK PRINT
     // ========================================
 
     const printContent = `

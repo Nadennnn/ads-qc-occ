@@ -29,7 +29,11 @@ export class AdminComponent implements OnInit {
   showLogoutModal = false;
   currentYear = new Date().getFullYear();
 
-  constructor(private router: Router, private authService: AuthService, private api: ApiService) {}
+  constructor(
+    private router: Router,
+    private authService: AuthService,
+    private api: ApiService,
+  ) {}
 
   async ngOnInit(): Promise<void> {
     console.log('Admin component initialized');
@@ -280,7 +284,7 @@ export class AdminComponent implements OnInit {
     if (!this.changePasswordForm.newPassword) {
       this.changePasswordErrors.newPassword = 'Password baru wajib diisi';
       isValid = false;
-    } else if (this.changePasswordForm.newPassword.length < 3) {
+    } else if (this.changePasswordForm.newPassword.length < 1) {
       this.changePasswordErrors.newPassword = 'Password minimal 3 karakter';
       isValid = false;
     }
@@ -326,8 +330,8 @@ export class AdminComponent implements OnInit {
       const loginResponse = await lastValueFrom(
         this.authService.login(
           this.dataCurrentUser.username,
-          this.changePasswordForm.currentPassword
-        )
+          this.changePasswordForm.currentPassword,
+        ),
       );
 
       if (!loginResponse.success) {
@@ -347,7 +351,7 @@ export class AdminComponent implements OnInit {
       };
 
       const updateResponse = await lastValueFrom(
-        this.api.postMultipart('update-profile', updateData)
+        this.api.postMultipart('update-profile', updateData),
       );
 
       if (updateResponse.success) {
