@@ -40,6 +40,7 @@ export class AdminComponent implements OnInit {
 
     // Get current user info
     this.currentUser = this.authService.currentUserValue;
+    console.log('111111111111', this.currentUser);
 
     // Subscribe to user changes
     this.authService.currentUser.subscribe((user) => {
@@ -61,6 +62,7 @@ export class AdminComponent implements OnInit {
     try {
       // Check cache dulu
       const cachedProfile = this.authService.getCachedProfile();
+      console.log('22222222222', cachedProfile);
 
       if (cachedProfile) {
         // Gunakan cached data

@@ -3,12 +3,9 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
 import { ApiService } from '../../../../services/api.service';
-import {
-  ReportParams,
-  TimbanganData,
-  TimbanganService,
-} from '../../../../services/timbangan.service';
+import { TimbanganData, TimbanganService } from '../../../../services/timbangan.service';
 
+// Types
 type FilterPeriod = 'harian' | 'mingguan' | 'bulanan' | 'custom';
 type FilterStatus = 'semua' | 'menunggu' | 'selesai';
 type FilterTipe = 'semua' | 'bahan-baku' | 'lainnya';
@@ -18,7 +15,6 @@ interface LaporanStats {
   totalSelesai: number;
   totalMenunggu: number;
   totalNetto: number;
-  // Stats tambahan bisa dihitung dari data
   totalBruto: number;
   totalTara: number;
   totalPotongan: number;
@@ -26,6 +22,30 @@ interface LaporanStats {
   lainnya: number;
   sudahDiuji: number;
   belumDiuji: number;
+}
+
+interface BarangOption {
+  value: string;
+  label: string;
+}
+
+interface FilterOption<T = string> {
+  value: T;
+  label: string;
+  apiValue?: string | number | null;
+}
+
+interface HasilUjiKelembapan {
+  id: string;
+  totalMoisture: number;
+  averageMoisture: number;
+  claimPercentage: number;
+  beratBahan: number;
+  netto: number;
+  potonganSampah: number;
+  pointsChecked: number;
+  moisturePoints: string[];
+  tanggalUji: string;
 }
 
 @Component({
@@ -37,33 +57,51 @@ interface LaporanStats {
 export class KelembapanComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
+  // Form & Data
   filterForm!: FormGroup;
-  filteredData: TimbanganData[] = [];
-  stats: LaporanStats = this.getEmptyStats();
-  isLoading = false;
-  bahanBakuTaraSelesai: TimbanganData[] = [];
+  displayedData: TimbanganData[] = [];
+  stats: LaporanStats = this.initEmptyStats();
 
-  readonly periodOptions = [
+  // UI State
+  isLoading = false;
+  isRincianVisible = false;
+  currentDate = new Date().toISOString();
+
+  // Modal State
+  isModalOpen = false;
+  selectedItem: any = null;
+
+  readonly bahanBakuOptions: BarangOption[] = [
+    { value: 'semua', label: 'Semua Barang' },
+    { value: 'LOCC/OCC', label: 'LOCC/OCC' },
+    { value: 'DLK', label: 'DLK' },
+    { value: 'DUPLEK', label: 'DUPLEK' },
+    { value: 'MIX WASTE', label: 'MIX WASTE' },
+    { value: 'SARANG TELOR', label: 'SARANG TELOR' },
+    { value: 'TUNGKUL', label: 'TUNGKUL' },
+  ];
+
+  private allData: TimbanganData[] = [];
+
+  // Filter Options
+  readonly periodOptions: FilterOption<FilterPeriod>[] = [
     { value: 'harian', label: 'Hari Ini', apiValue: 'Hari Ini' },
     { value: 'mingguan', label: 'Minggu Ini', apiValue: 'Minggu Ini' },
     { value: 'bulanan', label: 'Bulan Ini', apiValue: 'Bulan Ini' },
     { value: 'custom', label: 'Custom Range', apiValue: 'Custom Range' },
   ];
 
-  readonly statusOptions = [
+  readonly statusOptions: FilterOption<FilterStatus>[] = [
     { value: 'semua', label: 'Semua Status', apiValue: null },
     { value: 'menunggu', label: 'Menunggu Tara', apiValue: 0 },
     { value: 'selesai', label: 'Selesai', apiValue: 1 },
   ];
 
-  readonly tipeOptions = [
+  readonly tipeOptions: FilterOption<FilterTipe>[] = [
     { value: 'semua', label: 'Semua Tipe', apiValue: null },
     { value: 'bahan-baku', label: 'Bahan Baku', apiValue: 'Bahan Baku' },
     { value: 'lainnya', label: 'Lainnya', apiValue: 'Lainnya' },
   ];
-
-  currentDate = new Date().toISOString();
-  isRincianVisible: boolean = false;
 
   constructor(
     private fb: FormBuilder,
@@ -73,8 +111,6 @@ export class KelembapanComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.initForm();
-    this.setupFilterListener();
-    this.loadReportData(); // Load initial data
     this.loadKelembapanData();
   }
 
@@ -83,8 +119,9 @@ export class KelembapanComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
+  // Initialization
   private initForm(): void {
-    const today = new Date().toISOString().split('T')[0];
+    const today = this.getTodayDateString();
 
     this.filterForm = this.fb.group({
       period: ['harian'],
@@ -92,197 +129,16 @@ export class KelembapanComponent implements OnInit, OnDestroy {
       endDate: [today],
       status: ['semua'],
       tipe: ['semua'],
+      namaBarang: ['semua'], // Tambahkan field baru
     });
-  }
 
-  private setupFilterListener(): void {
+    // Subscribe ke perubahan form untuk auto-filter
     this.filterForm.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => {
-      this.loadReportData();
+      this.applyFilters();
     });
   }
 
-  loadKelembapanData() {
-    this.timbanganService
-      .loadDaftarTaraSelesai()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (data: TimbanganData[]) => {
-          // 🔍 Filter hanya yang tipeBahan === 'bahan-baku'
-          const bahanBakuData = data.filter((item) => item.tipeBahan === 'bahan-baku');
-
-          console.log('✅ Data tara selesai (Bahan Baku saja):', bahanBakuData);
-
-          // Simpan ke variabel komponen jika perlu
-          this.bahanBakuTaraSelesai = bahanBakuData;
-
-          // Gunakan data ini untuk chart, statistik, atau tampilan lain
-        },
-        error: (error) => {
-          console.error('❌ Gagal muat data tara selesai:', error);
-        },
-      });
-  }
-
-  tara: any;
-
-  private loadReportData(): void {
-    const formValues = this.filterForm.value;
-    const params = this.buildReportParams(formValues);
-
-    console.log('🔍 Loading report with params:', params);
-    this.isLoading = true;
-
-    this.timbanganService
-      .getReportData(params)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (response) => {
-          console.log('📊 Report response:', response);
-
-          // Convert API data to TimbanganData format
-          this.filteredData = response.data.map((item) => this.convertApiToTimbanganData(item));
-
-          // Update stats from API response
-          this.stats = {
-            totalTransaksi: response.statistik.total,
-            totalSelesai: response.statistik.finished,
-            totalMenunggu: response.statistik.not_finished,
-            totalNetto: parseFloat(response.statistik.netto),
-            // Calculate additional stats from data
-            ...this.calculateAdditionalStats(this.filteredData),
-          };
-
-          this.isLoading = false;
-          console.log('✅ Report loaded successfully:', {
-            dataCount: this.filteredData.length,
-            stats: this.stats,
-          });
-        },
-        error: (error) => {
-          console.error('❌ Error loading report:', error);
-          this.filteredData = [];
-          this.stats = this.getEmptyStats();
-          this.isLoading = false;
-        },
-      });
-  }
-
-  private buildReportParams(formValues: any): ReportParams {
-    const { period, startDate, endDate, status, tipe } = formValues;
-
-    const params: ReportParams = {};
-
-    // Periode
-    const periodOption = this.periodOptions.find((opt) => opt.value === period);
-    if (periodOption) {
-      params.periode = periodOption.apiValue;
-    }
-
-    // Custom date range
-    if (period === 'custom' && startDate && endDate) {
-      params.start_date = startDate;
-      params.end_date = endDate;
-    }
-
-    // Status
-    const statusOption = this.statusOptions.find((opt) => opt.value === status);
-    if (statusOption && statusOption.apiValue !== null) {
-      params.status = statusOption.apiValue;
-    }
-
-    // Type
-    const tipeOption = this.tipeOptions.find((opt) => opt.value === tipe);
-    if (tipeOption && tipeOption.apiValue !== null) {
-      params.type = tipeOption.apiValue;
-    }
-
-    return params;
-  }
-
-  private convertApiToTimbanganData(apiData: any): TimbanganData {
-    const tipeTransaksi: 'pembelian' | 'penjualan' = apiData.customer ? 'penjualan' : 'pembelian';
-    return {
-      id: apiData.id.toString(),
-      noTiket: apiData.nomor_bon,
-      noKendaraan: apiData.nomor_kendaraan,
-      jenisKendaraan: apiData.jenis_kendaraan.toLowerCase() === 'truck' ? 'truck' : 'container',
-      noContainer: apiData.nomor_container || undefined,
-      namaBarang: apiData.barang,
-      keteranganBarang: apiData.keterangan_barang || undefined,
-      namaRelasi: apiData.suplier || apiData.customer || '',
-      jenisRelasi: apiData.customer ? 'customer' : 'supplier',
-      namaSupir: apiData.supir,
-      timbanganPertama: parseFloat(apiData.berat_bruto) || 0,
-      timbanganKedua: null, // Not provided in this endpoint
-      tipeTransaksi: tipeTransaksi,
-      // beratTara2:
-      //   apiData.berat_bruto - apiData.berat_netto
-      //     ? parseFloat(apiData.berat_bruto) - parseFloat(apiData.berat_netto)
-      //     : null,
-      laporanCustomer: apiData.customer || null,
-      laporanSupplier: apiData.suplier || null,
-      beratNetto: apiData.berat_netto ? parseFloat(apiData.berat_netto) : null,
-      namaPenimbang: apiData.petugas,
-      kelembapan: null,
-      tipeBahan: apiData.type_bahan === 'Bahan Baku' ? 'bahan-baku' : 'lainnya',
-      timestamp: apiData.created_at,
-      updatedAt: apiData.updated_at,
-      statusTimbangan: apiData.is_finished === '1' ? 'selesai' : 'masuk',
-      statusUjiKelembapan: apiData.status === 'Belum Diuji' ? 'pending' : 'completed',
-    };
-  }
-
-  private calculateAdditionalStats(
-    data: TimbanganData[],
-  ): Pick<
-    LaporanStats,
-    | 'totalBruto'
-    | 'totalTara'
-    | 'totalPotongan'
-    | 'bahanBaku'
-    | 'lainnya'
-    | 'sudahDiuji'
-    | 'belumDiuji'
-  > {
-    const stats = {
-      totalBruto: 0,
-      totalTara: 0,
-      totalPotongan: 0,
-      bahanBaku: 0,
-      lainnya: 0,
-      sudahDiuji: 0,
-      belumDiuji: 0,
-    };
-
-    data.forEach((item) => {
-      stats.totalBruto += item.timbanganPertama;
-
-      if (item.timbanganKedua) {
-        stats.totalTara += item.timbanganKedua;
-      }
-
-      if (item.beratNetto && item.timbanganKedua) {
-        const nettoKotor = item.timbanganPertama - item.timbanganKedua;
-        const potongan = nettoKotor - item.beratNetto;
-        stats.totalPotongan += potongan;
-      }
-
-      if (item.tipeBahan === 'bahan-baku') {
-        stats.bahanBaku++;
-        if (item.statusUjiKelembapan === 'completed') {
-          stats.sudahDiuji++;
-        } else {
-          stats.belumDiuji++;
-        }
-      } else {
-        stats.lainnya++;
-      }
-    });
-
-    return stats;
-  }
-
-  private getEmptyStats(): LaporanStats {
+  private initEmptyStats(): LaporanStats {
     return {
       totalTransaksi: 0,
       totalSelesai: 0,
@@ -298,8 +154,236 @@ export class KelembapanComponent implements OnInit, OnDestroy {
     };
   }
 
+  // Data Loading
+  loadKelembapanData(): void {
+    this.isLoading = true;
+
+    this.timbanganService
+      .loadDaftarTaraSelesai()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (data: TimbanganData[]) => {
+          // Simpan data asli (sudah difilter bahan-baku)
+          this.allData = data.filter((item) => item.tipeBahan === 'bahan-baku');
+
+          // Apply filters
+          this.applyFilters();
+
+          this.isLoading = false;
+          console.log('✅ Total data loaded:', this.allData.length);
+          console.log('✅ Data setelah filter:', this.displayedData.length);
+        },
+        error: (error) => {
+          console.error('❌ Gagal memuat data tara selesai:', error);
+          this.isLoading = false;
+        },
+      });
+  }
+
+  // Main filter function - dipanggil setiap kali form berubah
+  applyFilters(): void {
+    let filtered = [...this.allData];
+
+    // 1. Filter by Date/Period
+    filtered = this.filterByPeriod(filtered);
+
+    // 2. Filter by Status
+    filtered = this.filterByStatus(filtered);
+
+    // 3. Filter by Tipe Bahan
+    filtered = this.filterByTipe(filtered);
+
+    // 4. Filter by Nama Barang - BARU
+    filtered = this.filterByNamaBarang(filtered);
+
+    // Update displayed data
+    this.displayedData = filtered;
+
+    // Recalculate stats
+    this.calculateStats();
+
+    console.log('🔍 Filter applied - Results:', this.displayedData.length, 'items');
+  }
+
+  // Filter berdasarkan Periode Waktu
+  private filterByPeriod(data: TimbanganData[]): TimbanganData[] {
+    const period = this.filterForm.get('period')?.value;
+    const now = new Date();
+
+    let startDate: Date;
+    let endDate: Date;
+
+    switch (period) {
+      case 'harian':
+        // Hari ini: 00:00:00 sampai 23:59:59
+        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+        endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+        break;
+
+      case 'mingguan':
+        // Minggu ini (Senin - Minggu)
+        const dayOfWeek = now.getDay();
+        const diff = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Senin sebagai hari pertama
+
+        startDate = new Date(now);
+        startDate.setDate(now.getDate() - diff);
+        startDate.setHours(0, 0, 0, 0);
+
+        endDate = new Date(now);
+        endDate.setHours(23, 59, 59, 999);
+        break;
+
+      case 'bulanan':
+        // Bulan ini: tanggal 1 sampai akhir bulan
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0);
+        endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+        break;
+
+      case 'custom':
+        // Custom date range
+        const startDateStr = this.filterForm.get('startDate')?.value;
+        const endDateStr = this.filterForm.get('endDate')?.value;
+
+        if (!startDateStr || !endDateStr) {
+          return data; // Jika tanggal tidak lengkap, return semua data
+        }
+
+        startDate = new Date(startDateStr);
+        startDate.setHours(0, 0, 0, 0);
+
+        endDate = new Date(endDateStr);
+        endDate.setHours(23, 59, 59, 999);
+        break;
+
+      default:
+        return data;
+    }
+
+    return data.filter((item) => {
+      const itemDate = new Date(item.timestamp);
+      return itemDate >= startDate && itemDate <= endDate;
+    });
+  }
+
+  // Filter berdasarkan Status Timbangan
+  private filterByStatus(data: TimbanganData[]): TimbanganData[] {
+    const status = this.filterForm.get('status')?.value;
+
+    if (status === 'semua') {
+      return data;
+    }
+
+    const statusMap: { [key: string]: string } = {
+      menunggu: 'masuk',
+      selesai: 'selesai',
+    };
+
+    const targetStatus = statusMap[status];
+    return data.filter((item) => item.statusTimbangan === targetStatus);
+  }
+
+  // Filter berdasarkan Tipe Bahan
+  private filterByTipe(data: TimbanganData[]): TimbanganData[] {
+    const tipe = this.filterForm.get('tipe')?.value;
+
+    if (tipe === 'semua') {
+      return data;
+    }
+
+    const tipeMap: { [key: string]: string } = {
+      'bahan-baku': 'bahan-baku',
+      lainnya: 'lainnya',
+    };
+
+    const targetTipe = tipeMap[tipe];
+    return data.filter((item) => item.tipeBahan === targetTipe);
+  }
+
+  // Filter berdasarkan Nama Barang - BARU
+  private filterByNamaBarang(data: TimbanganData[]): TimbanganData[] {
+    const namaBarang = this.filterForm.get('namaBarang')?.value;
+
+    if (namaBarang === 'semua') {
+      return data;
+    }
+
+    return data.filter((item) => item.namaBarang === namaBarang);
+  }
+
+  // Reset semua filter ke nilai default
+  resetFilters(): void {
+    const today = this.getTodayDateString();
+
+    this.filterForm.patchValue(
+      {
+        period: 'harian',
+        startDate: today,
+        endDate: today,
+        status: 'semua',
+        tipe: 'semua',
+        namaBarang: 'semua',
+      },
+      { emitEvent: true },
+    ); // emitEvent: true akan trigger valueChanges
+
+    console.log('🔄 Filter telah direset');
+  }
+
+  private filterBahanBaku(data: TimbanganData[]): TimbanganData[] {
+    return data.filter((item) => item.tipeBahan === 'bahan-baku');
+  }
+
+  private calculateStats(): void {
+    const data = this.displayedData;
+
+    this.stats = {
+      totalTransaksi: data.length,
+      totalSelesai: data.filter((d) => d.statusTimbangan === 'selesai').length,
+      totalMenunggu: data.filter((d) => d.statusTimbangan === 'masuk').length,
+      totalNetto: data.reduce((sum, d) => sum + (Number(d.beratNetto) || 0), 0),
+      totalBruto: data.reduce((sum, d) => sum + (Number(d.timbanganPertama) || 0), 0),
+      totalTara: data.reduce((sum, d) => sum + (Number(d.timbanganKedua) || 0), 0),
+      totalPotongan: data.reduce(
+        (sum, d) =>
+          sum + (d.hasilTara?.potonganMoisture ? Number(d.hasilTara.potonganMoisture) : 0),
+        0,
+      ),
+      bahanBaku: data.filter((d) => d.tipeBahan === 'bahan-baku').length,
+      lainnya: data.filter((d) => d.tipeBahan === 'lainnya').length,
+      sudahDiuji: data.filter((d) => d.statusUjiKelembapan === 'completed').length,
+      belumDiuji: data.filter((d) => !d.statusUjiKelembapan || d.statusUjiKelembapan === 'pending')
+        .length,
+    };
+
+    console.log('📊 Stats updated:', this.stats);
+  }
+
+  // Getter untuk menampilkan jumlah filter aktif
+  get activeFilterCount(): number {
+    let count = 0;
+    if (this.filterForm.get('period')?.value !== 'harian') count++;
+    if (this.filterForm.get('status')?.value !== 'semua') count++;
+    if (this.filterForm.get('tipe')?.value !== 'semua') count++;
+    if (this.filterForm.get('namaBarang')?.value !== 'semua') count++;
+    return count;
+  }
+
+  // Getter untuk cek apakah ada filter aktif
+  get hasActiveFilters(): boolean {
+    return this.activeFilterCount > 0;
+  }
+
+  // Export & Print
   exportToExcel(): void {
-    const data = this.filteredData.map((item) => ({
+    if (this.displayedData.length === 0) return;
+
+    const exportData = this.prepareExportData();
+    const csv = this.convertToCSV(exportData);
+    this.downloadCSV(csv, `laporan_kelembapan_${Date.now()}.csv`);
+  }
+
+  private prepareExportData(): any[] {
+    return this.displayedData.map((item) => ({
       'No. Tiket': item.noTiket,
       Tanggal: this.formatDate(item.timestamp),
       'No. Kendaraan': item.noKendaraan,
@@ -314,35 +398,30 @@ export class KelembapanComponent implements OnInit, OnDestroy {
       Status: item.statusTimbangan === 'masuk' ? 'Menunggu Tara' : 'Selesai',
       Penimbang: item.namaPenimbang,
     }));
-
-    const csv = this.convertToCSV(data);
-    this.downloadCSV(csv, `laporan_timbangan_${Date.now()}.csv`);
   }
 
   private convertToCSV(data: any[]): string {
     if (data.length === 0) return '';
 
     const headers = Object.keys(data[0]);
-    const csvRows = [headers.join(',')];
+    const rows = data.map((row) =>
+      headers
+        .map((header) => {
+          const value = row[header];
+          return typeof value === 'string' ? `"${value}"` : value;
+        })
+        .join(','),
+    );
 
-    data.forEach((row) => {
-      const values = headers.map((header) => {
-        const value = row[header];
-        return typeof value === 'string' ? `"${value}"` : value;
-      });
-      csvRows.push(values.join(','));
-    });
-
-    return csvRows.join('\n');
+    return [headers.join(','), ...rows].join('\n');
   }
 
   private downloadCSV(csv: string, filename: string): void {
     const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
 
-    link.setAttribute('href', url);
-    link.setAttribute('download', filename);
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
     link.style.visibility = 'hidden';
 
     document.body.appendChild(link);
@@ -354,6 +433,34 @@ export class KelembapanComponent implements OnInit, OnDestroy {
     window.print();
   }
 
+  // UI Helpers
+  toggleRincian(): void {
+    this.isRincianVisible = !this.isRincianVisible;
+  }
+
+  viewDetail(item: any): void {
+    console.log('📋 Item yang dipilih:', item);
+    console.log('🔍 Hasil Uji Kelembapan:', item.hasilUjiKelembapan);
+    console.log('📊 Moisture Points:', item.hasilUjiKelembapan?.moisturePoints);
+
+    this.selectedItem = item;
+    this.isModalOpen = true;
+  }
+
+  closeModal(): void {
+    this.isModalOpen = false;
+    this.selectedItem = null;
+  }
+
+  getTipeClass(tipe: 'bahan-baku' | 'lainnya'): string {
+    return tipe === 'bahan-baku' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800';
+  }
+
+  getSupplierDisplay(supplier: string | null): string {
+    return supplier && supplier !== '---' ? supplier : '-';
+  }
+
+  // Formatting
   formatDate(dateString: string): string {
     const date = new Date(dateString);
     return date.toLocaleDateString('id-ID', {
@@ -365,41 +472,22 @@ export class KelembapanComponent implements OnInit, OnDestroy {
     });
   }
 
-  formatNumber(num: number | string | null | undefined): string {
-    if (num === null || num === undefined || isNaN(Number(num))) {
-      return '0';
-    }
-
-    return new Intl.NumberFormat('id-ID').format(Number(num));
+  formatNumber(value: number | string | null | undefined): string {
+    const num = Number(value);
+    return isNaN(num) ? '0' : new Intl.NumberFormat('id-ID').format(num);
   }
 
-  getStatusBadge(status: 'masuk' | 'selesai'): string {
-    return status === 'selesai' ? 'Selesai' : 'Menunggu Tara';
+  private getTodayDateString(): string {
+    return new Date().toISOString().split('T')[0];
   }
 
-  getStatusClass(status: 'masuk' | 'selesai'): string {
-    return status === 'selesai' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800';
-  }
-
-  getTipeBadge(tipe: 'bahan-baku' | 'lainnya'): string {
-    return tipe === 'bahan-baku' ? 'Bahan Baku' : 'Lainnya';
-  }
-
-  getTipeClass(tipe: 'bahan-baku' | 'lainnya'): string {
-    return tipe === 'bahan-baku' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800';
-  }
-
+  // Getters
   get isCustomPeriod(): boolean {
     return this.filterForm.get('period')?.value === 'custom';
   }
 
   get periodLabel(): string {
     const period = this.filterForm.get('period')?.value;
-    const option = this.periodOptions.find((opt) => opt.value === period);
-    return option?.label || '';
-  }
-
-  toggleShowRincian(): void {
-    this.isRincianVisible = !this.isRincianVisible;
+    return this.periodOptions.find((opt) => opt.value === period)?.label || '';
   }
 }

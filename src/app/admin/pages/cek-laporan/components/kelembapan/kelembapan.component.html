@@ -10,50 +10,56 @@
     <p class="subtitle">Laporan lengkap data uji kelembapan</p>
   </div>
 
-  <!-- Filter Section -->
+  <!-- Compact Version -->
   <div class="filter-section no-print">
-    <form [formGroup]="filterForm" class="filter-form">
-      <!-- Period Filter -->
-      <div class="filter-group">
-        <label class="label">Periode</label>
-        <select formControlName="period" class="select">
+    <div class="filter-compact">
+      <div class="filter-compact-header">
+        <lucide-icons [iconsName]="'filter'" [size]="18" [color]="'#6B7280'" />
+        <span class="filter-compact-title">Filter</span>
+        <span *ngIf="hasActiveFilters" class="filter-count">{{ activeFilterCount }}</span>
+      </div>
+
+      <form [formGroup]="filterForm" class="filter-compact-form">
+        <select formControlName="period" class="filter-compact-select">
           <option *ngFor="let opt of periodOptions" [value]="opt.value">
             {{ opt.label }}
           </option>
         </select>
-      </div>
 
-      <!-- Custom Date Range -->
-      <div *ngIf="isCustomPeriod" class="filter-group">
-        <label class="label">Tanggal Mulai</label>
-        <input type="date" formControlName="startDate" class="input" />
-      </div>
+        <ng-container *ngIf="isCustomPeriod">
+          <input type="date" formControlName="startDate" class="filter-compact-input" />
+          <input type="date" formControlName="endDate" class="filter-compact-input" />
+        </ng-container>
 
-      <div *ngIf="isCustomPeriod" class="filter-group">
-        <label class="label">Tanggal Akhir</label>
-        <input type="date" formControlName="endDate" class="input" />
-      </div>
-
-      <!-- Status Filter -->
-      <div class="filter-group">
-        <label class="label">Status</label>
-        <select formControlName="status" class="select">
+        <!-- <select formControlName="status" class="filter-compact-select">
           <option *ngFor="let opt of statusOptions" [value]="opt.value">
             {{ opt.label }}
           </option>
-        </select>
-      </div>
+        </select> -->
 
-      <!-- Tipe Filter -->
-      <div class="filter-group">
-        <label class="label">Tipe Bahan</label>
-        <select formControlName="tipe" class="select">
+        <!-- <select formControlName="tipe" class="filter-compact-select">
           <option *ngFor="let opt of tipeOptions" [value]="opt.value">
             {{ opt.label }}
           </option>
+        </select> -->
+
+        <select formControlName="namaBarang" class="filter-compact-select">
+          <option *ngFor="let opt of bahanBakuOptions" [value]="opt.value">
+            {{ opt.label }}
+          </option>
         </select>
-      </div>
-    </form>
+
+        <button
+          *ngIf="hasActiveFilters"
+          type="button"
+          (click)="resetFilters()"
+          class="filter-compact-reset"
+          title="Reset Filter"
+        >
+          <lucide-icons [iconsName]="'x'" [size]="16" [color]="'#6B7280'" />
+        </button>
+      </form>
+    </div>
   </div>
 
   <!-- Loading Indicator -->
@@ -65,10 +71,11 @@
   </div>
 
   <!-- Data Table -->
-  <div class="data-section mb-3" *ngIf="!isLoading">
-    <h3 class="section-title">Data Uji Kelembapan ({{ filteredData.length }} data)</h3>
+  <div class="data-section mb-6" *ngIf="!isLoading">
+    <h3 class="section-title">Data Uji Kelembapan ({{ displayedData.length }} data)</h3>
 
-    <div *ngIf="filteredData.length === 0" class="empty-state">
+    <!-- Empty State -->
+    <div *ngIf="displayedData.length === 0" class="empty-state">
       <div class="flex flex-col items-center justify-center py-12">
         <lucide-icons [iconsName]="'inbox'" [size]="48" [color]="'#9CA3AF'" class="mb-4" />
         <p class="text-gray-500 text-lg font-medium">Tidak ada data untuk filter yang dipilih</p>
@@ -76,7 +83,8 @@
       </div>
     </div>
 
-    <div *ngIf="filteredData.length > 0" class="table-container">
+    <!-- Table -->
+    <div *ngIf="displayedData.length > 0" class="table-container">
       <table class="data-table">
         <thead class="text-center">
           <tr>
@@ -90,10 +98,9 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let item of bahanBakuTaraSelesai; let i = index">
+          <tr *ngFor="let item of displayedData; let i = index">
             <td class="text-center">{{ i + 1 }}</td>
             <td class="text-center">{{ formatDate(item.timestamp) }}</td>
-            <!-- <td class="text-center font-semibold">{{ item.noTiket }}</td> -->
             <td class="text-center">{{ item.noKendaraan }}</td>
             <td class="text-center">
               {{
@@ -105,13 +112,13 @@
             <td class="text-center">{{ item.namaBarang }}</td>
             <td class="text-center">
               <span class="badge" [ngClass]="getTipeClass(item.tipeBahan)">
-                {{ getTipeBadge(item.tipeBahan) }}
+                {{ item.hasilUjiKelembapan?.averageMoisture }}%
               </span>
             </td>
             <td class="text-center">
-              <span class="badge" [ngClass]="getTipeClass(item.tipeBahan)">
-                Lihat selengkapnya
-              </span>
+              <button class="cursor-pointer" (click)="viewDetail(item)">
+                <lucide-icons [iconsName]="'eye'" [color]="'green'" />
+              </button>
             </td>
           </tr>
         </tbody>
@@ -133,7 +140,7 @@
       </div>
       <div class="stats-row">
         <span class="stats-label">Total Potongan (Kelembapan)</span>
-        <span class="stats-value text-red-600"> {{ formatNumber(stats.totalPotongan) }} kg </span>
+        <span class="stats-value text-red-600">{{ formatNumber(stats.totalPotongan) }} kg</span>
       </div>
       <div class="stats-row stats-row-total">
         <span class="stats-label">Total Netto</span>
@@ -166,25 +173,28 @@
   <div class="action-buttons no-print" *ngIf="!isLoading">
     <button
       class="btn bg-neutral-800 text-white flex justify-center w-auto gap-3 items-center"
-      (click)="toggleShowRincian()"
+      (click)="toggleRincian()"
     >
       <lucide-icon [name]="isRincianVisible ? 'chevron-up' : 'chevron-down'"></lucide-icon>
-      <span *ngIf="isRincianVisible">Sembunyikan Data Rincian</span>
-      <span *ngIf="!isRincianVisible">Tampilkan Data Rincian</span>
+      <span>{{ isRincianVisible ? 'Sembunyikan' : 'Tampilkan' }} Data Rincian</span>
     </button>
+
     <button
       class="btn bg-neutral-800 text-white flex justify-center w-auto gap-3 items-center"
       (click)="exportToExcel()"
-      [disabled]="filteredData.length === 0"
+      [disabled]="displayedData.length === 0"
     >
-      <lucide-icons [iconsName]="'sheet'" class="text-white" /> Export ke Excel
+      <lucide-icons [iconsName]="'sheet'" class="text-white" />
+      Export ke Excel
     </button>
+
     <button
       class="btn bg-gray-200 text-neutral-800 flex justify-center w-auto gap-3 items-center"
       (click)="printLaporan()"
-      [disabled]="filteredData.length === 0"
+      [disabled]="displayedData.length === 0"
     >
-      <lucide-icons [iconsName]="'printer-check'" class="text-neutral-800" /> Print Laporan
+      <lucide-icons [iconsName]="'printer-check'" class="text-neutral-800" />
+      Print Laporan
     </button>
   </div>
 
@@ -194,5 +204,168 @@
     <h2>Laporan Data Timbangan</h2>
     <p>Periode: {{ periodLabel }}</p>
     <p>Tanggal Cetak: {{ formatDate(currentDate) }}</p>
+  </div>
+
+  <!-- Detail Modal -->
+  <div *ngIf="isModalOpen" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-container" (click)="$event.stopPropagation()">
+      <!-- Modal Header -->
+      <div class="modal-header">
+        <h2 class="modal-title">Detail Uji Kelembapan</h2>
+        <button class="modal-close" (click)="closeModal()">
+          <lucide-icons [iconsName]="'x'" [size]="20" [color]="'#6B7280'" />
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body" *ngIf="selectedItem">
+        <!-- Info Umum -->
+        <div class="info-section">
+          <h3 class="info-section-title">Informasi Umum</h3>
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="info-label">No. Tiket</span>
+              <span class="info-value">{{ selectedItem.noTiket }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">No. Kendaraan</span>
+              <span class="info-value">{{ selectedItem.noKendaraan }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Nama Barang</span>
+              <span class="info-value">{{ selectedItem.namaBarang }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">{{
+                selectedItem.jenisRelasi === 'supplier' ? 'Supplier' : 'Customer'
+              }}</span>
+              <span class="info-value">{{ getSupplierDisplay(selectedItem.namaRelasi) }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Nama Supir</span>
+              <span class="info-value">{{ selectedItem.namaSupir || '-' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Tanggal</span>
+              <span class="info-value">{{ formatDate(selectedItem.timestamp) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Data Uji Kelembapan -->
+        <div class="info-section" *ngIf="selectedItem.hasilUjiKelembapan">
+          <h3 class="info-section-title">Data Uji Kelembapan</h3>
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="info-label">Jumlah Ball/Serak</span>
+              <span class="info-value">{{ selectedItem.hasilUjiKelembapan.pointsChecked }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Total Moisture</span>
+              <span class="info-value">{{ selectedItem.hasilUjiKelembapan.totalMoisture }}%</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Rata-rata Moisture</span>
+              <span class="info-value font-semibold">
+                {{ selectedItem.hasilUjiKelembapan.averageMoisture }}%
+              </span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Nilai Claim</span>
+              <span
+                class="info-value font-semibold"
+                [ngClass]="{
+                  'text-red-600': selectedItem.hasilUjiKelembapan.claimPercentage > 0,
+                  'text-green-600': selectedItem.hasilUjiKelembapan.claimPercentage < 0,
+                  'text-gray-600': selectedItem.hasilUjiKelembapan.claimPercentage === 0,
+                }"
+              >
+                {{ selectedItem.hasilUjiKelembapan.claimPercentage > 0 ? '+' : ''
+                }}{{ selectedItem.hasilUjiKelembapan.claimPercentage }}%
+              </span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Berat Bahan</span>
+              <span class="info-value"
+                >{{ formatNumber(selectedItem.hasilUjiKelembapan.beratBahan) }} kg</span
+              >
+            </div>
+            <div class="info-item">
+              <span class="info-label">Berat Netto</span>
+              <span class="info-value"
+                >{{ formatNumber(selectedItem.hasilUjiKelembapan.netto) }} kg</span
+              >
+            </div>
+            <div class="info-item">
+              <span class="info-label">Potongan Sampah</span>
+              <span class="info-value"
+                >{{ formatNumber(selectedItem.hasilUjiKelembapan.potonganSampah) }} kg</span
+              >
+            </div>
+            <div class="info-item">
+              <span class="info-label">Tanggal Uji</span>
+              <span class="info-value">{{
+                formatDate(selectedItem.hasilUjiKelembapan.tanggalUji)
+              }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Titik Pengukuran -->
+        <div
+          class="info-section"
+          *ngIf="selectedItem.hasilUjiKelembapan?.moisturePoints?.length > 0"
+        >
+          <h3 class="info-section-title">
+            Titik Pengukuran ({{ selectedItem.hasilUjiKelembapan.moisturePoints.length }} titik)
+          </h3>
+          <div class="titik-grid">
+            <div
+              *ngFor="let nilai of selectedItem.hasilUjiKelembapan.moisturePoints; let i = index"
+              class="titik-card"
+            >
+              <div class="titik-number">Titik {{ i + 1 }}</div>
+              <div class="titik-value">{{ nilai }}%</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Data Timbangan -->
+        <div class="info-section" *ngIf="selectedItem.hasilTara">
+          <h3 class="info-section-title">Data Timbangan</h3>
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="info-label">Berat Bruto</span>
+              <span class="info-value"
+                >{{ formatNumber(selectedItem.hasilTara.beratBruto) }} kg</span
+              >
+            </div>
+            <div class="info-item">
+              <span class="info-label">Berat Tara</span>
+              <span class="info-value"
+                >{{ formatNumber(selectedItem.hasilTara.beratTara) }} kg</span
+              >
+            </div>
+            <div class="info-item">
+              <span class="info-label">Potongan Moisture</span>
+              <span class="info-value text-red-600"
+                >{{ formatNumber(selectedItem.hasilTara.potonganMoisture) }} kg</span
+              >
+            </div>
+            <div class="info-item">
+              <span class="info-label">Berat Netto Final</span>
+              <span class="info-value font-semibold"
+                >{{ formatNumber(selectedItem.hasilTara.beratNetto) }} kg</span
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeModal()">Tutup</button>
+      </div>
+    </div>
   </div>
 </div>
