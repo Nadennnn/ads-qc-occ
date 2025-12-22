@@ -34,6 +34,7 @@ export class LoginComponent implements OnInit {
     localStorage.clear();
   }
 
+  resErrorMes: any;
   onSubmit(): void {
     this.errorMessage = '';
 
@@ -66,10 +67,11 @@ export class LoginComponent implements OnInit {
         } else {
           this.errorMessage = response.message || 'Login gagal';
         }
+        this.resErrorMes = response;
       },
       error: (error) => {
         this.isLoading = false;
-        this.errorMessage = error.message || 'Gagal melakukan login';
+        this.errorMessage = this.resErrorMes || 'Gagal melakukan login';
         console.error('Login error:', error);
       },
     });

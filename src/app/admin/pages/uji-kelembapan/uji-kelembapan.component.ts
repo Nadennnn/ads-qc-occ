@@ -66,6 +66,7 @@ export class UjiKelembapanComponent implements OnInit, OnDestroy {
     jenisBarang: '',
     jumlahBall: '',
     beratBahan: '',
+    potonganSampah: '0',
   };
 
   // Moisture Points (80 points)
@@ -153,6 +154,7 @@ export class UjiKelembapanComponent implements OnInit, OnDestroy {
       jenisBarang: data.barang || '',
       jumlahBall: '',
       beratBahan: data.berat_bruto || '0',
+      potonganSampah: '0', // ← TAMBAHKAN INI
     };
 
     // Reset moisture points
@@ -290,6 +292,7 @@ export class UjiKelembapanComponent implements OnInit, OnDestroy {
       nilai_claim: `${this.results.claimPercentage > 0 ? '+' : ''}${this.results.claimPercentage}%`,
       berat_bruto: parseFloat(this.formData.beratBahan),
       berat_netto: this.results.netto,
+      potongan_sampah: parseFloat(this.formData.potonganSampah) || 0,
       titik: titikArray,
     };
 
@@ -333,6 +336,7 @@ export class UjiKelembapanComponent implements OnInit, OnDestroy {
       jenisBarang: '',
       jumlahBall: '',
       beratBahan: '',
+      potonganSampah: '0',
     };
     this.moisturePoints = Array(80).fill('');
     this.results = null;
