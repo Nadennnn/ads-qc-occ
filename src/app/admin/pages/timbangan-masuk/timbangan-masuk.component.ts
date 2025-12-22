@@ -1019,6 +1019,8 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
       timbanganPertama: data.timbanganPertama,
       timbanganKedua: data.timbanganKedua,
       claimPercentage: data.hasilUjiKelembapan?.claimPercentage,
+      potonganSampah:
+        data.hasilUjiKelembapan?.potonganSampah || data.hasilUjiKelembapan?.potonganSampah,
     });
 
     // ========================================
@@ -1081,7 +1083,7 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
     });
 
     // ========================================
-    // ✅ PERHITUNGAN BERAT - FIXED VERSION
+    // ✅ PERHITUNGAN BERAT - FIXED VERSION WITH SAMPAH
     // ========================================
 
     const bruto = data.timbanganPertama || 0;
@@ -1090,9 +1092,15 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
     // ✅ Ambil persentase claim dari uji kelembapan
     const claimPercentage = data.hasilUjiKelembapan?.claimPercentage || 0;
 
-    let potongan = 0;
+    // ✅ Ambil potongan sampah (dalam KG) - bisa dari tara atau uji_kelembapan
+    const potonganSampahKg = parseInt(
+      data.hasilUjiKelembapan?.potonganSampah || data.hasilUjiKelembapan?.potonganSampah || '0',
+    );
+
+    let potonganBasah = 0;
     let nettoAkhir = 0;
     let nettoKotor = 0; // Untuk display intermediate calculation
+    let nettoSetelahBasah = 0; // Netto setelah potong basah, sebelum potong sampah
 
     if (isPenjualan) {
       // ========================================
@@ -1100,17 +1108,22 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
       // ========================================
       nettoKotor = tara - bruto;
 
-      if (data.tipeBahan === 'bahan-baku' && claimPercentage > 0) {
-        // ✅ HITUNG ULANG: Potongan dari NETTO KOTOR, bukan dari Bruto
-        potongan = nettoKotor * (claimPercentage / 100);
-        nettoAkhir = nettoKotor - potongan;
+      if (data.tipeBahan === 'bahan-baku' && (claimPercentage > 0 || potonganSampahKg > 0)) {
+        // ✅ HITUNG POTONGAN BASAH: dari NETTO KOTOR
+        potonganBasah = nettoKotor * (claimPercentage / 100);
+        nettoSetelahBasah = nettoKotor - potonganBasah;
 
-        console.log('✅ PENJUALAN - Bahan Baku (RECALCULATED):', {
+        // ✅ HITUNG NETTO AKHIR: setelah dikurangi sampah
+        nettoAkhir = nettoSetelahBasah - potonganSampahKg;
+
+        console.log('✅ PENJUALAN - Bahan Baku (RECALCULATED WITH SAMPAH):', {
           bruto: bruto + ' kg (Truk Kosong)',
           tara: tara + ' kg (Truk + Barang)',
           nettoKotor: nettoKotor + ' kg',
           claimPercentage: claimPercentage + '%',
-          potongan: potongan.toFixed(2) + ' kg',
+          potonganBasah: potonganBasah.toFixed(2) + ' kg',
+          nettoSetelahBasah: nettoSetelahBasah.toFixed(2) + ' kg',
+          potonganSampah: potonganSampahKg.toFixed(2) + ' kg',
           nettoAkhir: nettoAkhir.toFixed(2) + ' kg',
         });
       } else {
@@ -1128,17 +1141,22 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
       // ========================================
       nettoKotor = bruto - tara;
 
-      if (data.tipeBahan === 'bahan-baku' && claimPercentage > 0) {
-        // ✅ HITUNG ULANG: Potongan dari NETTO KOTOR, bukan dari Bruto
-        potongan = nettoKotor * (claimPercentage / 100);
-        nettoAkhir = nettoKotor - potongan;
+      if (data.tipeBahan === 'bahan-baku' && (claimPercentage > 0 || potonganSampahKg > 0)) {
+        // ✅ HITUNG POTONGAN BASAH: dari NETTO KOTOR
+        potonganBasah = nettoKotor * (claimPercentage / 100);
+        nettoSetelahBasah = nettoKotor - potonganBasah;
 
-        console.log('✅ PEMBELIAN - Bahan Baku (RECALCULATED):', {
+        // ✅ HITUNG NETTO AKHIR: setelah dikurangi sampah
+        nettoAkhir = nettoSetelahBasah - potonganSampahKg;
+
+        console.log('✅ PEMBELIAN - Bahan Baku (RECALCULATED WITH SAMPAH):', {
           bruto: bruto + ' kg (Truk + Barang)',
           tara: tara + ' kg (Truk Kosong)',
           nettoKotor: nettoKotor + ' kg',
           claimPercentage: claimPercentage + '%',
-          potongan: potongan.toFixed(2) + ' kg',
+          potonganBasah: potonganBasah.toFixed(2) + ' kg',
+          nettoSetelahBasah: nettoSetelahBasah.toFixed(2) + ' kg',
+          potonganSampah: potonganSampahKg.toFixed(2) + ' kg',
           nettoAkhir: nettoAkhir.toFixed(2) + ' kg',
         });
       } else {
@@ -1165,7 +1183,7 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
       data.tipeBahan === 'lainnya' && data.namaBarang === 'DAN LAIN-LAIN' && data.keteranganBarang;
 
     // ========================================
-    // ✅ WEIGHT SECTION - DYNAMIC HTML (UPDATED)
+    // ✅ WEIGHT SECTION - DYNAMIC HTML (ALIGNED TABLE)
     // ========================================
 
     let weightSectionHTML = '';
@@ -1174,95 +1192,141 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
       // ========================================
       // PENJUALAN: Bruto = Truk Kosong, Tara = Truk + Barang
       // ========================================
-      if (data.tipeBahan === 'bahan-baku' && potongan > 0) {
+      if (data.tipeBahan === 'bahan-baku' && (potonganBasah > 0 || potonganSampahKg > 0)) {
         weightSectionHTML = `
 <!-- Weight Section - PENJUALAN - BAHAN BAKU -->
-<div class="weight-section">
-  <div class="weight-row">
-    <span class="weight-label">Berat Bruto</span>
-    <span class="weight-value">: ${bruto.toFixed(0)}kg</span>
-  </div>
-  <div class="weight-row">
-    <span class="weight-label">Berat Tarra</span>
-    <span class="weight-value">: ${tara.toFixed(0)}kg</span>
-  </div>
-  <div class="weight-row">
-    <span class="weight-label">Netto Kotor</span>
-    <span class="weight-value">: ${nettoKotor.toFixed(0)}kg</span>
-  </div>
-  <div class="weight-row">
-    <span class="weight-label">Potong Basah</span>
-    <span class="weight-value">: ${potongan.toFixed(2)}kg (${claimPercentage.toFixed(2)}%)</span>
-  </div>
-  <div class="weight-row weight-result">
-    <span class="weight-label">Berat Netto</span>
-    <span class="weight-value">: ${nettoAkhir.toFixed(0)}kg</span>
-  </div>
-</div>`;
+<table class="weight-table">
+  <tr>
+    <td class="weight-label">Berat Bruto</td>
+    <td class="weight-separator">:</td>
+    <td class="weight-value">${bruto.toFixed(0)} kg</td>
+  </tr>
+  <tr>
+    <td class="weight-label">Berat Tarra</td>
+    <td class="weight-separator">:</td>
+    <td class="weight-value">${tara.toFixed(0)} kg</td>
+  </tr>
+  <tr>
+    <td class="weight-label">Berat Netto</td>
+    <td class="weight-separator">:</td>
+    <td class="weight-value">${nettoKotor.toFixed(0)} kg</td>
+  </tr>
+  ${
+    potonganBasah > 0
+      ? `
+  <tr>
+    <td class="weight-label">Potong Basah</td>
+    <td class="weight-separator">:</td>
+    <td class="weight-value">${potonganBasah.toFixed(2)} kg (${claimPercentage.toFixed(2)}%)</td>
+  </tr>`
+      : ''
+  }
+  ${
+    potonganSampahKg > 0
+      ? `
+  <tr>
+    <td class="weight-label">Potong Sampah</td>
+    <td class="weight-separator">:</td>
+    <td class="weight-value">${potonganSampahKg.toFixed(0)} kg</td>
+  </tr>`
+      : ''
+  }
+  <tr class="weight-result-row">
+    <td class="weight-label-result">Berat Netto</td>
+    <td class="weight-separator">:</td>
+    <td class="weight-value-result">${nettoAkhir.toFixed(0)} kg</td>
+  </tr>
+</table>`;
       } else {
         weightSectionHTML = `
 <!-- Weight Section - PENJUALAN - LAINNYA -->
-<div class="weight-section">
-  <div class="weight-row">
-    <span class="weight-label">Berat Bruto</span>
-    <span class="weight-value">: ${bruto.toFixed(0)}kg</span>
-  </div>
-  <div class="weight-row">
-    <span class="weight-label">Berat Tarra</span>
-    <span class="weight-value">: ${tara.toFixed(0)}kg</span>
-  </div>
-  <div class="weight-row weight-result">
-    <span class="weight-label">Berat Netto</span>
-    <span class="weight-value">: ${nettoAkhir.toFixed(0)}kg</span>
-  </div>
-</div>`;
+<table class="weight-table">
+  <tr>
+    <td class="weight-label">Berat Bruto</td>
+    <td class="weight-separator">:</td>
+    <td class="weight-value">${bruto.toFixed(0)} kg</td>
+  </tr>
+  <tr>
+    <td class="weight-label">Berat Tarra</td>
+    <td class="weight-separator">:</td>
+    <td class="weight-value">${tara.toFixed(0)} kg</td>
+  </tr>
+  <tr class="weight-result-row">
+    <td class="weight-label-result">Berat Netto</td>
+    <td class="weight-separator">:</td>
+    <td class="weight-value-result">${nettoAkhir.toFixed(0)} kg</td>
+  </tr>
+</table>`;
       }
     } else {
       // ========================================
       // PEMBELIAN: Bruto = Truk + Barang, Tara = Truk Kosong
       // ========================================
-      if (data.tipeBahan === 'bahan-baku' && potongan > 0) {
+      if (data.tipeBahan === 'bahan-baku' && (potonganBasah > 0 || potonganSampahKg > 0)) {
         weightSectionHTML = `
 <!-- Weight Section - PEMBELIAN - BAHAN BAKU -->
-<div class="weight-section">
-  <div class="weight-row">
-    <span class="weight-label">Berat Bruto</span>
-    <span class="weight-value">: ${bruto.toFixed(0)}kg</span>
-  </div>
-  <div class="weight-row">
-    <span class="weight-label">Berat Tarra</span>
-    <span class="weight-value">: ${tara.toFixed(0)}kg</span>
-  </div>
-  <div class="weight-row">
-    <span class="weight-label">Netto Kotor</span>
-    <span class="weight-value">: ${nettoKotor.toFixed(0)}kg</span>
-  </div>
-  <div class="weight-row">
-    <span class="weight-label">Potong Basah</span>
-    <span class="weight-value">: ${potongan.toFixed(2)}kg (${claimPercentage.toFixed(2)}%)</span>
-  </div>
-  <div class="weight-row weight-result">
-    <span class="weight-label">Berat Netto</span>
-    <span class="weight-value">: ${nettoAkhir.toFixed(0)}kg</span>
-  </div>
-</div>`;
+<table class="weight-table">
+  <tr>
+    <td class="weight-label">Berat Bruto</td>
+    <td class="weight-separator">:</td>
+    <td class="weight-value">${bruto.toFixed(0)} kg</td>
+  </tr>
+  <tr>
+    <td class="weight-label">Berat Tarra</td>
+    <td class="weight-separator">:</td>
+    <td class="weight-value">${tara.toFixed(0)} kg</td>
+  </tr>
+  <tr>
+    <td class="weight-label">Berat Netto</td>
+    <td class="weight-separator">:</td>
+    <td class="weight-value">${nettoKotor.toFixed(0)} kg</td>
+  </tr>
+  ${
+    potonganBasah > 0
+      ? `
+  <tr>
+    <td class="weight-label">Potong Basah</td>
+    <td class="weight-separator">:</td>
+    <td class="weight-value">${potonganBasah.toFixed(2)} kg (${claimPercentage.toFixed(2)}%)</td>
+  </tr>`
+      : ''
+  }
+  ${
+    potonganSampahKg > 0
+      ? `
+  <tr>
+    <td class="weight-label">Potong Sampah</td>
+    <td class="weight-separator">:</td>
+    <td class="weight-value">${potonganSampahKg.toFixed(0)} kg</td>
+  </tr>`
+      : ''
+  }
+  <tr class="weight-result-row">
+    <td class="weight-label-result">Berat Netto Akhir</td>
+    <td class="weight-separator">:</td>
+    <td class="weight-value-result">${nettoAkhir.toFixed(0)} kg</td>
+  </tr>
+</table>`;
       } else {
         weightSectionHTML = `
 <!-- Weight Section - PEMBELIAN - LAINNYA -->
-<div class="weight-section">
-  <div class="weight-row">
-    <span class="weight-label">Berat Bruto</span>
-    <span class="weight-value">: ${bruto.toFixed(0)}kg</span>
-  </div>
-  <div class="weight-row">
-    <span class="weight-label">Berat Tarra</span>
-    <span class="weight-value">: ${tara.toFixed(0)}kg</span>
-  </div>
-  <div class="weight-row weight-result">
-    <span class="weight-label">Berat Netto</span>
-    <span class="weight-value">: ${nettoAkhir.toFixed(0)}kg</span>
-  </div>
-</div>`;
+<table class="weight-table">
+  <tr>
+    <td class="weight-label">Berat Bruto</td>
+    <td class="weight-separator">:</td>
+    <td class="weight-value">${bruto.toFixed(0)} kg</td>
+  </tr>
+  <tr>
+    <td class="weight-label">Berat Tarra</td>
+    <td class="weight-separator">:</td>
+    <td class="weight-value">${tara.toFixed(0)} kg</td>
+  </tr>
+  <tr class="weight-result-row">
+    <td class="weight-label-result">Berat Netto</td>
+    <td class="weight-separator">:</td>
+    <td class="weight-value-result">${nettoAkhir.toFixed(0)} kg</td>
+  </tr>
+</table>`;
       }
     }
 
@@ -1362,44 +1426,65 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
       font-size: 14px;
     }
 
-    .weight-section {
-      padding: 2.5mm 0;
+    /* ✅ TABLE STYLING FOR ALIGNED WEIGHT SECTION */
+    .weight-table {
+      width: 100%;
+      border-collapse: collapse;
       margin: 3mm 0;
-      padding-right: 2mm;
+      padding: 0;
     }
 
-    .weight-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+    .weight-table tr {
       margin-bottom: 2mm;
-      font-size: 16px;
     }
 
     .weight-label {
+      width: 45%;
+      text-align: left;
       font-weight: 700;
-      font-size: 16px;
+      font-size: 14px;
+      padding: 1mm 0;
+      vertical-align: top;
+    }
+
+    .weight-separator {
+      width: 5%;
+      text-align: center;
+      font-size: 14px;
+      padding: 1mm 0;
+      vertical-align: top;
     }
 
     .weight-value {
-      font-weight: 800;
-      text-align: right;
-      font-size: 16px;
-      padding-right: 80px;
+      width: 50%;
+      text-align: left;
+      font-weight: 600;
+      font-size: 14px;
+      padding: 1mm 0;
+      vertical-align: top;
     }
 
-    .weight-result {
+    /* Result row styling */
+    .weight-result-row {
       border-top: 2px solid #000;
-      padding-top: 2mm;
-      margin-top: 2mm;
     }
 
-    .weight-result .weight-label {
-      font-size: 16px;
+    .weight-label-result {
+      width: 45%;
+      text-align: left;
+      font-weight: 800;
+      font-size: 15px;
+      padding: 2mm 0 1mm 0;
+      vertical-align: top;
     }
 
-    .weight-result .weight-value {
-      font-size: 16px;
+    .weight-value-result {
+      width: 50%;
+      text-align: left;
+      font-weight: 800;
+      font-size: 15px;
+      padding: 2mm 0 1mm 0;
+      vertical-align: top;
     }
 
     .signature-section {
@@ -1514,7 +1599,7 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
     </div>
   </div>
 
-  <!-- Weight Section - DYNAMIC -->
+  <!-- Weight Section - DYNAMIC TABLE -->
   ${weightSectionHTML}
 
   <!-- Signature Section -->

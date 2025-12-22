@@ -230,7 +230,6 @@ export class UjiKelembapanComponent implements OnInit, OnDestroy {
       }
     }
 
-    // Calculate average moisture
     const totalMoisture = filledPoints.reduce((sum, val) => sum + val, 0);
     const averageMoisture = totalMoisture / filledPoints.length;
 
@@ -239,7 +238,16 @@ export class UjiKelembapanComponent implements OnInit, OnDestroy {
 
     // Calculate netto based on Bruto
     const beratBahan = parseFloat(this.formData.beratBahan);
-    const netto = beratBahan - beratBahan * (claimPercentage / 100);
+
+    // ✅ BAGIAN BARU - LOGIKA YANG BENAR
+    let netto: number;
+    if (claimPercentage <= 0) {
+      // Kelembapan di bawah atau sama dengan standar -> tidak ada penyesuaian
+      netto = beratBahan;
+    } else {
+      // Kelembapan di atas standar -> ada pengurangan
+      netto = beratBahan - beratBahan * (claimPercentage / 100);
+    }
 
     this.results = {
       totalMoisture: parseFloat(totalMoisture.toFixed(2)),

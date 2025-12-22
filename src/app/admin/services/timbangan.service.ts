@@ -60,6 +60,7 @@ export interface TimbanganData {
     claimPercentage: number;
     beratBahan: number;
     netto: number;
+    potonganSampah?: any;
     pointsChecked: number;
     moisturePoints: string[];
     tanggalUji: string;
@@ -215,6 +216,7 @@ export class TimbanganService {
         claimPercentage: parseFloat(uji.nilai_claim?.replace('%', '').replace('+', '') || '0'),
         beratBahan: parseFloat(uji.berat_bruto || '0'),
         netto: parseFloat(uji.berat_netto || '0'),
+        potonganSampah: parseInt(uji.potongan_sampah || '0'),
         pointsChecked: parseInt(uji.jumlah_ball || '0'),
         moisturePoints: apiData.titik?.map((t: any) => t.nilai?.toString() || '0') || [],
         tanggalUji: uji.created_at || '',
