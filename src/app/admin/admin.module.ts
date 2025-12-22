@@ -8,6 +8,7 @@ import {
   AArrowUp,
   AlertTriangle,
   ArrowLeftRight,
+  Calculator,
   Check,
   ChevronDown,
   ChevronUp,
@@ -23,6 +24,9 @@ import {
   Printer,
   PrinterCheck,
   RefreshCw,
+  RotateCcw,
+  Save,
+  SaveAll,
   Scale,
   Sheet,
   SquarePlus,
@@ -41,6 +45,7 @@ import { TimbanganMasukComponent } from './pages/timbangan-masuk/timbangan-masuk
 import { UjiKelembapanComponent } from './pages/uji-kelembapan/uji-kelembapan.component';
 // Services
 import { CustomerDropdownComponent } from './components/customer-dropdown/customer-dropdown.component';
+import { ModalComponent } from './components/modal/modal.component';
 import { LucideIconsComponent } from './components/utils/lucide-icons.component';
 import { ClickOutsideDirective } from './directives/click-outside.directive';
 import { GudangBahanBakuComponent } from './gudang-bahan-baku/gudang-bahan-baku.component';
@@ -69,6 +74,7 @@ import { AbhiLatihanComponent } from './unused/abhi-latihan.component';
     UsersControlComponent,
     ScaleDisplayComponent,
     AbhiLatihanComponent,
+    ModalComponent,
   ],
   imports: [
     RouterModule.forChild(AdminRoutes),
@@ -104,6 +110,10 @@ import { AbhiLatihanComponent } from './unused/abhi-latihan.component';
       ChevronDown,
       ChevronUp,
       Inbox,
+      SaveAll,
+      Calculator,
+      RotateCcw,
+      Save,
     }),
   ],
 })

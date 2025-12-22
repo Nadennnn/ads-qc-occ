@@ -1,0 +1,94 @@
+<!-- src/app/admin/components/modal/modal.component.html -->
+
+<div *ngIf="isOpen && config" class="modal-overlay">
+  <!-- Backdrop -->
+  <div class="modal-backdrop" (click)="cancel()"></div>
+
+  <!-- Modal Container -->
+  <div class="modal-container">
+    <div class="modal-content">
+      <!-- Icon -->
+      <div class="modal-icon-wrapper">
+        <svg
+          [class]="'modal-icon ' + getIconClass()"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <!-- Info Icon (default) -->
+          <path
+            *ngIf="!config.icon || config.icon === 'info'"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
+
+          <!-- Warning Icon -->
+          <path
+            *ngIf="config.icon === 'warning'"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+          />
+
+          <!-- Success Icon -->
+          <path
+            *ngIf="config.icon === 'success'"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
+
+          <!-- Danger Icon -->
+          <path
+            *ngIf="config.icon === 'danger'"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
+
+          <!-- Save Icon -->
+          <path
+            *ngIf="config.icon === 'save'"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"
+          />
+        </svg>
+      </div>
+
+      <!-- Title -->
+      <h3 class="modal-title">{{ config.title }}</h3>
+
+      <!-- Message -->
+      <p class="modal-message">{{ config.message }}</p>
+
+      <!-- Details (if provided) -->
+      <div *ngIf="config.details && config.details.length > 0" class="modal-details">
+        <div *ngFor="let detail of config.details" class="detail-row">
+          <span class="detail-label">{{ detail.label }}</span>
+          <span class="detail-value">{{ detail.value }}</span>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="modal-actions">
+        <button type="button" (click)="cancel()" class="btn-cancel">
+          {{ config.cancelText || 'Batal' }}
+        </button>
+        <button
+          type="button"
+          (click)="confirm()"
+          [class]="'btn-confirm ' + getConfirmButtonClass()"
+        >
+          {{ config.confirmText || 'Konfirmasi' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
