@@ -3,6 +3,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
+import { AuthService } from '../../services/auth.service';
 import { ReportParams, TimbanganData, TimbanganService } from '../../services/timbangan.service';
 
 type FilterPeriod = 'harian' | 'mingguan' | 'bulanan' | 'custom';
@@ -66,12 +67,26 @@ export class CekLaporanComponent implements OnInit, OnDestroy {
   constructor(
     private fb: FormBuilder,
     private timbanganService: TimbanganService,
+    private authService: AuthService,
   ) {}
 
   ngOnInit(): void {
     this.initForm();
     this.setupFilterListener();
     this.loadReportData(); // Load initial data
+
+    const cachedProfile = this.authService.getCachedProfile();
+    console.log('33333333333333', cachedProfile);
+    console.log(
+      '444444444444444444',
+      cachedProfile?.roles.some((r) => r.role_id == '1'),
+    );
+
+    if (cachedProfile?.roles.some((r) => r.role_id == '3')) {
+      this.activeTab = 'timbangan';
+    } else {
+      this.activeTab = 'kelembapan';
+    }
   }
 
   ngOnDestroy(): void {
