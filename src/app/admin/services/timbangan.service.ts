@@ -230,11 +230,11 @@ export class TimbanganService {
     const jenisRelasi: 'customer' | 'supplier' = apiData.customer ? 'customer' : 'supplier';
     const namaRelasi = apiData.customer || apiData.suplier || '';
 
-    console.log('🔍 Detecting transaction type:', {
-      customer: apiData.customer,
-      supplier: apiData.suplier,
-      detected: tipeTransaksi,
-    });
+    // console.log('🔍 Detecting transaction type:', {
+    //   customer: apiData.customer,
+    //   supplier: apiData.suplier,
+    //   detected: tipeTransaksi,
+    // });
 
     return {
       id: apiData.id.toString(),
@@ -484,13 +484,13 @@ export class TimbanganService {
 
           const convertedData = response.data.map((item: any) => {
             const converted = this.convertFromApiFormat(item);
-            console.log('🔄 Converted item:', {
-              id: converted.id,
-              noTiket: converted.noTiket,
-              tipeBahan: converted.tipeBahan,
-              hasilTara: converted.hasilTara,
-              beratNetto: converted.beratNetto,
-            });
+            // console.log('🔄 Converted item:', {
+            //   id: converted.id,
+            //   noTiket: converted.noTiket,
+            //   tipeBahan: converted.tipeBahan,
+            //   hasilTara: converted.hasilTara,
+            //   beratNetto: converted.beratNetto,
+            // });
             return converted;
           });
 

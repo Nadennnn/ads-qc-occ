@@ -1,9 +1,13 @@
-// src/app/admin/pages/cek-laporan/cek-laporan.component.ts
-
+// src/app/admin/pages/cek-laporan/components/kelembapan/kelembapan.component.ts
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
-import { ReportParams, TimbanganData, TimbanganService } from '../../services/timbangan.service';
+import { ApiService } from '../../../../services/api.service';
+import {
+  ReportParams,
+  TimbanganData,
+  TimbanganService,
+} from '../../../../services/timbangan.service';
 
 type FilterPeriod = 'harian' | 'mingguan' | 'bulanan' | 'custom';
 type FilterStatus = 'semua' | 'menunggu' | 'selesai';
@@ -25,21 +29,19 @@ interface LaporanStats {
 }
 
 @Component({
-  selector: 'app-cek-laporan',
-  templateUrl: './cek-laporan.component.html',
-  styleUrls: ['./cek-laporan.component.scss'],
+  selector: 'app-kelembapan',
+  templateUrl: './kelembapan.component.html',
+  styleUrls: ['./kelembapan.component.scss'],
   standalone: false,
 })
-export class CekLaporanComponent implements OnInit, OnDestroy {
+export class KelembapanComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   filterForm!: FormGroup;
   filteredData: TimbanganData[] = [];
   stats: LaporanStats = this.getEmptyStats();
   isLoading = false;
-
-  // ANCHOR ACTIVE TAB
-  activeTab: 'timbangan' | 'kelembapan' = 'kelembapan';
+  bahanBakuTaraSelesai: TimbanganData[] = [];
 
   readonly periodOptions = [
     { value: 'harian', label: 'Hari Ini', apiValue: 'Hari Ini' },
@@ -66,12 +68,14 @@ export class CekLaporanComponent implements OnInit, OnDestroy {
   constructor(
     private fb: FormBuilder,
     private timbanganService: TimbanganService,
+    private api: ApiService,
   ) {}
 
   ngOnInit(): void {
     this.initForm();
     this.setupFilterListener();
     this.loadReportData(); // Load initial data
+    this.loadKelembapanData();
   }
 
   ngOnDestroy(): void {
@@ -95,6 +99,28 @@ export class CekLaporanComponent implements OnInit, OnDestroy {
     this.filterForm.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => {
       this.loadReportData();
     });
+  }
+
+  loadKelembapanData() {
+    this.timbanganService
+      .loadDaftarTaraSelesai()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (data: TimbanganData[]) => {
+          // 🔍 Filter hanya yang tipeBahan === 'bahan-baku'
+          const bahanBakuData = data.filter((item) => item.tipeBahan === 'bahan-baku');
+
+          console.log('✅ Data tara selesai (Bahan Baku saja):', bahanBakuData);
+
+          // Simpan ke variabel komponen jika perlu
+          this.bahanBakuTaraSelesai = bahanBakuData;
+
+          // Gunakan data ini untuk chart, statistik, atau tampilan lain
+        },
+        error: (error) => {
+          console.error('❌ Gagal muat data tara selesai:', error);
+        },
+      });
   }
 
   tara: any;

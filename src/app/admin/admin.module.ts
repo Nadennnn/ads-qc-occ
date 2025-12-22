@@ -52,6 +52,8 @@ import { ModalComponent } from './components/modal/modal.component';
 import { LucideIconsComponent } from './components/utils/lucide-icons.component';
 import { ClickOutsideDirective } from './directives/click-outside.directive';
 import { GudangBahanBakuComponent } from './gudang-bahan-baku/gudang-bahan-baku.component';
+import { KelembapanComponent } from './pages/cek-laporan/components/kelembapan/kelembapan.component';
+import { TimbanganComponent } from './pages/cek-laporan/components/timbangan/timbangan.component';
 import { CodeCustomerComponent } from './pages/code-customer/code-customer.component';
 import { CodeSupplierComponent } from './pages/code-supplier/code-supplier.component';
 import { ScaleDisplayComponent } from './pages/scale-display/scale-display.component';
@@ -78,6 +80,8 @@ import { AbhiLatihanComponent } from './unused/abhi-latihan.component';
     ScaleDisplayComponent,
     AbhiLatihanComponent,
     ModalComponent,
+    TimbanganComponent,
+    KelembapanComponent,
   ],
   imports: [
     RouterModule.forChild(AdminRoutes),

@@ -3,7 +3,11 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
-import { ReportParams, TimbanganData, TimbanganService } from '../../services/timbangan.service';
+import {
+  ReportParams,
+  TimbanganData,
+  TimbanganService,
+} from '../../../../services/timbangan.service';
 
 type FilterPeriod = 'harian' | 'mingguan' | 'bulanan' | 'custom';
 type FilterStatus = 'semua' | 'menunggu' | 'selesai';
@@ -25,12 +29,12 @@ interface LaporanStats {
 }
 
 @Component({
-  selector: 'app-cek-laporan',
-  templateUrl: './cek-laporan.component.html',
-  styleUrls: ['./cek-laporan.component.scss'],
+  selector: 'app-timbangan',
+  templateUrl: './timbangan.component.html',
+  styleUrls: ['./timbangan.component.scss'],
   standalone: false,
 })
-export class CekLaporanComponent implements OnInit, OnDestroy {
+export class TimbanganComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   filterForm!: FormGroup;
