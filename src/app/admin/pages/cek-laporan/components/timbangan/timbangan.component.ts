@@ -55,9 +55,9 @@ export class TimbanganComponent implements OnInit, OnDestroy {
   activeTab: 'timbangan' | 'kelembapan' = 'kelembapan';
 
   readonly periodOptions = [
-    { value: 'harian', label: 'Hari Ini', apiValue: 'Hari Ini' },
-    { value: 'mingguan', label: 'Minggu Ini', apiValue: 'Minggu Ini' },
-    { value: 'bulanan', label: 'Bulan Ini', apiValue: 'Bulan Ini' },
+    { value: 'harian', label: 'Today', apiValue: 'Hari Ini' },
+    { value: 'mingguan', label: 'This Week', apiValue: 'Minggu Ini' },
+    { value: 'bulanan', label: 'This Month', apiValue: 'Bulan Ini' },
     { value: 'custom', label: 'Custom Range', apiValue: 'Custom Range' },
   ];
 
@@ -68,9 +68,9 @@ export class TimbanganComponent implements OnInit, OnDestroy {
   ];
 
   readonly tipeOptions = [
-    { value: 'semua', label: 'Semua Tipe', apiValue: null },
-    { value: 'bahan-baku', label: 'Bahan Baku', apiValue: 'Bahan Baku' },
-    { value: 'lainnya', label: 'Lainnya', apiValue: 'Lainnya' },
+    { value: 'semua', label: 'Show All', apiValue: null },
+    { value: 'bahan-baku', label: 'Raw Material', apiValue: 'Bahan Baku' },
+    { value: 'lainnya', label: 'Other', apiValue: 'Lainnya' },
   ];
 
   currentDate = new Date().toISOString();

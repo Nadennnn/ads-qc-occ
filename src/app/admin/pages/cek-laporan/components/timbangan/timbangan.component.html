@@ -5,9 +5,9 @@
   <div class="header no-print">
     <div class="flex justify-start items-center gap-3">
       <img src="ads-logo1.png" class="w-10 h-auto" alt="PT. Agro Deli Serdang" />
-      <h1 class="title">Laporan Timbangan</h1>
+      <h1 class="title">Weighbridge Report</h1>
     </div>
-    <p class="subtitle">Laporan lengkap data timbangan</p>
+    <p class="subtitle">Complete weighing data report</p>
   </div>
 
   <!-- Filter Section -->
@@ -15,7 +15,7 @@
     <form [formGroup]="filterForm" class="filter-form">
       <!-- Period Filter -->
       <div class="filter-group">
-        <label class="label">Periode</label>
+        <label class="label">Period</label>
         <select formControlName="period" class="select">
           <option *ngFor="let opt of periodOptions" [value]="opt.value">
             {{ opt.label }}
@@ -25,12 +25,12 @@
 
       <!-- Custom Date Range -->
       <div *ngIf="isCustomPeriod" class="filter-group">
-        <label class="label">Tanggal Mulai</label>
+        <label class="label">Start Date</label>
         <input type="date" formControlName="startDate" class="input" />
       </div>
 
       <div *ngIf="isCustomPeriod" class="filter-group">
-        <label class="label">Tanggal Akhir</label>
+        <label class="label">End Date</label>
         <input type="date" formControlName="endDate" class="input" />
       </div>
 
@@ -46,7 +46,7 @@
 
       <!-- Tipe Filter -->
       <div class="filter-group">
-        <label class="label">Tipe Bahan</label>
+        <label class="label">Material Type</label>
         <select formControlName="tipe" class="select">
           <option *ngFor="let opt of tipeOptions" [value]="opt.value">
             {{ opt.label }}
@@ -60,19 +60,19 @@
   <div *ngIf="isLoading" class="loading-container">
     <div class="flex flex-col items-center justify-center py-12">
       <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-      <p class="text-gray-600">Memuat data laporan...</p>
+      <p class="text-gray-600">Loading report data...</p>
     </div>
   </div>
 
   <!-- Data Table -->
   <div class="data-section mb-6" *ngIf="!isLoading">
-    <h3 class="section-title">Data Timbangan ({{ filteredData.length }} data)</h3>
+    <h3 class="section-title">Weighing Data ({{ filteredData.length }} records)</h3>
 
     <div *ngIf="filteredData.length === 0" class="empty-state">
       <div class="flex flex-col items-center justify-center py-12">
         <lucide-icons [iconsName]="'inbox'" [size]="48" [color]="'#9CA3AF'" class="mb-4" />
-        <p class="text-gray-500 text-lg font-medium">Tidak ada data untuk filter yang dipilih</p>
-        <p class="text-gray-400 text-sm mt-2">Coba ubah filter atau periode waktu</p>
+        <p class="text-gray-500 text-lg font-medium">No data found for the selected filters</p>
+        <p class="text-gray-400 text-sm mt-2">Try changing the filters or time period</p>
       </div>
     </div>
 
@@ -81,16 +81,16 @@
         <thead class="text-center">
           <tr>
             <th>No.</th>
-            <th>Tanggal</th>
-            <th>No. Tiket</th>
-            <th>No. Kendaraan</th>
+            <th>Date</th>
+            <th>Ticket No.</th>
+            <th>Vehicle No.</th>
             <th>Customer</th>
             <th>Supplier</th>
-            <th>Nama Barang</th>
-            <th>Tipe</th>
-            <th>Bruto (kg)</th>
-            <th>Tara (kg)</th>
-            <th>Netto (kg)</th>
+            <th>Item Name</th>
+            <th>Type</th>
+            <th>Gross (kg)</th>
+            <th>Tare (kg)</th>
+            <th>Net (kg)</th>
             <!-- <th>Status</th> -->
           </tr>
         </thead>
@@ -117,7 +117,7 @@
             <td class="text-center">{{ item.namaBarang }}</td>
             <td class="text-center">
               <span class="badge" [ngClass]="getTipeClass(item.tipeBahan)">
-                {{ getTipeBadge(item.tipeBahan) }}
+                {{ getTipeBadge(item.tipeBahan) == 'Bahan Baku' ? 'Raw Material' : 'Other' }}
               </span>
             </td>
             <td class="text-center">{{ formatNumber(item.timbanganPertama) + 'Kg' }}</td>
@@ -140,17 +140,17 @@
 
   <!-- Detailed Stats -->
   <div class="detail-stats" *ngIf="isRincianVisible && !isLoading">
-    <h3 class="section-title">Rincian Berat</h3>
+    <h3 class="section-title">Weight Details</h3>
     <div class="w-full border-b border-gray-100 my-2"></div>
 
     <div class="stats-table">
       <div class="stats-group">
         <div class="stats-row">
-          <span class="stats-label">Total Bruto</span>
+          <span class="stats-label">Total Gross</span>
           <span class="stats-value">{{ formatNumber(stats.totalBruto) }} kg</span>
         </div>
         <div class="stats-row">
-          <span class="stats-label">Rata-rata Bruto</span>
+          <span class="stats-label">Average Gross</span>
           <span class="stats-value">{{ formatNumber(stats.rataRataBruto) }} kg</span>
         </div>
       </div>
@@ -159,11 +159,11 @@
 
       <div class="stats-group">
         <div class="stats-row">
-          <span class="stats-label">Total Tara</span>
+          <span class="stats-label">Total Tare</span>
           <span class="stats-value">{{ formatNumber(stats.totalTara) }} kg</span>
         </div>
         <div class="stats-row">
-          <span class="stats-label">Rata-rata Tara</span>
+          <span class="stats-label">Average Tare</span>
           <span class="stats-value">{{ formatNumber(stats.rataRataTara) }} kg</span>
         </div>
       </div>
@@ -172,11 +172,11 @@
 
       <div class="stats-group">
         <div class="stats-row">
-          <span class="stats-label">Total Netto</span>
+          <span class="stats-label">Total Net</span>
           <span class="stats-value text-danger">{{ formatNumber(stats.totalNetto) }} kg</span>
         </div>
         <div class="stats-row">
-          <span class="stats-label">Rata-rata Netto</span>
+          <span class="stats-label">Average Net</span>
           <span class="stats-value">{{ formatNumber(stats.rataRataNetto) }} kg</span>
         </div>
       </div>
@@ -190,22 +190,22 @@
       (click)="toggleShowRincian()"
     >
       <lucide-icon [name]="isRincianVisible ? 'chevron-up' : 'chevron-down'"></lucide-icon>
-      <span *ngIf="isRincianVisible">Sembunyikan Data Rincian</span>
-      <span *ngIf="!isRincianVisible">Tampilkan Data Rincian</span>
+      <span *ngIf="isRincianVisible">Hide Details</span>
+      <span *ngIf="!isRincianVisible">Show Details</span>
     </button>
     <button
       class="btn bg-neutral-800 text-white flex justify-center w-auto gap-3 items-center"
       (click)="exportToExcel()"
       [disabled]="filteredData.length === 0"
     >
-      <lucide-icons [iconsName]="'sheet'" class="text-white" /> Export ke Excel
+      <lucide-icons [iconsName]="'sheet'" class="text-white" /> Export to Excel
     </button>
     <button
       class="btn bg-gray-200 text-neutral-800 flex justify-center w-auto gap-3 items-center"
       (click)="printLaporan()"
       [disabled]="filteredData.length === 0"
     >
-      <lucide-icons [iconsName]="'printer-check'" class="text-neutral-800" /> Print Laporan
+      <lucide-icons [iconsName]="'printer-check'" class="text-neutral-800" /> Print Report
     </button>
   </div>
 
@@ -216,18 +216,18 @@
         <img src="ads-logo1.png" alt="Logo PT Agro Deli Serdang" class="print-logo-a4" />
         <div class="print-title-block">
           <h1 class="print-title">PT AGRO DELI SERDANG</h1>
-          <p class="print-subtitle">LAPORAN DATA TIMBANGAN</p>
+          <p class="print-subtitle">WEIGHING DATA REPORT</p>
         </div>
       </div>
       <div class="print-meta-row">
         <div>
-          Periode: <strong>{{ periodLabel }}</strong>
+          Period: <strong>{{ periodLabel }}</strong>
         </div>
         <div>
-          Tanggal Cetak: <strong>{{ formatDate(currentDate) }}</strong>
+          Print Date: <strong>{{ formatDate(currentDate) }}</strong>
         </div>
         <div>
-          Jumlah Data: <strong>{{ filteredData.length }} transaksi</strong>
+          Total Records: <strong>{{ filteredData.length }} entries</strong>
         </div>
       </div>
     </div>
@@ -237,16 +237,16 @@
       <thead>
         <tr>
           <th>No.</th>
-          <th>Tanggal</th>
-          <th>No. Tiket</th>
-          <th>Kendaraan</th>
+          <th>Date</th>
+          <th>Ticket No.</th>
+          <th>Vehicle</th>
           <th>Customer</th>
           <th>Supplier</th>
-          <th>Barang</th>
-          <th>Tipe</th>
-          <th>Bruto (kg)</th>
-          <th>Tara (kg)</th>
-          <th>Netto (kg)</th>
+          <th>Item</th>
+          <th>Type</th>
+          <th>Gross (kg)</th>
+          <th>Tare (kg)</th>
+          <th>Net (kg)</th>
         </tr>
       </thead>
       <tbody>
@@ -258,7 +258,7 @@
           <td>{{ item.laporanCustomer == '---' ? '-' : item.laporanCustomer || '-' }}</td>
           <td>{{ item.laporanSupplier == '---' ? '-' : item.laporanSupplier || '-' || '-' }}</td>
           <td>{{ item.namaBarang }}</td>
-          <td>{{ item.tipeBahan === 'bahan-baku' ? 'Bahan Baku' : 'Lainnya' }}</td>
+          <td>{{ item.tipeBahan === 'bahan-baku' ? 'Raw Material' : 'Other' }}</td>
           <td class="text-right">{{ formatNumber(item.timbanganPertama) }}</td>
           <td class="text-right">
             {{ formatNumber(item.timbanganPertama - (item.beratNetto || 0)) }}
@@ -272,31 +272,31 @@
     <table class="print-summary-table">
       <tbody>
         <tr>
-          <td class="font-bold">Total Bruto</td>
+          <td class="font-bold">Total Gross</td>
           <td class="text-right">
             <strong> {{ formatNumber(stats.totalBruto) }} kg </strong>
           </td>
-          <td class="font-bold">Rata-rata Bruto</td>
+          <td class="font-bold">Average Gross</td>
           <td class="text-right">
             <strong> {{ formatNumber(stats.rataRataBruto) }} kg </strong>
           </td>
         </tr>
         <tr>
-          <td class="font-bold">Total Tara</td>
+          <td class="font-bold">Total Tare</td>
           <td class="text-right">
             <strong> {{ formatNumber(stats.totalTara) }} kg </strong>
           </td>
-          <td class="font-bold">Rata-rata Tara</td>
+          <td class="font-bold">Average Tare</td>
           <td class="text-right">
             <strong> {{ formatNumber(stats.rataRataTara) }} kg </strong>
           </td>
         </tr>
         <tr>
-          <td class="font-bold">Total Netto</td>
+          <td class="font-bold">Total Net</td>
           <td class="text-right">
             <strong>{{ formatNumber(stats.totalNetto) }} kg</strong>
           </td>
-          <td class="font-bold">Rata-rata Netto</td>
+          <td class="font-bold">Average Net</td>
           <td class="text-right">
             <strong> {{ formatNumber(stats.rataRataNetto) }} kg </strong>
           </td>
