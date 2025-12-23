@@ -5,9 +5,9 @@
   <div class="header no-print">
     <div class="flex justify-start items-center gap-3">
       <img src="ads-logo1.png" class="w-10 h-auto" alt="PT. Agro Deli Serdang" />
-      <h1 class="title">Laporan QC</h1>
+      <h1 class="title">QC Report</h1>
     </div>
-    <p class="subtitle">Laporan lengkap data uji kelembapan</p>
+    <p class="subtitle">Complete moisture test data report</p>
   </div>
 
   <!-- Compact Version -->
@@ -66,20 +66,20 @@
   <div *ngIf="isLoading" class="loading-container">
     <div class="flex flex-col items-center justify-center py-12">
       <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-      <p class="text-gray-600">Memuat data laporan...</p>
+      <p class="text-gray-600">Loading report data...</p>
     </div>
   </div>
 
   <!-- Data Table -->
   <div class="data-section mb-6" *ngIf="!isLoading">
-    <h3 class="section-title">Data Uji Kelembapan ({{ displayedData.length }} data)</h3>
+    <h3 class="section-title">Moisture Test Data ({{ displayedData.length }} records)</h3>
 
     <!-- Empty State -->
     <div *ngIf="displayedData.length === 0" class="empty-state">
       <div class="flex flex-col items-center justify-center py-12">
         <lucide-icons [iconsName]="'inbox'" [size]="48" [color]="'#9CA3AF'" class="mb-4" />
-        <p class="text-gray-500 text-lg font-medium">Tidak ada data untuk filter yang dipilih</p>
-        <p class="text-gray-400 text-sm mt-2">Coba ubah filter atau periode waktu</p>
+        <p class="text-gray-500 text-lg font-medium">No data found for the selected filters</p>
+        <p class="text-gray-400 text-sm mt-2">Try changing the filters or time period</p>
       </div>
     </div>
 
@@ -89,11 +89,11 @@
         <thead class="text-center">
           <tr>
             <th>No.</th>
-            <th>Tanggal</th>
-            <th>No. Kendaraan</th>
+            <th>Date</th>
+            <th>Vehicle No.</th>
             <th>Supplier</th>
-            <th>Nama Barang</th>
-            <th>Hasil Uji Rata-Rata</th>
+            <th>Item Name</th>
+            <th>Average Test Result</th>
             <th>Action</th>
           </tr>
         </thead>
@@ -129,7 +129,7 @@
   <!-- Detailed Stats -->
   <!-- DETAIL STATS SECTION - DISESUAIKAN UNTUK KELEMBAPAN -->
   <div class="detail-stats" *ngIf="isRincianVisible && !isLoading">
-    <h3 class="section-title">Rincian Data Kelembapan</h3>
+    <h3 class="section-title">Moisture Data Details</h3>
     <div class="w-full border-b border-gray-100 my-2"></div>
 
     <div class="stats-table">
@@ -140,7 +140,7 @@
           <span class="stats-value">{{ calculateTotalMoisture() }}%</span>
         </div>
         <div class="stats-row">
-          <span class="stats-label">Rata-rata Moisture</span>
+          <span class="stats-label">Average Moisture</span>
           <span class="stats-value">{{ calculateAvgMoisture() }}%</span>
         </div>
       </div>
@@ -150,53 +150,25 @@
       <!-- Group 2: Claim -->
       <div class="stats-group">
         <div class="stats-row">
-          <span class="stats-label">Total Nilai Claim</span>
+          <span class="stats-label">Total Claim Value</span>
           <span class="stats-value">{{ calculateTotalClaim() }}%</span>
         </div>
         <div class="stats-row">
-          <span class="stats-label">Rata-rata Claim</span>
+          <span class="stats-label">Average Claim</span>
           <span class="stats-value">{{ calculateAvgClaim() }}%</span>
         </div>
       </div>
 
       <div class="w-full border-b border-gray-100 my-2"></div>
 
-      <!-- Group 3: Berat -->
-      <!-- <div class="stats-group">
-        <div class="stats-row">
-          <span class="stats-label">Total Berat Bruto</span>
-          <span class="stats-value">{{ formatNumber(calculateTotalBruto()) }} kg</span>
-        </div>
-        <div class="stats-row">
-          <span class="stats-label">Rata-rata Berat Bruto</span>
-          <span class="stats-value">{{ formatNumber(calculateAvgBruto()) }} kg</span>
-        </div>
-      </div> -->
-
-      <!-- <div class="w-full border-b border-gray-100 my-2"></div> -->
-
-      <!-- Group 4: Netto -->
-      <!-- <div class="stats-group">
-        <div class="stats-row">
-          <span class="stats-label">Total Berat Netto</span>
-          <span class="stats-value text-danger">{{ formatNumber(calculateTotalNetto()) }} kg</span>
-        </div>
-        <div class="stats-row">
-          <span class="stats-label">Rata-rata Berat Netto</span>
-          <span class="stats-value">{{ formatNumber(calculateAvgNetto()) }} kg</span>
-        </div>
-      </div> -->
-
-      <!-- <div class="w-full border-b border-gray-100 my-2"></div> -->
-
-      <!-- Group 5: Potongan Sampah -->
+      <!-- Group 5: Waste Deduction -->
       <div class="stats-group">
         <div class="stats-row">
-          <span class="stats-label">Total Potongan Sampah</span>
+          <span class="stats-label">Total Waste Deduction</span>
           <span class="stats-value">{{ formatNumber(calculateTotalPotonganSampah()) }} kg</span>
         </div>
         <div class="stats-row">
-          <span class="stats-label">Rata-rata Potongan Sampah</span>
+          <span class="stats-label">Average Waste Deduction</span>
           <span class="stats-value">{{ calculateAvgPotonganSampah() }} kg</span>
         </div>
       </div>
@@ -210,7 +182,7 @@
       (click)="toggleRincian()"
     >
       <lucide-icon [name]="isRincianVisible ? 'chevron-up' : 'chevron-down'"></lucide-icon>
-      <span>{{ isRincianVisible ? 'Sembunyikan' : 'Tampilkan' }} Data Rincian</span>
+      <span>{{ isRincianVisible ? 'Hide' : 'Show' }} Details</span>
     </button>
 
     <button
@@ -219,7 +191,7 @@
       [disabled]="displayedData.length === 0"
     >
       <lucide-icons [iconsName]="'sheet'" class="text-white" />
-      Export ke Excel
+      Export to Excel
     </button>
 
     <button
@@ -228,14 +200,9 @@
       [disabled]="displayedData.length === 0"
     >
       <lucide-icons [iconsName]="'printer-check'" class="text-neutral-800" />
-      Print Laporan
+      Print Report
     </button>
   </div>
-
-  <!-- Print Header (only visible when printing) -->
-  <!-- KELEMBAPAN.COMPONENT.HTML - UPDATED PRINT SECTION -->
-
-  <!-- Tambahkan section print di bagian bawah, sebelum closing div laporan-container -->
 
   <!-- PROFESSIONAL PRINT REPORT (A4 OPTIMIZED) -->
   <div class="print-report-a4">
@@ -244,18 +211,18 @@
         <img src="ads-logo1.png" alt="Logo PT Agro Deli Serdang" class="print-logo-a4" />
         <div class="print-title-block">
           <h1 class="print-title">PT AGRO DELI SERDANG</h1>
-          <p class="print-subtitle">LAPORAN DATA UJI KELEMBAPAN</p>
+          <p class="print-subtitle">MOISTURE TEST DATA REPORT</p>
         </div>
       </div>
       <div class="print-meta-row">
         <div>
-          Periode: <strong>{{ periodLabel }}</strong>
+          Period: <strong>{{ periodLabel }}</strong>
         </div>
         <div>
-          Tanggal Cetak: <strong>{{ formatDate(currentDate) }}</strong>
+          Print Date: <strong>{{ formatDate(currentDate) }}</strong>
         </div>
         <div>
-          Jumlah Data: <strong>{{ displayedData.length }} transaksi</strong>
+          Total Records: <strong>{{ displayedData.length }} entries</strong>
         </div>
       </div>
     </div>
@@ -265,12 +232,12 @@
       <thead>
         <tr>
           <th>No.</th>
-          <th>Tanggal</th>
-          <th>No. Kendaraan</th>
+          <th>Date</th>
+          <th>Vehicle No.</th>
           <th>Supplier</th>
-          <th>Nama Barang</th>
-          <th>Hasil Uji Rata-Rata</th>
-          <th>Nilai Claim</th>
+          <th>Item Name</th>
+          <th>Average Test Result</th>
+          <th>Claim Value</th>
         </tr>
       </thead>
       <tbody>
@@ -297,9 +264,9 @@
     <table class="print-summary-table">
       <tbody>
         <tr>
-          <td>Total Transaksi</td>
+          <td>Total Transactions</td>
           <td class="text-right">{{ displayedData.length }}</td>
-          <td>Rata-rata Moisture</td>
+          <td>Average Moisture</td>
           <td class="text-right">{{ calculateAvgMoisture() }}%</td>
         </tr>
         <tr>
@@ -308,14 +275,6 @@
           <td>Total Claim</td>
           <td class="text-right">{{ calculateTotalClaim() }}%</td>
         </tr>
-        <!-- <tr>
-          <td>Berat Total Bruto</td>
-          <td class="text-right">{{ formatNumber(calculateTotalBruto()) }} kg</td>
-          <td>Berat Total Netto</td>
-          <td class="text-right">
-            <strong>{{ formatNumber(calculateTotalNetto()) }} kg</strong>
-          </td>
-        </tr> -->
       </tbody>
     </table>
   </div>
@@ -325,7 +284,7 @@
     <div class="modal-container" (click)="$event.stopPropagation()">
       <!-- Modal Header -->
       <div class="modal-header">
-        <h2 class="modal-title">Detail Uji Kelembapan</h2>
+        <h2 class="modal-title">Moisture Test Details</h2>
         <button class="modal-close" (click)="closeModal()">
           <lucide-icons [iconsName]="'x'" [size]="20" [color]="'#6B7280'" />
         </button>
@@ -333,20 +292,20 @@
 
       <!-- Modal Body -->
       <div class="modal-body" *ngIf="selectedItem">
-        <!-- Info Umum -->
+        <!-- General Info -->
         <div class="info-section">
-          <h3 class="info-section-title">Informasi Umum</h3>
+          <h3 class="info-section-title">General Information</h3>
           <div class="info-grid">
             <div class="info-item">
-              <span class="info-label">No. Tiket</span>
+              <span class="info-label">Ticket No.</span>
               <span class="info-value">{{ selectedItem.noTiket }}</span>
             </div>
             <div class="info-item">
-              <span class="info-label">No. Kendaraan</span>
+              <span class="info-label">Vehicle No.</span>
               <span class="info-value">{{ selectedItem.noKendaraan }}</span>
             </div>
             <div class="info-item">
-              <span class="info-label">Nama Barang</span>
+              <span class="info-label">Item Name</span>
               <span class="info-value">{{ selectedItem.namaBarang }}</span>
             </div>
             <div class="info-item">
@@ -356,22 +315,22 @@
               <span class="info-value">{{ getSupplierDisplay(selectedItem.namaRelasi) }}</span>
             </div>
             <div class="info-item">
-              <span class="info-label">Nama Supir</span>
+              <span class="info-label">Driver Name</span>
               <span class="info-value">{{ selectedItem.namaSupir || '-' }}</span>
             </div>
             <div class="info-item">
-              <span class="info-label">Tanggal</span>
+              <span class="info-label">Date</span>
               <span class="info-value">{{ formatDate(selectedItem.timestamp) }}</span>
             </div>
           </div>
         </div>
 
-        <!-- Data Uji Kelembapan -->
+        <!-- Moisture Test Data -->
         <div class="info-section" *ngIf="selectedItem.hasilUjiKelembapan">
-          <h3 class="info-section-title">Data Uji Kelembapan</h3>
+          <h3 class="info-section-title">Moisture Test Data</h3>
           <div class="info-grid">
             <div class="info-item">
-              <span class="info-label">Jumlah Ball/Serak</span>
+              <span class="info-label">Number of Test Points</span>
               <span class="info-value">{{ selectedItem.hasilUjiKelembapan.pointsChecked }}</span>
             </div>
             <div class="info-item">
@@ -379,13 +338,13 @@
               <span class="info-value">{{ selectedItem.hasilUjiKelembapan.totalMoisture }}%</span>
             </div>
             <div class="info-item">
-              <span class="info-label">Rata-rata Moisture</span>
+              <span class="info-label">Average Moisture</span>
               <span class="info-value font-semibold">
                 {{ selectedItem.hasilUjiKelembapan.averageMoisture }}%
               </span>
             </div>
             <div class="info-item">
-              <span class="info-label">Nilai Claim</span>
+              <span class="info-label">Claim Value</span>
               <span
                 class="info-value font-semibold"
                 [ngClass]="{
@@ -399,25 +358,25 @@
               </span>
             </div>
             <div class="info-item">
-              <span class="info-label">Berat Bahan</span>
+              <span class="info-label">Material Weight</span>
               <span class="info-value"
                 >{{ formatNumber(selectedItem.hasilUjiKelembapan.beratBahan) }} kg</span
               >
             </div>
             <div class="info-item">
-              <span class="info-label">Berat Netto</span>
+              <span class="info-label">Net Weight</span>
               <span class="info-value"
                 >{{ formatNumber(selectedItem.hasilUjiKelembapan.netto) }} kg</span
               >
             </div>
             <div class="info-item">
-              <span class="info-label">Potongan Sampah</span>
+              <span class="info-label">Waste Deduction</span>
               <span class="info-value"
                 >{{ formatNumber(selectedItem.hasilUjiKelembapan.potonganSampah) }} kg</span
               >
             </div>
             <div class="info-item">
-              <span class="info-label">Tanggal Uji</span>
+              <span class="info-label">Test Date</span>
               <span class="info-value">{{
                 formatDate(selectedItem.hasilUjiKelembapan.tanggalUji)
               }}</span>
@@ -425,49 +384,49 @@
           </div>
         </div>
 
-        <!-- Titik Pengukuran -->
+        <!-- Measurement Points -->
         <div
           class="info-section"
           *ngIf="selectedItem.hasilUjiKelembapan?.moisturePoints?.length > 0"
         >
           <h3 class="info-section-title">
-            Titik Pengukuran ({{ selectedItem.hasilUjiKelembapan.moisturePoints.length }} titik)
+            Measurement Points ({{ selectedItem.hasilUjiKelembapan.moisturePoints.length }} points)
           </h3>
           <div class="titik-grid">
             <div
               *ngFor="let nilai of selectedItem.hasilUjiKelembapan.moisturePoints; let i = index"
               class="titik-card"
             >
-              <div class="titik-number">Titik {{ i + 1 }}</div>
+              <div class="titik-number">Point {{ i + 1 }}</div>
               <div class="titik-value">{{ nilai }}%</div>
             </div>
           </div>
         </div>
 
-        <!-- Data Timbangan -->
+        <!-- Weighing Data -->
         <div class="info-section" *ngIf="selectedItem.hasilTara">
-          <h3 class="info-section-title">Data Timbangan</h3>
+          <h3 class="info-section-title">Weighing Data</h3>
           <div class="info-grid">
             <div class="info-item">
-              <span class="info-label">Berat Bruto</span>
+              <span class="info-label">Gross Weight</span>
               <span class="info-value"
                 >{{ formatNumber(selectedItem.hasilTara.beratBruto) }} kg</span
               >
             </div>
             <div class="info-item">
-              <span class="info-label">Berat Tara</span>
+              <span class="info-label">Tare Weight</span>
               <span class="info-value"
                 >{{ formatNumber(selectedItem.hasilTara.beratTara) }} kg</span
               >
             </div>
             <div class="info-item">
-              <span class="info-label">Potongan Moisture</span>
+              <span class="info-label">Moisture Deduction</span>
               <span class="info-value text-red-600"
                 >{{ formatNumber(selectedItem.hasilTara.potonganMoisture) }} kg</span
               >
             </div>
             <div class="info-item">
-              <span class="info-label">Berat Netto Final</span>
+              <span class="info-label">Final Net Weight</span>
               <span class="info-value font-semibold"
                 >{{ formatNumber(selectedItem.hasilTara.beratNetto) }} kg</span
               >
@@ -478,7 +437,7 @@
 
       <!-- Modal Footer -->
       <div class="modal-footer">
-        <button class="btn-secondary" (click)="closeModal()">Tutup</button>
+        <button class="btn-secondary" (click)="closeModal()">Close</button>
       </div>
     </div>
   </div>
