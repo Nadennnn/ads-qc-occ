@@ -276,54 +276,248 @@
 .print-header {
   display: none;
 }
+/* ========================================
+   KELEMBAPAN PRINT REPORT - PORTRAIT A4
+   ======================================== */
 
-/* Print Styles */
+.print-report-a4 {
+  display: none;
+}
+
 @media print {
-  .no-print {
+  /* Reset & Hide UI */
+  @page {
+    size: A4 portrait;
+    margin: 8mm 6mm;
+  }
+
+  .no-print,
+  .action-buttons,
+  .filter-section,
+  .header,
+  .data-section:not(.print-report-a4),
+  .detail-stats,
+  .modal-overlay {
     display: none !important;
   }
 
-  .print-header {
-    display: block;
-    text-align: center;
-    margin-bottom: 20px;
-    padding-bottom: 16px;
-    border-bottom: 2px solid #000;
-
-    h1 {
-      font-size: 20px;
-      margin: 0 0 4px 0;
-    }
-
-    h2 {
-      font-size: 16px;
-      margin: 0 0 8px 0;
-    }
-
-    p {
-      font-size: 12px;
-      margin: 2px 0;
-    }
-  }
-
-  .laporan-container {
+  body {
+    margin: 0;
     padding: 0;
   }
 
-  .stats-grid,
-  .detail-stats,
-  .data-section {
-    box-shadow: none;
+  /* Show Print Report */
+  .print-report-a4 {
+    display: block !important;
+    font-family: 'Arial', 'Helvetica', sans-serif;
+    font-size: 8pt;
+    line-height: 1.2;
+    color: #000;
+    padding: 0;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    box-sizing: border-box;
+  }
+
+  /* ====================================
+     HEADER SECTION
+     ==================================== */
+  .print-header-a4 {
+    margin-bottom: 8pt;
+  }
+
+  .print-header-top {
+    display: flex;
+    align-items: center;
+    gap: 8pt;
+    margin-bottom: 4pt;
+  }
+
+  .print-logo-a4 {
+    width: 28pt;
+    height: auto;
+  }
+
+  .print-title-block {
+    flex: 1;
+  }
+
+  .print-title {
+    font-size: 12pt;
+    font-weight: bold;
+    margin: 0;
+    color: #000;
+    line-height: 1;
+  }
+
+  .print-subtitle {
+    font-size: 9pt;
+    font-weight: bold;
+    color: #333;
+    margin: 2pt 0 0;
+    line-height: 1;
+  }
+
+  .print-meta-row {
+    display: flex;
+    gap: 12pt;
+    font-size: 7pt;
+    margin-top: 4pt;
+    padding-top: 4pt;
+    border-top: 0.5pt solid #000;
+  }
+
+  /* ====================================
+     DATA TABLE (7 Kolom)
+     ==================================== */
+  .print-data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 7pt;
+    table-layout: fixed;
+    margin: 5pt 0;
+  }
+
+  .print-data-table th,
+  .print-data-table td {
+    padding: 3pt 2pt;
+    border: 0.5pt solid #333;
+    text-align: center;
+    vertical-align: middle;
+    word-wrap: break-word;
+    overflow: hidden;
+    line-height: 1.1;
+  }
+
+  .print-data-table th {
+    background: #e8e8e8;
+    font-weight: bold;
+    font-size: 7pt;
+    padding: 4pt 2pt;
+  }
+
+  /* Lebar Kolom - Total 7 Kolom */
+  .print-data-table th:nth-child(1),
+  .print-data-table td:nth-child(1) {
+    width: 5%;
+  } /* No. */
+
+  .print-data-table th:nth-child(2),
+  .print-data-table td:nth-child(2) {
+    width: 15%;
+    font-size: 6.5pt;
+  } /* Tanggal */
+
+  .print-data-table th:nth-child(3),
+  .print-data-table td:nth-child(3) {
+    width: 13%;
+  } /* No. Kendaraan */
+
+  .print-data-table th:nth-child(4),
+  .print-data-table td:nth-child(4) {
+    width: 22%;
+  } /* Supplier */
+
+  .print-data-table th:nth-child(5),
+  .print-data-table td:nth-child(5) {
+    width: 20%;
+  } /* Nama Barang */
+
+  .print-data-table th:nth-child(6),
+  .print-data-table td:nth-child(6) {
+    width: 13%;
+    text-align: center;
+    font-weight: bold;
+  } /* Hasil Uji Rata-Rata */
+
+  .print-data-table th:nth-child(7),
+  .print-data-table td:nth-child(7) {
+    width: 12%;
+    text-align: center;
+  } /* Nilai Claim */
+
+  .print-data-table td:nth-child(2) {
+    text-align: left;
+    padding-left: 4pt;
+  }
+
+  .print-data-table td:nth-child(4),
+  .print-data-table td:nth-child(5) {
+    text-align: left;
+    padding-left: 4pt;
+  }
+
+  /* ====================================
+     SUMMARY TABLE
+     ==================================== */
+  .print-summary-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 8pt 0 10pt;
+    font-size: 7pt;
+    page-break-before: avoid;
+  }
+
+  .print-summary-table td {
+    padding: 4pt 5pt;
+    border-bottom: 0.5pt solid #333;
+  }
+
+  .print-summary-table td:nth-child(odd) {
+    width: 25%;
+    font-weight: bold;
+  }
+
+  .print-summary-table td:nth-child(even) {
+    width: 25%;
+    text-align: right;
+  }
+
+  .print-summary-table tr:last-child td {
+    border-bottom: 1pt solid #000;
+  }
+
+  /* ====================================
+     PREVENT BREAKS
+     ==================================== */
+  .print-data-table thead {
+    display: table-header-group;
+  }
+
+  .print-data-table tbody tr {
     page-break-inside: avoid;
   }
 
-  .data-table {
-    font-size: 10px;
+  .print-summary-table {
+    page-break-inside: avoid;
+  }
 
-    thead th,
-    tbody td {
-      padding: 6px 4px;
-    }
+  .print-data-table {
+    page-break-inside: auto;
+  }
+
+  .print-data-table tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+
+  /* ====================================
+     INK OPTIMIZATION
+     ==================================== */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .print-data-table td {
+    background: transparent !important;
+  }
+
+  /* Remove box shadows and unnecessary styling */
+  * {
+    box-shadow: none !important;
+    text-shadow: none !important;
   }
 }
 
