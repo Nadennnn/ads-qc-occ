@@ -3,8 +3,26 @@
   <app-kelembapan *ngIf="activeTab == 'kelembapan'"></app-kelembapan>
   <div
     *ngIf="activeTab === 'both'"
-    class="relative flex justify-center items-center min-h-screen w-full p-6 bg-gradient-to-br from-gray-50 to-gray-100 update-background"
+    class="relative flex flex-col justify-center items-center min-h-screen w-full p-6 bg-gradient-to-br from-gray-50 to-gray-100 update-background"
   >
+    <!-- Header -->
+    <div class="mb-16 text-center" *ngIf="activeTab == 'both'">
+      <div class="flex justify-center items-center gap-3 sm:gap-4">
+        <img src="./ads-logo1.png" class="w-auto h-10 sm:h-12" alt="PT. Agro Deli Serdang" />
+        <div class="h-10 sm:h-12 w-px bg-neutral-700"></div>
+        <h1
+          class="sm:text-[60px] xs:text-3xl font-bold text-neutral-800 tracking-tight text-center"
+        >
+          PT. AGRO DELI SERDANG
+        </h1>
+      </div>
+      <!-- <h1 class="text-2xl sm:text-3xl font-semibold text-neutral-800 tracking-tight my-3">
+      {{
+        hasAnyRole(['1', '2']) ? 'Weighing System' : hasRole('5') ? '' : 'Raw Material Warehouse'
+      }}
+    </h1> -->
+    </div>
+
     <!-- Optional subtle background decoration -->
     <div class="absolute inset-0 overflow-hidden pointer-events-none -z-10">
       <div
