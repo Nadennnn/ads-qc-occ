@@ -1,8 +1,8 @@
 // src/app/admin/pages/cek-laporan/cek-laporan.component.ts
 
 import { Component, OnInit } from '@angular/core';
-import { ApiService } from '../../services/api.service';
 import { forkJoin } from 'rxjs';
+import { ApiService } from '../../services/api.service';
 
 interface Role {
   role: string;
@@ -264,7 +264,7 @@ export class UsersControlComponent implements OnInit {
 
     // Get current user-role records for this user
     const currentUserRoles = this.userRoles.filter(
-      (ur) => ur.user_id === this.selectedUser!.id.toString()
+      (ur) => ur.user_id === this.selectedUser!.id.toString(),
     );
 
     const currentRoleIds = currentUserRoles.map((ur) => ur.role_id);
@@ -339,31 +339,6 @@ export class UsersControlComponent implements OnInit {
   }
 
   /**
-   * Delete user
-   */
-  deleteUser(user: User): void {
-    if (!confirm(`Apakah Anda yakin ingin menghapus user "${user.username}"?`)) {
-      return;
-    }
-
-    this.loading = true;
-    this.apiService.delete(`users/${user.id}`).subscribe({
-      next: (response) => {
-        if (response.success) {
-          this.showSuccess('User berhasil dihapus');
-          this.loadUsers();
-          this.loadUserRoles();
-        }
-        this.loading = false;
-      },
-      error: (error) => {
-        this.showError('Gagal menghapus user: ' + error.message);
-        this.loading = false;
-      },
-    });
-  }
-
-  /**
    * Quick add role to user (without opening modal)
    */
   quickAddRole(user: User, roleId: number): void {
@@ -398,7 +373,7 @@ export class UsersControlComponent implements OnInit {
   quickRemoveRole(user: User, roleId: string): void {
     // Find the user-role record
     const userRoleRecord = this.userRoles.find(
-      (ur) => ur.user_id === user.id.toString() && ur.role_id === roleId
+      (ur) => ur.user_id === user.id.toString() && ur.role_id === roleId,
     );
 
     if (!userRoleRecord) {
@@ -488,5 +463,45 @@ export class UsersControlComponent implements OnInit {
       .split('-')
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
+  }
+
+  //TODO DELETE USER
+  showDeleteUserModal: boolean = false;
+  deleteConfirmed: boolean = false;
+  namaToDelete: string = '';
+  idToDelete: any;
+  deleteUserModal(userId: any) {
+    this.showDeleteUserModal = true;
+    console.log('cek data user yang mau di delete', userId);
+    this.namaToDelete = userId.username;
+    this.idToDelete = userId.id;
+  }
+
+  confirmDelete() {
+    this.deleteConfirmed = true;
+    if (this.deleteConfirmed) {
+      this.deleteUser(this.idToDelete);
+    }
+  }
+  cancelDelete() {
+    this.showDeleteUserModal = false;
+  }
+
+  deleteUser(user: User): void {
+    this.loading = true;
+    this.apiService.delete(`users/delete/${user}`).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.showSuccess('User berhasil dihapus');
+          this.loadUsers();
+          this.loadUserRoles();
+        }
+        this.loading = false;
+      },
+      error: (error) => {
+        this.showError('Gagal menghapus user: ' + error.message);
+        this.loading = false;
+      },
+    });
   }
 }

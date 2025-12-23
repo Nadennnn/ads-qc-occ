@@ -34,7 +34,9 @@ import {
   SaveAll,
   Scale,
   Sheet,
+  SquarePen,
   SquarePlus,
+  Trash2,
   UserCheck,
   UserCog,
   UserRound,
@@ -128,6 +130,8 @@ import { AbhiLatihanComponent } from './unused/abhi-latihan.component';
       CheckCircle,
       Filter,
       File,
+      SquarePen,
+      Trash2,
     }),
   ],
 })

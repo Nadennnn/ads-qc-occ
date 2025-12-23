@@ -1,4 +1,4 @@
-// src/app/admin/pages/cek-laporan/cek-laporan.component.ts
+// src/app/admin/pages/cek-laporan/components/timbangan/timbangan.component.ts
 
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';

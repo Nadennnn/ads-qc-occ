@@ -169,14 +169,14 @@
                     class="text-blue-600 hover:text-blue-800 hover:bg-blue-50 p-2 rounded-lg transition-colors"
                     title="Edit"
                   >
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                      />
-                    </svg>
+                    <lucide-icons [iconsName]="'square-pen'" [color]="'blue'" />
+                  </button>
+                  <button
+                    (click)="deleteUserModal(user)"
+                    class="text-blue-600 hover:text-blue-800 hover:bg-blue-50 p-2 rounded-lg transition-colors"
+                    title="Edit"
+                  >
+                    <lucide-icons [iconsName]="'trash-2'" [color]="'red'" />
                   </button>
                   <!-- <button
                     (click)="deleteUser(user)"
@@ -346,6 +346,53 @@
           </button>
         </div>
       </form>
+    </div>
+  </div>
+</div>
+<!-- REVIEW DELETE USERS MODAL -->
+<div
+  *ngIf="showDeleteUserModal"
+  class="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fadeIn"
+  style="animation: fadeIn 0.2s ease-out"
+>
+  <div class="absolute inset-0 bg-black/30" (click)="cancelDelete()"></div>
+
+  <div
+    class="relative bg-white rounded-xl shadow-2xl max-w-lg w-full transform"
+    style="animation: slideUp 0.3s ease-out"
+    (click)="$event.stopPropagation()"
+  >
+    <button
+      (click)="cancelDelete()"
+      class="absolute top-4 right-4 text-neutral-400 hover:text-neutral-600 transition-colors"
+    >
+      <lucide-icons [iconsName]="'x'" [color]="'gray'" class="w-5 h-5"></lucide-icons>
+    </button>
+
+    <div class="p-8 text-center">
+      <div class="mx-auto w-[4dvw] rounded-full flex items-center justify-center mb-4">
+        <img src="./ads-logo1.png" class="w-10 h-10" alt="" />
+      </div>
+      <h3 class="text-2xl font-bold text-neutral-900 mb-2">Delete {{ namaToDelete }} ?</h3>
+      <p class="text-neutral-600">The user data cannot be restored</p>
+      <p class="text-sm text-neutral-500 mt-2">
+        Are you sure you want to Delete User from the system?
+      </p>
+    </div>
+
+    <div class="px-8 pb-8 flex flex-col sm:flex-row gap-3">
+      <button
+        (click)="cancelDelete()"
+        class="flex-1 px-6 py-3 rounded-lg border-2 border-neutral-300 text-neutral-700 font-semibold hover:bg-neutral-50 active:scale-95 transition-all"
+      >
+        Cancel
+      </button>
+      <button
+        (click)="confirmDelete()"
+        class="flex-1 px-6 py-3 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 active:scale-95 transition-all flex items-center justify-center gap-2"
+      >
+        Yes, DELETE
+      </button>
     </div>
   </div>
 </div>
