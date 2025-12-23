@@ -297,11 +297,16 @@
 .print-report-a4 {
   display: none;
 }
-
 /* ========================================
-   PROFESSIONAL A4 PRINT REPORT
+   PROFESSIONAL A4 PRINT REPORT - PORTRAIT OPTIMIZED
    ======================================== */
 @media print {
+  /* Reset page margins */
+  @page {
+    size: A4 portrait;
+    margin: 8mm 6mm; /* Margin lebih kecil horizontal */
+  }
+
   /* Sembunyikan semua UI web */
   .no-print,
   .action-buttons,
@@ -312,34 +317,40 @@
     display: none !important;
   }
 
+  /* Body dan container */
+  body {
+    margin: 0;
+    padding: 0;
+  }
+
   /* Tampilkan hanya laporan cetak */
   .print-report-a4 {
     display: block !important;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    font-size: 10.5pt;
-    line-height: 1.4;
+    font-family: 'Arial', 'Helvetica', sans-serif;
+    font-size: 7pt;
+    line-height: 1.2;
     color: #000;
-    padding: 0.5in; /* 2.54 cm margin */
-    width: 210mm;
-    min-height: 297mm;
-    margin: 0 auto;
+    padding: 0;
+    width: 100%;
+    max-width: none;
+    margin: 0;
     box-sizing: border-box;
   }
 
-  /* Header */
+  /* Header - Lebih Compact */
   .print-header-a4 {
-    margin-bottom: 16pt;
+    margin-bottom: 8pt;
   }
 
   .print-header-top {
     display: flex;
     align-items: center;
-    gap: 12pt;
-    margin-bottom: 8pt;
+    gap: 8pt;
+    margin-bottom: 4pt;
   }
 
   .print-logo-a4 {
-    width: 36pt;
+    width: 28pt;
     height: auto;
   }
 
@@ -348,39 +359,161 @@
   }
 
   .print-title {
-    font-size: 16pt;
+    font-size: 12pt;
     font-weight: bold;
     margin: 0;
     color: #000;
+    line-height: 1;
   }
 
   .print-subtitle {
-    font-size: 12pt;
+    font-size: 9pt;
     font-weight: bold;
     color: #333;
     margin: 2pt 0 0;
+    line-height: 1;
   }
 
   .print-meta-row {
     display: flex;
-    gap: 24pt;
-    font-size: 10pt;
-    margin-top: 6pt;
-    padding-top: 6pt;
-    border-top: 1pt solid #000;
+    gap: 12pt;
+    font-size: 7pt;
+    margin-top: 4pt;
+    padding-top: 4pt;
+    border-top: 0.5pt solid #000;
+  }
+
+  /* Data Table - ULTRA COMPACT untuk Portrait A4 */
+  .print-data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 6.5pt; /* Font sangat kecil tapi masih terbaca */
+    table-layout: fixed;
+    margin: 5pt 0;
+  }
+
+  .print-data-table th,
+  .print-data-table td {
+    padding: 2pt 1.5pt; /* Padding minimal */
+    border: 0.5pt solid #333;
+    text-align: center;
+    vertical-align: middle;
+    word-wrap: break-word;
+    overflow: hidden;
+    line-height: 1.1;
+    font-size: 6.5pt;
+  }
+
+  .print-data-table th {
+    background: #e8e8e8;
+    font-weight: bold;
+    font-size: 6.5pt;
+    padding: 3pt 1.5pt;
+  }
+
+  /* STRATEGI: Gabungkan kolom yang mirip & kurangi lebar */
+
+  /* No. - sangat sempit */
+  .print-data-table th:nth-child(1),
+  .print-data-table td:nth-child(1) {
+    width: 3%;
+  }
+
+  /* Tanggal - format lebih pendek */
+  .print-data-table th:nth-child(2),
+  .print-data-table td:nth-child(2) {
+    width: 7%;
+    font-size: 6pt;
+  }
+
+  /* No. Tiket */
+  .print-data-table th:nth-child(3),
+  .print-data-table td:nth-child(3) {
+    width: 7%;
+  }
+
+  /* Kendaraan */
+  .print-data-table th:nth-child(4),
+  .print-data-table td:nth-child(4) {
+    width: 7%;
+    font-size: 6pt;
+  }
+
+  /* Customer - bisa lebih sempit */
+  .print-data-table th:nth-child(5),
+  .print-data-table td:nth-child(5) {
+    width: 9%;
+  }
+
+  /* Supplier - kolom penting */
+  .print-data-table th:nth-child(6),
+  .print-data-table td:nth-child(6) {
+    width: 11%;
+  }
+
+  /* Barang - kolom penting */
+  .print-data-table th:nth-child(7),
+  .print-data-table td:nth-child(7) {
+    width: 12%;
+  }
+
+  /* Tipe - singkat */
+  .print-data-table th:nth-child(8),
+  .print-data-table td:nth-child(8) {
+    width: 7%;
+    font-size: 6pt;
+  }
+
+  /* Bruto - angka */
+  .print-data-table th:nth-child(9),
+  .print-data-table td:nth-child(9) {
+    width: 8%;
+    text-align: right;
+    padding-right: 2pt;
+  }
+
+  /* Tara - angka */
+  .print-data-table th:nth-child(10),
+  .print-data-table td:nth-child(10) {
+    width: 8%;
+    text-align: right;
+    padding-right: 2pt;
+  }
+
+  /* Netto - angka, paling penting */
+  .print-data-table th:nth-child(11),
+  .print-data-table td:nth-child(11) {
+    width: 8%;
+    text-align: right;
+    padding-right: 2pt;
+    font-weight: bold;
+  }
+
+  /* Optimasi tampilan kolom numerik */
+  .print-data-table th:nth-child(9),
+  .print-data-table th:nth-child(10),
+  .print-data-table th:nth-child(11) {
+    text-align: center;
+  }
+
+  .print-data-table td:nth-child(9),
+  .print-data-table td:nth-child(10),
+  .print-data-table td:nth-child(11) {
+    font-family: 'Courier New', monospace; /* Font monospace untuk angka */
   }
 
   /* Summary Table */
   .print-summary-table {
     width: 100%;
     border-collapse: collapse;
-    margin: 14pt 0 18pt;
-    font-size: 10pt;
+    margin: 8pt 0 10pt;
+    font-size: 7pt;
+    page-break-before: avoid;
   }
 
   .print-summary-table td {
-    padding: 4pt 6pt;
-    border-bottom: 0.75pt solid #000;
+    padding: 3pt 4pt;
+    border-bottom: 0.5pt solid #333;
   }
 
   .print-summary-table td:nth-child(odd) {
@@ -393,74 +526,45 @@
     text-align: right;
   }
 
-  /* Data Table */
-  .print-data-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 9.5pt;
-    table-layout: fixed;
-  }
-
-  .print-data-table th,
-  .print-data-table td {
-    padding: 6pt 4pt;
-    border: 0.75pt solid #000;
-    text-align: left;
-    vertical-align: top;
-    word-wrap: break-word;
-  }
-
-  .print-data-table th {
-    background: none;
-    font-weight: bold;
-    font-size: 9.5pt;
-    text-align: center;
-  }
-
-  .print-data-table .text-right {
-    text-align: right;
-  }
-
-  /* Footer */
-  .print-footer-a4 {
-    margin-top: 24pt;
-    padding-top: 10pt;
-    border-top: 1pt solid #000;
-    font-size: 9pt;
-    color: #555;
-  }
-
-  /* Page control - prevent awkward breaks */
-  .print-data-table,
-  .print-summary-table,
-  .print-header-a4 {
-    page-break-inside: avoid;
+  /* Prevent breaks */
+  .print-data-table thead {
+    display: table-header-group;
   }
 
   .print-data-table tbody tr {
     page-break-inside: avoid;
   }
 
-  /* Ensure last row doesn't get cut off */
-  .print-data-table tbody tr:last-child {
-    page-break-after: auto;
+  .print-summary-table {
+    page-break-inside: avoid;
   }
 
   /* Ink optimization */
   * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Remove unnecessary backgrounds */
+  .print-data-table td {
     background: transparent !important;
-    color: #000 !important;
-    box-shadow: none !important;
-    text-shadow: none !important;
   }
 
-  /* Page number (browser support varies) */
-  @page {
-    size: A4;
-    margin: 0.5in;
+  /* Hindari page break di tengah tabel */
+  .print-data-table {
+    page-break-inside: auto;
   }
 
-  .page-number::after {
-    content: counter(page);
+  .print-data-table tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+
+  .print-data-table thead {
+    display: table-header-group;
+  }
+
+  .print-data-table tfoot {
+    display: table-footer-group;
   }
 }
