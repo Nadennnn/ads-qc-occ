@@ -35,14 +35,14 @@
       </div>
 
       <!-- Status Filter -->
-      <div class="filter-group">
+      <!-- <div class="filter-group">
         <label class="label">Status</label>
         <select formControlName="status" class="select">
           <option *ngFor="let opt of statusOptions" [value]="opt.value">
             {{ opt.label }}
           </option>
         </select>
-      </div>
+      </div> -->
 
       <!-- Tipe Filter -->
       <div class="filter-group">
@@ -64,45 +64,8 @@
     </div>
   </div>
 
-  <!-- Statistics Cards -->
-  <!-- <div class="stats-grid" *ngIf="!isLoading">
-    <div class="stat-card">
-      <div class="stat-icon">
-        <lucide-icons [iconsName]="'arrow-left-right'" />
-      </div>
-      <div class="stat-content">
-        <div class="stat-value">{{ stats.totalTransaksi }}</div>
-        <div class="stat-label">Total Transaksi</div>
-      </div>
-    </div>
-
-    <div class="stat-card stat-success">
-      <lucide-icons [iconsName]="'circle-check-big'" [color]="'gray'" />
-      <div class="stat-content">
-        <div class="stat-value">{{ stats.totalSelesai }}</div>
-        <div class="stat-label">Selesai</div>
-      </div>
-    </div>
-
-    <div class="stat-card stat-warning">
-      <lucide-icons [iconsName]="'hourglass'" [color]="'gray'" />
-      <div class="stat-content">
-        <div class="stat-value">{{ stats.totalMenunggu }}</div>
-        <div class="stat-label">Menunggu Tara</div>
-      </div>
-    </div>
-
-    <div class="stat-card stat-info">
-      <lucide-icons [iconsName]="'scale'" [color]="'gray'" />
-      <div class="stat-content">
-        <div class="stat-value">{{ formatNumber(stats.totalNetto) }} kg</div>
-        <div class="stat-label">Total Netto</div>
-      </div>
-    </div>
-  </div> -->
-
   <!-- Data Table -->
-  <div class="data-section mb-3" *ngIf="!isLoading">
+  <div class="data-section mb-6" *ngIf="!isLoading">
     <h3 class="section-title">Data Timbangan ({{ filteredData.length }} data)</h3>
 
     <div *ngIf="filteredData.length === 0" class="empty-state">
@@ -178,18 +141,44 @@
   <!-- Detailed Stats -->
   <div class="detail-stats" *ngIf="isRincianVisible && !isLoading">
     <h3 class="section-title">Rincian Berat</h3>
+    <div class="w-full border-b border-gray-100 my-2"></div>
+
     <div class="stats-table">
-      <div class="stats-row">
-        <span class="stats-label">Total Bruto</span>
-        <span class="stats-value">{{ formatNumber(stats.totalBruto) }} kg</span>
+      <div class="stats-group">
+        <div class="stats-row">
+          <span class="stats-label">Total Bruto</span>
+          <span class="stats-value">{{ formatNumber(stats.totalBruto) }} kg</span>
+        </div>
+        <div class="stats-row">
+          <span class="stats-label">Rata-rata Bruto</span>
+          <span class="stats-value">{{ formatNumber(stats.rataRataBruto) }} kg</span>
+        </div>
       </div>
-      <div class="stats-row">
-        <span class="stats-label">Total Tara</span>
-        <span class="stats-value">{{ formatNumber(stats.totalTara) }} kg</span>
+
+      <div class="w-full border-b border-gray-100 my-2"></div>
+
+      <div class="stats-group">
+        <div class="stats-row">
+          <span class="stats-label">Total Tara</span>
+          <span class="stats-value">{{ formatNumber(stats.totalTara) }} kg</span>
+        </div>
+        <div class="stats-row">
+          <span class="stats-label">Rata-rata Tara</span>
+          <span class="stats-value">{{ formatNumber(stats.rataRataTara) }} kg</span>
+        </div>
       </div>
-      <div class="stats-row">
-        <span class="stats-label">Total Netto </span>
-        <span class="stats-value text-red-600"> {{ formatNumber(stats.totalPotongan) }} kg </span>
+
+      <div class="w-full border-b border-gray-100 my-2"></div>
+
+      <div class="stats-group">
+        <div class="stats-row">
+          <span class="stats-label">Total Netto</span>
+          <span class="stats-value text-danger">{{ formatNumber(stats.totalNetto) }} kg</span>
+        </div>
+        <div class="stats-row">
+          <span class="stats-label">Rata-rata Netto</span>
+          <span class="stats-value">{{ formatNumber(stats.rataRataNetto) }} kg</span>
+        </div>
       </div>
     </div>
   </div>

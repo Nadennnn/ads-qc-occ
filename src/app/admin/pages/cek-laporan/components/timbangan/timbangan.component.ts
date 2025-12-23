@@ -18,7 +18,8 @@ interface LaporanStats {
   totalSelesai: number;
   totalMenunggu: number;
   totalNetto: number;
-  // Stats tambahan bisa dihitung dari data
+
+  // Existing additional stats
   totalBruto: number;
   totalTara: number;
   totalPotongan: number;
@@ -26,6 +27,11 @@ interface LaporanStats {
   lainnya: number;
   sudahDiuji: number;
   belumDiuji: number;
+
+  // ➕ Tambahkan rata-rata
+  rataRataBruto: number;
+  rataRataTara: number;
+  rataRataNetto: number;
 }
 
 @Component({
@@ -221,43 +227,77 @@ export class TimbanganComponent implements OnInit, OnDestroy {
     | 'lainnya'
     | 'sudahDiuji'
     | 'belumDiuji'
+    | 'rataRataBruto'
+    | 'rataRataTara'
+    | 'rataRataNetto'
   > {
-    const stats = {
-      totalBruto: 0,
-      totalTara: 0,
-      totalPotongan: 0,
-      bahanBaku: 0,
-      lainnya: 0,
-      sudahDiuji: 0,
-      belumDiuji: 0,
-    };
+    let totalBruto = 0;
+    let totalTara = 0;
+    let totalNetto = 0;
+    let totalPotongan = 0;
 
-    data.forEach((item) => {
-      stats.totalBruto += item.timbanganPertama;
+    let countBruto = 0;
+    let countTara = 0;
+    let countNetto = 0;
 
-      if (item.timbanganKedua) {
-        stats.totalTara += item.timbanganKedua;
+    let bahanBaku = 0;
+    let lainnya = 0;
+    let sudahDiuji = 0;
+    let belumDiuji = 0;
+
+    for (const item of data) {
+      // Bruto
+      if (item.timbanganPertama && item.timbanganPertama > 0) {
+        totalBruto += item.timbanganPertama;
+        countBruto++;
       }
 
-      if (item.beratNetto && item.timbanganKedua) {
-        const nettoKotor = item.timbanganPertama - item.timbanganKedua;
-        const potongan = nettoKotor - item.beratNetto;
-        stats.totalPotongan += potongan;
+      // Tara = Bruto - Netto (jika Netto tersedia)
+      const tara = item.beratNetto != null ? item.timbanganPertama - item.beratNetto : null;
+      if (tara != null && tara >= 0) {
+        totalTara += tara;
+        countTara++;
       }
 
+      // Netto
+      if (item.beratNetto != null && item.beratNetto > 0) {
+        totalNetto += item.beratNetto;
+        countNetto++;
+      }
+
+      // Potongan hanya jika ada netto dan tara valid
+      if (item.beratNetto != null && tara != null) {
+        const potongan = item.timbanganPertama - tara - item.beratNetto;
+        if (potongan > 0) {
+          totalPotongan += potongan;
+        }
+      }
+
+      // Klasifikasi tipe
       if (item.tipeBahan === 'bahan-baku') {
-        stats.bahanBaku++;
+        bahanBaku++;
         if (item.statusUjiKelembapan === 'completed') {
-          stats.sudahDiuji++;
+          sudahDiuji++;
         } else {
-          stats.belumDiuji++;
+          belumDiuji++;
         }
       } else {
-        stats.lainnya++;
+        lainnya++;
       }
-    });
+    }
 
-    return stats;
+    return {
+      totalBruto,
+      totalTara,
+      totalPotongan,
+      bahanBaku,
+      lainnya,
+      sudahDiuji,
+      belumDiuji,
+      rataRataBruto: countBruto > 0 ? totalBruto / countBruto : 0,
+      rataRataTara: countTara > 0 ? totalTara / countTara : 0,
+      rataRataNetto: countNetto > 0 ? totalNetto / countNetto : 0,
+    };
   }
 
   private getEmptyStats(): LaporanStats {
@@ -273,6 +313,9 @@ export class TimbanganComponent implements OnInit, OnDestroy {
       lainnya: 0,
       sudahDiuji: 0,
       belumDiuji: 0,
+      rataRataBruto: 0,
+      rataRataTara: 0,
+      rataRataNetto: 0,
     };
   }
 
@@ -329,6 +372,10 @@ export class TimbanganComponent implements OnInit, OnDestroy {
   }
 
   printLaporan(): void {
+    // Pastikan data siap
+    if (this.filteredData.length === 0) return;
+
+    // Trigger print
     window.print();
   }
 
@@ -344,11 +391,19 @@ export class TimbanganComponent implements OnInit, OnDestroy {
   }
 
   formatNumber(num: number | string | null | undefined): string {
-    if (num === null || num === undefined || isNaN(Number(num))) {
+    if (num === null || num === undefined || num === '' || isNaN(Number(num))) {
       return '0';
     }
 
-    return new Intl.NumberFormat('id-ID').format(Number(num));
+    const value = Number(num);
+    if (!isFinite(value)) {
+      return '0';
+    }
+
+    return new Intl.NumberFormat('id-ID', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(Math.floor(value)); // atau Math.round(value) jika ingin pembulatan
   }
 
   getStatusBadge(status: 'masuk' | 'selesai'): string {

@@ -497,6 +497,7 @@ export class UsersControlComponent implements OnInit {
           this.loadUserRoles();
         }
         this.loading = false;
+        this.showDeleteUserModal = false;
       },
       error: (error) => {
         this.showError('Gagal menghapus user: ' + error.message);
