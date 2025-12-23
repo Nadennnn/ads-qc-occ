@@ -40,7 +40,7 @@ export class CekLaporanComponent implements OnInit, OnDestroy {
   isLoading = false;
 
   // ANCHOR ACTIVE TAB
-  activeTab: 'timbangan' | 'kelembapan' = 'kelembapan';
+  activeTab: 'timbangan' | 'kelembapan' | 'both' = 'both';
 
   readonly periodOptions = [
     { value: 'harian', label: 'Hari Ini', apiValue: 'Hari Ini' },
@@ -82,11 +82,52 @@ export class CekLaporanComponent implements OnInit, OnDestroy {
       cachedProfile?.roles.some((r) => r.role_id == '1'),
     );
 
-    if (cachedProfile?.roles.some((r) => r.role_id == '3')) {
+    // if (cachedProfile?.roles.some((r) => r.role_id == '3')) {
+    //   this.activeTab = 'timbangan';
+    // } else if (cachedProfile?.roles.some((r) => r.role_id == '6')) {
+    //   this.activeTab = 'kelembapan';
+    // }
+
+    const checkUserAccess = () => {
+      if (cachedProfile?.roles.some((role) => role.role_id === '1')) {
+        this.activeTab = 'both';
+        return;
+      }
+
+      const hasTimbangan = cachedProfile?.roles.some((role) => role.role_id === '3');
+      const hasKelembapan = cachedProfile?.roles.some((role) => role.role_id === '6');
+
+      if (hasTimbangan && hasKelembapan) {
+        this.activeTab = 'both'; // atau sesuai kebutuhan logika bisnis
+      } else if (hasTimbangan) {
+        this.activeTab = 'timbangan';
+      } else if (hasKelembapan) {
+        this.activeTab = 'kelembapan';
+      } else {
+        // fallback: jika tidak punya role 3 atau 6, mungkin redirect/error
+        this.activeTab = 'kelembapan'; // atau 'both' tergantung kebijakan
+      }
+
+      console.log('cek data ini active tab:', this.activeTab);
+    };
+
+    checkUserAccess();
+  }
+
+  changeValue(data: any) {
+    if (data == 'timbangan') {
       this.activeTab = 'timbangan';
     } else {
       this.activeTab = 'kelembapan';
     }
+  }
+
+  getButtonClass(tab: 'timbangan' | 'occ'): string {
+    const base = '';
+    const isActive = this.activeTab === tab;
+    return isActive
+      ? 'bg-blue-50 border-2 border-blue-500 text-blue-700 scale-[1.02] shadow-md'
+      : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50';
   }
 
   ngOnDestroy(): void {

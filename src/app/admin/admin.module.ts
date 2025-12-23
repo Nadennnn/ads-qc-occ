@@ -17,6 +17,7 @@ import {
   ContactRound,
   Droplets,
   Eye,
+  File,
   Filter,
   Gauge,
   Hourglass,
@@ -126,6 +127,7 @@ import { AbhiLatihanComponent } from './unused/abhi-latihan.component';
       Gauge,
       CheckCircle,
       Filter,
+      File,
     }),
   ],
 })
