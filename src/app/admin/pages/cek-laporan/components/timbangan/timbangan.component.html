@@ -209,11 +209,94 @@
     </button>
   </div>
 
-  <!-- Print Header (only visible when printing) -->
-  <div class="print-header">
-    <h1>PT AGRO DELI SERDANG</h1>
-    <h2>Laporan Data Timbangan</h2>
-    <p>Periode: {{ periodLabel }}</p>
-    <p>Tanggal Cetak: {{ formatDate(currentDate) }}</p>
+  <!-- PROFESSIONAL PRINT REPORT (A4 OPTIMIZED) -->
+  <div class="print-report-a4">
+    <div class="print-header-a4">
+      <div class="print-header-top">
+        <img src="ads-logo1.png" alt="Logo PT Agro Deli Serdang" class="print-logo-a4" />
+        <div class="print-title-block">
+          <h1 class="print-title">PT AGRO DELI SERDANG</h1>
+          <p class="print-subtitle">LAPORAN DATA TIMBANGAN</p>
+        </div>
+      </div>
+      <div class="print-meta-row">
+        <div>
+          Periode: <strong>{{ periodLabel }}</strong>
+        </div>
+        <div>
+          Tanggal Cetak: <strong>{{ formatDate(currentDate) }}</strong>
+        </div>
+        <div>
+          Jumlah Data: <strong>{{ filteredData.length }} transaksi</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- Summary Stats -->
+    <table class="print-summary-table">
+      <tbody>
+        <tr>
+          <td>Total Bruto</td>
+          <td class="text-right">{{ formatNumber(stats.totalBruto) }} kg</td>
+          <td>Rata-rata Bruto</td>
+          <td class="text-right">{{ formatNumber(stats.rataRataBruto) }} kg</td>
+        </tr>
+        <tr>
+          <td>Total Tara</td>
+          <td class="text-right">{{ formatNumber(stats.totalTara) }} kg</td>
+          <td>Rata-rata Tara</td>
+          <td class="text-right">{{ formatNumber(stats.rataRataTara) }} kg</td>
+        </tr>
+        <tr>
+          <td>Total Netto</td>
+          <td class="text-right">
+            <strong>{{ formatNumber(stats.totalNetto) }} kg</strong>
+          </td>
+          <td>Rata-rata Netto</td>
+          <td class="text-right">{{ formatNumber(stats.rataRataNetto) }} kg</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Data Table -->
+    <table class="print-data-table">
+      <thead>
+        <tr>
+          <th>No.</th>
+          <th>Tanggal</th>
+          <th>No. Tiket</th>
+          <th>Kendaraan</th>
+          <th>Customer</th>
+          <th>Supplier</th>
+          <th>Barang</th>
+          <th>Tipe</th>
+          <th>Bruto (kg)</th>
+          <th>Tara (kg)</th>
+          <th>Netto (kg)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of filteredData; let i = index">
+          <td>{{ i + 1 }}</td>
+          <td>{{ formatDate(item.timestamp) }}</td>
+          <td>{{ item.noTiket }}</td>
+          <td>{{ item.noKendaraan }}</td>
+          <td>{{ item.laporanCustomer || '-' }}</td>
+          <td>{{ item.laporanSupplier || '-' }}</td>
+          <td>{{ item.namaBarang }}</td>
+          <td>{{ item.tipeBahan === 'bahan-baku' ? 'Bahan Baku' : 'Lainnya' }}</td>
+          <td class="text-right">{{ formatNumber(item.timbanganPertama) }}</td>
+          <td class="text-right">
+            {{ formatNumber(item.timbanganPertama - (item.beratNetto || 0)) }}
+          </td>
+          <td class="text-right">{{ item.beratNetto ? formatNumber(item.beratNetto) : '-' }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="print-footer-a4">
+      <p>Laporan ini dihasilkan secara otomatis oleh Sistem Internal PT Agro Deli Serdang.</p>
+      <p>Tanggal: {{ formatDate(currentDate) }} | Halaman <span class="page-number"></span></p>
+    </div>
   </div>
 </div>

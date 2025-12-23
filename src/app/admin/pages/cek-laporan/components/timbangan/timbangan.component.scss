@@ -294,108 +294,173 @@
   }
 }
 
-.print-header {
+.print-report-a4 {
   display: none;
 }
 
-/* Print Styles */
+/* ========================================
+   PROFESSIONAL A4 PRINT REPORT
+   ======================================== */
 @media print {
-  .no-print {
+  /* Sembunyikan semua UI web */
+  .no-print,
+  .action-buttons,
+  .filter-section,
+  .header,
+  .data-section:not(.print-report-a4),
+  .detail-stats {
     display: none !important;
   }
 
-  .print-header {
-    display: block;
+  /* Tampilkan hanya laporan cetak */
+  .print-report-a4 {
+    display: block !important;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 10.5pt;
+    line-height: 1.4;
+    color: #000;
+    padding: 0.5in; /* 2.54 cm margin */
+    width: 210mm;
+    min-height: 297mm;
+    margin: 0 auto;
+    box-sizing: border-box;
+  }
+
+  /* Header */
+  .print-header-a4 {
+    margin-bottom: 16pt;
+  }
+
+  .print-header-top {
+    display: flex;
+    align-items: center;
+    gap: 12pt;
+    margin-bottom: 8pt;
+  }
+
+  .print-logo-a4 {
+    width: 36pt;
+    height: auto;
+  }
+
+  .print-title-block {
+    flex: 1;
+  }
+
+  .print-title {
+    font-size: 16pt;
+    font-weight: bold;
+    margin: 0;
+    color: #000;
+  }
+
+  .print-subtitle {
+    font-size: 12pt;
+    font-weight: bold;
+    color: #333;
+    margin: 2pt 0 0;
+  }
+
+  .print-meta-row {
+    display: flex;
+    gap: 24pt;
+    font-size: 10pt;
+    margin-top: 6pt;
+    padding-top: 6pt;
+    border-top: 1pt solid #000;
+  }
+
+  /* Summary Table */
+  .print-summary-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 14pt 0 18pt;
+    font-size: 10pt;
+  }
+
+  .print-summary-table td {
+    padding: 4pt 6pt;
+    border-bottom: 0.75pt solid #000;
+  }
+
+  .print-summary-table td:nth-child(odd) {
+    width: 25%;
+    font-weight: bold;
+  }
+
+  .print-summary-table td:nth-child(even) {
+    width: 25%;
+    text-align: right;
+  }
+
+  /* Data Table */
+  .print-data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 9.5pt;
+    table-layout: fixed;
+  }
+
+  .print-data-table th,
+  .print-data-table td {
+    padding: 6pt 4pt;
+    border: 0.75pt solid #000;
+    text-align: left;
+    vertical-align: top;
+    word-wrap: break-word;
+  }
+
+  .print-data-table th {
+    background: none;
+    font-weight: bold;
+    font-size: 9.5pt;
     text-align: center;
-    margin-bottom: 20px;
-    padding-bottom: 16px;
-    border-bottom: 2px solid #000;
-
-    h1 {
-      font-size: 20px;
-      margin: 0 0 4px 0;
-    }
-
-    h2 {
-      font-size: 16px;
-      margin: 0 0 8px 0;
-    }
-
-    p {
-      font-size: 12px;
-      margin: 2px 0;
-    }
   }
 
-  .laporan-container {
-    padding: 0;
+  .print-data-table .text-right {
+    text-align: right;
   }
 
-  .stats-grid,
-  .detail-stats,
-  .data-section {
-    box-shadow: none;
+  /* Footer */
+  .print-footer-a4 {
+    margin-top: 24pt;
+    padding-top: 10pt;
+    border-top: 1pt solid #000;
+    font-size: 9pt;
+    color: #555;
+  }
+
+  /* Page control - prevent awkward breaks */
+  .print-data-table,
+  .print-summary-table,
+  .print-header-a4 {
     page-break-inside: avoid;
   }
 
-  .data-table {
-    font-size: 10px;
-
-    thead th,
-    tbody td {
-      padding: 6px 4px;
-    }
+  .print-data-table tbody tr {
+    page-break-inside: avoid;
   }
-}
 
-.mt-6 {
-  margin-top: 24px;
-}
+  /* Ensure last row doesn't get cut off */
+  .print-data-table tbody tr:last-child {
+    page-break-after: auto;
+  }
 
-.text-red-600 {
-  color: #dc2626;
-}
+  /* Ink optimization */
+  * {
+    background: transparent !important;
+    color: #000 !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
 
-.text-green-600 {
-  color: #059669;
-}
+  /* Page number (browser support varies) */
+  @page {
+    size: A4;
+    margin: 0.5in;
+  }
 
-.text-yellow-600 {
-  color: #d97706;
-}
-
-.bg-blue-100 {
-  background: #dbeafe;
-}
-
-.text-blue-800 {
-  color: #1e40af;
-}
-
-.bg-gray-100 {
-  background: #f3f4f6;
-}
-
-.text-gray-800 {
-  color: #1f2937;
-}
-
-.bg-green-100 {
-  background: #d1fae5;
-}
-
-.text-green-800 {
-  color: #065f46;
-}
-
-.bg-yellow-100 {
-  background: #fef3c7;
-}
-
-.text-yellow-800 {
-  color: #92400e;
-}
-
-.font-semibold {
-  font-weight: 600;
+  .page-number::after {
+    content: counter(page);
+  }
 }
