@@ -255,8 +255,8 @@
           <td>{{ formatDate(item.timestamp) }}</td>
           <td>{{ item.noTiket }}</td>
           <td>{{ item.noKendaraan }}</td>
-          <td>{{ item.laporanCustomer || '-' }}</td>
-          <td>{{ item.laporanSupplier || '-' }}</td>
+          <td>{{ item.laporanCustomer == '---' ? '-' : item.laporanCustomer || '-' }}</td>
+          <td>{{ item.laporanSupplier == '---' ? '-' : item.laporanSupplier || '-' || '-' }}</td>
           <td>{{ item.namaBarang }}</td>
           <td>{{ item.tipeBahan === 'bahan-baku' ? 'Bahan Baku' : 'Lainnya' }}</td>
           <td class="text-right">{{ formatNumber(item.timbanganPertama) }}</td>
@@ -272,24 +272,34 @@
     <table class="print-summary-table">
       <tbody>
         <tr>
-          <td>Total Bruto</td>
-          <td class="text-right">{{ formatNumber(stats.totalBruto) }} kg</td>
-          <td>Rata-rata Bruto</td>
-          <td class="text-right">{{ formatNumber(stats.rataRataBruto) }} kg</td>
+          <td class="font-bold">Total Bruto</td>
+          <td class="text-right">
+            <strong> {{ formatNumber(stats.totalBruto) }} kg </strong>
+          </td>
+          <td class="font-bold">Rata-rata Bruto</td>
+          <td class="text-right">
+            <strong> {{ formatNumber(stats.rataRataBruto) }} kg </strong>
+          </td>
         </tr>
         <tr>
-          <td>Total Tara</td>
-          <td class="text-right">{{ formatNumber(stats.totalTara) }} kg</td>
-          <td>Rata-rata Tara</td>
-          <td class="text-right">{{ formatNumber(stats.rataRataTara) }} kg</td>
+          <td class="font-bold">Total Tara</td>
+          <td class="text-right">
+            <strong> {{ formatNumber(stats.totalTara) }} kg </strong>
+          </td>
+          <td class="font-bold">Rata-rata Tara</td>
+          <td class="text-right">
+            <strong> {{ formatNumber(stats.rataRataTara) }} kg </strong>
+          </td>
         </tr>
         <tr>
-          <td>Total Netto</td>
+          <td class="font-bold">Total Netto</td>
           <td class="text-right">
             <strong>{{ formatNumber(stats.totalNetto) }} kg</strong>
           </td>
-          <td>Rata-rata Netto</td>
-          <td class="text-right">{{ formatNumber(stats.rataRataNetto) }} kg</td>
+          <td class="font-bold">Rata-rata Netto</td>
+          <td class="text-right">
+            <strong> {{ formatNumber(stats.rataRataNetto) }} kg </strong>
+          </td>
         </tr>
       </tbody>
     </table>

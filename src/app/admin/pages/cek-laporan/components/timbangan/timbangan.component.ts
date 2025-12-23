@@ -9,6 +9,9 @@ import {
   TimbanganService,
 } from '../../../../services/timbangan.service';
 
+import * as XLSX from 'xlsx';
+import { WorkSheet } from 'xlsx';
+
 type FilterPeriod = 'harian' | 'mingguan' | 'bulanan' | 'custom';
 type FilterStatus = 'semua' | 'menunggu' | 'selesai';
 type FilterTipe = 'semua' | 'bahan-baku' | 'lainnya';
@@ -319,25 +322,379 @@ export class TimbanganComponent implements OnInit, OnDestroy {
     };
   }
 
-  exportToExcel(): void {
-    const data = this.filteredData.map((item) => ({
-      'No. Tiket': item.noTiket,
-      Tanggal: this.formatDate(item.timestamp),
-      'No. Kendaraan': item.noKendaraan,
-      Supplier: item.namaRelasi,
-      'Nama Barang': item.namaBarang,
-      Supir: item.namaSupir,
-      Tipe: item.tipeBahan === 'bahan-baku' ? 'Bahan Baku' : 'Lainnya',
-      'Bruto (kg)': item.timbanganPertama,
-      'Tara (kg)': item.timbanganKedua || '-',
-      'Netto (kg)': item.beratNetto || '-',
-      'Kelembapan (%)': item.kelembapan || '-',
-      Status: item.statusTimbangan === 'masuk' ? 'Menunggu Tara' : 'Selesai',
-      Penimbang: item.namaPenimbang,
-    }));
+  // EXCEL EXPORT DENGAN TAMPILAN SAMA SEPERTI PRINT LAPORAN
+  // Install: npm install xlsx
 
-    const csv = this.convertToCSV(data);
-    this.downloadCSV(csv, `laporan_timbangan_${Date.now()}.csv`);
+  exportToExcel(): void {
+    if (this.filteredData.length === 0) {
+      alert('Tidak ada data untuk di-export');
+      return;
+    }
+
+    // Create workbook
+    const workbook = XLSX.utils.book_new();
+    const worksheet: WorkSheet = {};
+
+    // ====================================
+    // 1. HEADER SECTION (Baris 1-4)
+    // ====================================
+    let currentRow = 1;
+
+    // Baris 1: Logo dan Title (merge cells)
+    worksheet['!merges'] = [
+      { s: { r: 0, c: 0 }, e: { r: 0, c: 10 } }, // Title row
+      { s: { r: 1, c: 0 }, e: { r: 1, c: 10 } }, // Subtitle row
+    ];
+
+    XLSX.utils.sheet_add_aoa(worksheet, [['PT AGRO DELI SERDANG'], ['LAPORAN DATA TIMBANGAN']], {
+      origin: 'A1',
+    });
+
+    currentRow = 3;
+
+    // Baris 3: Meta info (Periode, Tanggal Cetak, Jumlah Data)
+    const metaInfo = [
+      `Periode: ${this.periodLabel}`,
+      `Tanggal Cetak: ${this.formatDate(this.currentDate)}`,
+      `Jumlah Data: ${this.filteredData.length} transaksi`,
+    ];
+
+    XLSX.utils.sheet_add_aoa(
+      worksheet,
+      [
+        [metaInfo.join('     |     ')], // Gabung dengan separator
+      ],
+      { origin: `A${currentRow}` },
+    );
+
+    worksheet['!merges'].push({ s: { r: currentRow - 1, c: 0 }, e: { r: currentRow - 1, c: 10 } });
+
+    currentRow += 2; // Baris kosong
+
+    // ====================================
+    // 2. TABLE HEADER (Baris 5)
+    // ====================================
+    const headers = [
+      'No.',
+      'Tanggal',
+      'No. Tiket',
+      'Kendaraan',
+      'Customer',
+      'Supplier',
+      'Barang',
+      'Tipe',
+      'Bruto (kg)',
+      'Tara (kg)',
+      'Netto (kg)',
+    ];
+
+    XLSX.utils.sheet_add_aoa(worksheet, [headers], { origin: `A${currentRow}` });
+
+    currentRow++;
+
+    // ====================================
+    // 3. TABLE DATA
+    // ====================================
+    const tableData = this.filteredData.map((item, index) => [
+      index + 1,
+      this.formatDate(item.timestamp),
+      item.noTiket,
+      item.noKendaraan,
+      item.laporanCustomer == '---' ? '-' : item.laporanCustomer || '-',
+      item.laporanSupplier == '---' ? '-' : item.laporanSupplier || '-',
+      item.namaBarang,
+      item.tipeBahan === 'bahan-baku' ? 'Bahan Baku' : 'Lainnya',
+      item.timbanganPertama,
+      item.timbanganPertama - (item.beratNetto || 0),
+      item.beratNetto ? item.beratNetto : 0,
+    ]);
+
+    XLSX.utils.sheet_add_aoa(worksheet, tableData, { origin: `A${currentRow}` });
+
+    currentRow += tableData.length + 1; // +1 untuk baris kosong
+
+    // ====================================
+    // 4. SUMMARY SECTION (Seperti di print)
+    // ====================================
+    const summaryData = [
+      [
+        'Total Bruto',
+        `${this.formatNumber(this.stats.totalBruto)} kg`,
+        'Rata-rata Bruto',
+        `${this.formatNumber(this.stats.rataRataBruto)} kg`,
+      ],
+      [
+        'Total Tara',
+        `${this.formatNumber(this.stats.totalTara)} kg`,
+        'Rata-rata Tara',
+        `${this.formatNumber(this.stats.rataRataTara)} kg`,
+      ],
+      [
+        'Total Netto',
+        `${this.formatNumber(this.stats.totalNetto)} kg`,
+        'Rata-rata Netto',
+        `${this.formatNumber(this.stats.rataRataNetto)} kg`,
+      ],
+    ];
+
+    XLSX.utils.sheet_add_aoa(worksheet, summaryData, { origin: `A${currentRow}` });
+
+    // ====================================
+    // 5. STYLING & FORMATTING
+    // ====================================
+
+    // Set column widths (sama seperti print layout)
+    worksheet['!cols'] = [
+      { wch: 5 }, // No.
+      { wch: 18 }, // Tanggal
+      { wch: 12 }, // No. Tiket
+      { wch: 15 }, // Kendaraan
+      { wch: 15 }, // Customer
+      { wch: 18 }, // Supplier
+      { wch: 20 }, // Barang
+      { wch: 12 }, // Tipe
+      { wch: 12 }, // Bruto
+      { wch: 12 }, // Tara
+      { wch: 12 }, // Netto
+    ];
+
+    // Apply cell styles (header, borders, alignment)
+    this.applyExcelStyles(worksheet, headers.length, tableData.length, currentRow);
+
+    // ====================================
+    // 6. SAVE FILE
+    // ====================================
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Laporan Timbangan');
+
+    const filename = `Laporan_Timbangan_${this.getFilenameDate()}.xlsx`;
+    XLSX.writeFile(workbook, filename);
+  }
+
+  // ====================================
+  // HELPER: Apply Excel Styles
+  // ====================================
+  private applyExcelStyles(
+    worksheet: WorkSheet,
+    colCount: number,
+    dataRowCount: number,
+    summaryStartRow: number,
+  ): void {
+    const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1');
+
+    // Style untuk setiap cell
+    for (let R = range.s.r; R <= range.e.r; ++R) {
+      for (let C = range.s.c; C <= range.e.c; ++C) {
+        const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
+        if (!worksheet[cellAddress]) continue;
+
+        const cell = worksheet[cellAddress];
+
+        // Initialize cell style
+        if (!cell.s) cell.s = {};
+
+        // Header Company (Row 1-2): Bold, Large, Center
+        if (R === 0 || R === 1) {
+          cell.s = {
+            font: { bold: true, sz: R === 0 ? 16 : 14 },
+            alignment: { horizontal: 'center', vertical: 'center' },
+            fill: { fgColor: { rgb: 'E8E8E8' } },
+          };
+        }
+
+        // Meta Info (Row 3): Center
+        if (R === 2) {
+          cell.s = {
+            font: { sz: 10 },
+            alignment: { horizontal: 'center' },
+            border: {
+              bottom: { style: 'thin', color: { rgb: '000000' } },
+            },
+          };
+        }
+
+        // Table Headers (Row 5): Bold, Center, Background
+        if (R === 4) {
+          cell.s = {
+            font: { bold: true, sz: 11 },
+            alignment: { horizontal: 'center', vertical: 'center' },
+            fill: { fgColor: { rgb: 'D3D3D3' } },
+            border: {
+              top: { style: 'thin', color: { rgb: '000000' } },
+              bottom: { style: 'thin', color: { rgb: '000000' } },
+              left: { style: 'thin', color: { rgb: '000000' } },
+              right: { style: 'thin', color: { rgb: '000000' } },
+            },
+          };
+        }
+
+        // Table Data: Borders
+        if (R >= 5 && R < 5 + dataRowCount) {
+          cell.s = {
+            border: {
+              top: { style: 'thin', color: { rgb: 'CCCCCC' } },
+              bottom: { style: 'thin', color: { rgb: 'CCCCCC' } },
+              left: { style: 'thin', color: { rgb: 'CCCCCC' } },
+              right: { style: 'thin', color: { rgb: 'CCCCCC' } },
+            },
+            alignment: {
+              horizontal: C === 0 ? 'center' : C >= 8 ? 'right' : 'left',
+              vertical: 'center',
+            },
+          };
+
+          // Number format untuk kolom angka (Bruto, Tara, Netto)
+          if (C >= 8 && C <= 10) {
+            cell.z = '#,##0'; // Thousand separator
+          }
+        }
+
+        // Summary Section: Bold
+        if (R >= summaryStartRow - 1) {
+          cell.s = {
+            font: { bold: C === 0 || C === 2 ? true : false, sz: 10 },
+            alignment: {
+              horizontal: C === 1 || C === 3 ? 'right' : 'left',
+            },
+            border: {
+              bottom: { style: 'thin', color: { rgb: '000000' } },
+            },
+          };
+        }
+      }
+    }
+  }
+
+  // ====================================
+  // HELPER: Format Date for Excel
+  // ====================================
+  private formatDateForExcel(dateString: string): string {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('id-ID', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  }
+
+  // ====================================
+  // HELPER: Generate Filename with Date
+  // ====================================
+  private getFilenameDate(): string {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hour = String(now.getHours()).padStart(2, '0');
+    const minute = String(now.getMinutes()).padStart(2, '0');
+
+    return `${year}${month}${day}_${hour}${minute}`;
+  }
+
+  // ====================================
+  // VERSI ALTERNATIF: TANPA STYLING (Lebih Simple)
+  // ====================================
+  exportToExcelSimple(): void {
+    if (this.filteredData.length === 0) {
+      alert('Tidak ada data untuk di-export');
+      return;
+    }
+
+    const workbook = XLSX.utils.book_new();
+
+    // Header section
+    const headerData = [
+      ['PT AGRO DELI SERDANG'],
+      ['LAPORAN DATA TIMBANGAN'],
+      [
+        `Periode: ${this.periodLabel}  |  Tanggal Cetak: ${this.formatDate(this.currentDate)}  |  Jumlah Data: ${this.filteredData.length} transaksi`,
+      ],
+      [], // Empty row
+    ];
+
+    // Table headers
+    const tableHeaders = [
+      [
+        'No.',
+        'Tanggal',
+        'No. Tiket',
+        'Kendaraan',
+        'Customer',
+        'Supplier',
+        'Barang',
+        'Tipe',
+        'Bruto (kg)',
+        'Tara (kg)',
+        'Netto (kg)',
+      ],
+    ];
+
+    // Table data
+    const tableData = this.filteredData.map((item, index) => [
+      index + 1,
+      this.formatDate(item.timestamp),
+      item.noTiket,
+      item.noKendaraan,
+      item.laporanCustomer || '-',
+      item.laporanSupplier || '-',
+      item.namaBarang,
+      item.tipeBahan === 'bahan-baku' ? 'Bahan Baku' : 'Lainnya',
+      item.timbanganPertama,
+      item.timbanganPertama - (item.beratNetto || 0),
+      item.beratNetto || 0,
+    ]);
+
+    // Summary section
+    const summaryData = [
+      [], // Empty row
+      [
+        'Total Bruto',
+        `${this.formatNumber(this.stats.totalBruto)} kg`,
+        'Rata-rata Bruto',
+        `${this.formatNumber(this.stats.rataRataBruto)} kg`,
+      ],
+      [
+        'Total Tara',
+        `${this.formatNumber(this.stats.totalTara)} kg`,
+        'Rata-rata Tara',
+        `${this.formatNumber(this.stats.rataRataTara)} kg`,
+      ],
+      [
+        'Total Netto',
+        `${this.formatNumber(this.stats.totalNetto)} kg`,
+        'Rata-rata Netto',
+        `${this.formatNumber(this.stats.rataRataNetto)} kg`,
+      ],
+    ];
+
+    // Combine all data
+    const allData = [...headerData, ...tableHeaders, ...tableData, ...summaryData];
+
+    // Create worksheet
+    const worksheet = XLSX.utils.aoa_to_sheet(allData);
+
+    // Set column widths
+    worksheet['!cols'] = [
+      { wch: 5 },
+      { wch: 18 },
+      { wch: 12 },
+      { wch: 15 },
+      { wch: 15 },
+      { wch: 18 },
+      { wch: 20 },
+      { wch: 12 },
+      { wch: 12 },
+      { wch: 12 },
+      { wch: 12 },
+    ];
+
+    // Add worksheet to workbook
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Laporan Timbangan');
+
+    // Save file
+    const filename = `Laporan_Timbangan_${this.getFilenameDate()}.xlsx`;
+    XLSX.writeFile(workbook, filename);
   }
 
   private convertToCSV(data: any[]): string {
@@ -385,8 +742,6 @@ export class TimbanganComponent implements OnInit, OnDestroy {
       day: '2-digit',
       month: 'short',
       year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
     });
   }
 
@@ -426,8 +781,28 @@ export class TimbanganComponent implements OnInit, OnDestroy {
     return this.filterForm.get('period')?.value === 'custom';
   }
 
+  // Ganti getter periodLabel yang sudah ada dengan ini:
   get periodLabel(): string {
     const period = this.filterForm.get('period')?.value;
+    const startDate = this.filterForm.get('startDate')?.value;
+    const endDate = this.filterForm.get('endDate')?.value;
+
+    if (period === 'custom' && startDate && endDate) {
+      // Format tanggal untuk custom range
+      const start = new Date(startDate).toLocaleDateString('id-ID', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+      });
+      const end = new Date(endDate).toLocaleDateString('id-ID', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+      });
+      return `${start} - ${end}`;
+    }
+
+    // Untuk periode lainnya (harian, mingguan, bulanan)
     const option = this.periodOptions.find((opt) => opt.value === period);
     return option?.label || '';
   }
