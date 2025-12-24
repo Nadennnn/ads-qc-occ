@@ -32,6 +32,16 @@ interface TransactionHistory {
   petugas: string;
 }
 
+interface PeriodReport {
+  item: string;
+  description: string;
+  beginningBalance: number;
+  receivedInPeriod: number;
+  usedInPeriod: number;
+  endingBalance: number;
+  isTotal?: boolean;
+}
+
 @Component({
   selector: 'app-stock',
   templateUrl: './stock.component.html',
@@ -41,7 +51,7 @@ interface TransactionHistory {
 })
 export class StockComponent implements OnInit {
   readonly bahanBakuOptions: BarangOption[] = [
-    { value: 'semua', label: 'Semua Barang' },
+    { value: 'semua', label: 'All Items' },
     { value: 'LOCC/OCC', label: 'LOCC/OCC' },
     { value: 'DLK', label: 'DLK' },
     { value: 'DUPLEK', label: 'DUPLEK' },
@@ -57,6 +67,7 @@ export class StockComponent implements OnInit {
   filteredTransactions = signal<TransactionHistory[]>([]);
   selectedBarang = signal<string>('semua');
   isLoading = signal<boolean>(false);
+  isRincianVisible = signal<boolean>(false);
 
   // Modal states
   showPenerimaanModal = signal<boolean>(false);
@@ -73,12 +84,35 @@ export class StockComponent implements OnInit {
   filterDateFrom = signal<string>('');
   filterDateTo = signal<string>('');
 
+  // Period Report
+  periodStartDate = signal<string>(this.getFirstDayOfMonth());
+  periodEndDate = signal<string>(this.getTodayDate());
+  periodReportData = signal<PeriodReport[]>([]);
+
+  // Computed values for totals
+  totalStockAwal = computed(() =>
+    this.filteredStockData().reduce((sum, item) => sum + item.stock_awal, 0),
+  );
+
+  totalPenerimaan = computed(() =>
+    this.filteredStockData().reduce((sum, item) => sum + item.penerimaan, 0),
+  );
+
+  totalPemakaian = computed(() =>
+    this.filteredStockData().reduce((sum, item) => sum + item.pemakaian, 0),
+  );
+
+  totalStockAkhir = computed(() =>
+    this.filteredStockData().reduce((sum, item) => sum + item.stock_akhir, 0),
+  );
+
   constructor(private fb: FormBuilder) {}
 
   ngOnInit(): void {
     this.initializeForms();
     this.loadStockData();
     this.loadTransactionHistory();
+    this.calculatePeriodReport();
   }
 
   initializeForms(): void {
@@ -188,7 +222,7 @@ export class StockComponent implements OnInit {
         barang: 'LOCC/OCC',
         jenis: 'penerimaan',
         jumlah: 918,
-        nomor_bon: 'DLK',
+        nomor_bon: 'DLK-001',
         nomor_kendaraan: 'BK 123 ADS',
         suplier: 'CV SEMENBATU LTO',
         supir: 'YOGA',
@@ -245,11 +279,18 @@ export class StockComponent implements OnInit {
     } else {
       this.filteredStockData.set(allData.filter((item) => item.barang === selected));
     }
+
+    // Recalculate period report when filter changes
+    this.calculatePeriodReport();
   }
 
   onBarangChange(value: string): void {
     this.selectedBarang.set(value);
     this.filterStock();
+  }
+
+  toggleRincian(): void {
+    this.isRincianVisible.set(!this.isRincianVisible());
   }
 
   openPenerimaanModal(): void {
@@ -324,7 +365,7 @@ export class StockComponent implements OnInit {
       this.transactionHistory.set([newTransaction, ...this.transactionHistory()]);
 
       this.closePenerimaanModal();
-      alert('Penerimaan berhasil ditambahkan!');
+      alert('Receipt successfully added!');
     }
   }
 
@@ -335,7 +376,7 @@ export class StockComponent implements OnInit {
       // Cek apakah stock cukup
       const stockItem = this.stockData().find((item) => item.barang === formData.barang);
       if (stockItem && stockItem.stock_akhir < formData.jumlah) {
-        alert('Stock tidak mencukupi!');
+        alert('Insufficient stock!');
         return;
       }
 
@@ -375,7 +416,7 @@ export class StockComponent implements OnInit {
       this.transactionHistory.set([newTransaction, ...this.transactionHistory()]);
 
       this.closePemakaianModal();
-      alert('Pemakaian berhasil ditambahkan!');
+      alert('Usage successfully added!');
     }
   }
 
@@ -422,7 +463,7 @@ export class StockComponent implements OnInit {
   formatDate(dateString: string): string {
     return new Date(dateString).toLocaleDateString('id-ID', {
       year: 'numeric',
-      month: 'long',
+      month: 'short',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
@@ -431,24 +472,114 @@ export class StockComponent implements OnInit {
 
   exportToExcel(): void {
     // TODO: Implement export to Excel
-    alert('Fitur export akan segera hadir!');
+    alert('Export feature coming soon!');
   }
 
-  // TODO NEW LOGIC
+  // Helper functions for period report
+  getFirstDayOfMonth(): string {
+    const today = new Date();
+    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+    return firstDay.toISOString().split('T')[0];
+  }
 
-  totalStockAwal = computed(() =>
-    this.filteredStockData().reduce((sum, item) => sum + item.stock_awal, 0),
-  );
+  getTodayDate(): string {
+    return new Date().toISOString().split('T')[0];
+  }
 
-  totalPenerimaan = computed(() =>
-    this.filteredStockData().reduce((sum, item) => sum + item.penerimaan, 0),
-  );
+  calculatePeriodReport(): void {
+    const startDate = new Date(this.periodStartDate());
+    const endDate = new Date(this.periodEndDate());
+    endDate.setHours(23, 59, 59);
 
-  totalPemakaian = computed(() =>
-    this.filteredStockData().reduce((sum, item) => sum + item.pemakaian, 0),
-  );
+    // Jika filter stock aktif (bukan "semua"), hanya tampilkan item yang dipilih
+    const itemsToProcess =
+      this.selectedBarang() === 'semua'
+        ? this.stockData()
+        : this.stockData().filter((item) => item.barang === this.selectedBarang());
 
-  totalStockAkhir = computed(() =>
-    this.filteredStockData().reduce((sum, item) => sum + item.stock_akhir, 0),
-  );
+    const reportData: PeriodReport[] = [];
+
+    let totalBeginning = 0;
+    let totalReceived = 0;
+    let totalUsed = 0;
+    let totalEnding = 0;
+
+    itemsToProcess.forEach((stockItem) => {
+      // Filter transaksi untuk item ini dalam periode
+      const itemTransactions = this.transactionHistory().filter(
+        (t) =>
+          t.barang === stockItem.barang &&
+          new Date(t.tanggal) >= startDate &&
+          new Date(t.tanggal) <= endDate,
+      );
+
+      // Hitung penerimaan dan pemakaian dalam periode
+      const receivedInPeriod = itemTransactions
+        .filter((t) => t.jenis === 'penerimaan')
+        .reduce((sum, t) => sum + t.jumlah, 0);
+
+      const usedInPeriod = itemTransactions
+        .filter((t) => t.jenis === 'pemakaian')
+        .reduce((sum, t) => sum + t.jumlah, 0);
+
+      // Hitung beginning balance (stock akhir - transaksi dalam periode)
+      const beginningBalance = stockItem.stock_akhir - receivedInPeriod + usedInPeriod;
+
+      // Ending balance adalah stock akhir saat ini
+      const endingBalance = stockItem.stock_akhir;
+
+      // Buat item code (contoh: RM_DLK_03)
+      const itemCode = `RM_${stockItem.barang.replace(/\//g, '_').replace(/\s+/g, '_')}_${String(stockItem.id).padStart(2, '0')}`;
+
+      reportData.push({
+        item: itemCode,
+        description: stockItem.barang,
+        beginningBalance: beginningBalance,
+        receivedInPeriod: receivedInPeriod,
+        usedInPeriod: usedInPeriod,
+        endingBalance: endingBalance,
+      });
+
+      totalBeginning += beginningBalance;
+      totalReceived += receivedInPeriod;
+      totalUsed += usedInPeriod;
+      totalEnding += endingBalance;
+    });
+
+    // Tambahkan baris TOTAL
+    reportData.push({
+      item: 'TOTAL',
+      description: '',
+      beginningBalance: totalBeginning,
+      receivedInPeriod: totalReceived,
+      usedInPeriod: totalUsed,
+      endingBalance: totalEnding,
+      isTotal: true,
+    });
+
+    this.periodReportData.set(reportData);
+  }
+
+  formatDateShort(dateString: string): string {
+    if (!dateString) return '';
+    return new Date(dateString).toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    });
+  }
+
+  getCurrentDateFormatted(): string {
+    return new Date().toLocaleDateString('en-US', {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  }
+
+  exportPeriodReport(): void {
+    // TODO: Implement export period report to Excel
+    alert('Period report export feature coming soon!');
+  }
 }

@@ -1,20 +1,43 @@
 <!-- src/app/admin/pages/stock/stock.component.html -->
 
-<div class="p-6 bg-gray-50 min-h-screen">
-  <!-- Header Section -->
-  <div class="mb-6">
-    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-      <div>
-        <h1 class="text-3xl font-bold text-gray-900">Manajemen Stock Bahan Baku</h1>
-        <p class="text-gray-600 mt-1">Kelola dan pantau stock bahan baku secara real-time</p>
+<div class="stock-container">
+  <!-- Header -->
+  <div class="header no-print">
+    <div class="flex justify-start items-center gap-3">
+      <img src="ads-logo1.png" class="w-10 h-auto" alt="PT. Agro Deli Serdang" />
+      <h1 class="title">Stock Management</h1>
+    </div>
+    <p class="subtitle">Real-time raw material inventory tracking</p>
+  </div>
+
+  <!-- Compact Filter & Actions -->
+  <div class="filter-section no-print">
+    <div class="filter-compact">
+      <div class="filter-compact-header">
+        <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
+          />
+        </svg>
+        <span class="filter-compact-title">Filter</span>
       </div>
 
-      <div class="flex flex-wrap gap-2">
-        <button
-          (click)="openPenerimaanModal()"
-          class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 font-medium shadow-sm"
-        >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <select
+        [value]="selectedBarang()"
+        (change)="onBarangChange($any($event.target).value)"
+        class="filter-compact-select"
+      >
+        <option *ngFor="let option of bahanBakuOptions" [value]="option.value">
+          {{ option.label }}
+        </option>
+      </select>
+
+      <div class="filter-actions">
+        <button (click)="openPenerimaanModal()" class="action-btn action-btn-success">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
@@ -22,24 +45,18 @@
               d="M12 4v16m8-8H4"
             />
           </svg>
-          Penerimaan
+          <span>Receive</span>
         </button>
 
-        <button
-          (click)="openPemakaianModal()"
-          class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2 font-medium shadow-sm"
-        >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <button (click)="openPemakaianModal()" class="action-btn action-btn-danger">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
           </svg>
-          Pemakaian
+          <span>Usage</span>
         </button>
 
-        <button
-          (click)="openHistoryModal()"
-          class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 font-medium shadow-sm"
-        >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <button (click)="openHistoryModal()" class="action-btn action-btn-primary">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
@@ -47,31 +64,117 @@
               d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
             />
           </svg>
-          Riwayat Transaksi
+          <span>History</span>
+        </button>
+
+        <button (click)="exportToExcel()" class="action-btn action-btn-secondary">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+            />
+          </svg>
+          <span>Export</span>
         </button>
       </div>
     </div>
   </div>
 
-  <!-- Filter Section -->
-  <div class="bg-white rounded-lg shadow-sm p-4 mb-6">
-    <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-      <label class="text-sm font-medium text-gray-700 whitespace-nowrap">Filter Barang:</label>
-      <select
-        [value]="selectedBarang()"
-        (change)="onBarangChange($any($event.target).value)"
-        class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-      >
-        <option *ngFor="let option of bahanBakuOptions" [value]="option.value">
-          {{ option.label }}
-        </option>
-      </select>
+  <!-- Loading State -->
+  <div *ngIf="isLoading()" class="loading-container">
+    <div class="flex flex-col items-center justify-center py-12">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+      <p class="text-gray-600">Loading stock data...</p>
+    </div>
+  </div>
 
-      <button
-        (click)="exportToExcel()"
-        class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-2 whitespace-nowrap"
-      >
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+  <!-- Stock Data Table -->
+  <div class="data-section" *ngIf="!isLoading()">
+    <h3 class="section-title">Stock Inventory ({{ filteredStockData().length }} items)</h3>
+
+    <!-- Empty State -->
+    <div *ngIf="filteredStockData().length === 0" class="empty-state">
+      <div class="flex flex-col items-center justify-center py-12">
+        <svg
+          class="w-16 h-16 text-gray-400 mb-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+          />
+        </svg>
+        <h3 class="text-lg font-semibold text-gray-900 mb-2">No stock data available</h3>
+        <p class="text-gray-600">No data for the selected item</p>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div *ngIf="filteredStockData().length > 0" class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>No.</th>
+            <th>Item Name</th>
+            <th>Opening Stock</th>
+            <th>Received</th>
+            <th>Used</th>
+            <th>Closing Stock</th>
+            <th>Unit</th>
+            <th>Stock Level</th>
+            <th>Last Updated</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of filteredStockData(); let i = index">
+            <td class="text-center">{{ i + 1 }}</td>
+            <td>
+              <strong>{{ item.barang }}</strong>
+            </td>
+            <td class="text-right">{{ formatNumber(item.stock_awal) }}</td>
+            <td class="text-right text-green-600">+{{ formatNumber(item.penerimaan) }}</td>
+            <td class="text-right text-red-600">-{{ formatNumber(item.pemakaian) }}</td>
+            <td class="text-right">
+              <strong>{{ formatNumber(item.stock_akhir) }}</strong>
+            </td>
+            <td class="text-center">{{ item.satuan }}</td>
+            <td class="text-center">
+              <div class="stock-level-bar">
+                <div
+                  class="stock-level-fill"
+                  [class.level-high]="item.stock_akhir / item.stock_awal > 0.5"
+                  [class.level-medium]="
+                    item.stock_akhir / item.stock_awal <= 0.5 &&
+                    item.stock_akhir / item.stock_awal > 0.2
+                  "
+                  [class.level-low]="item.stock_akhir / item.stock_awal <= 0.2"
+                  [style.width.%]="(item.stock_akhir / item.stock_awal) * 100"
+                >
+                  <span class="level-text"
+                    >{{ ((item.stock_akhir / item.stock_awal) * 100).toFixed(1) }}%</span
+                  >
+                </div>
+              </div>
+            </td>
+            <td class="text-center">{{ formatDate(item.last_updated) }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Period Report Section -->
+  <div class="detail-stats" *ngIf="isRincianVisible() && !isLoading()">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="section-title mb-0">Raw Material Period Report</h3>
+      <button (click)="exportPeriodReport()" class="btn-export">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
             stroke-linecap="round"
             stroke-linejoin="round"
@@ -79,162 +182,97 @@
             d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
           />
         </svg>
-        Export Excel
+        Export Report
       </button>
     </div>
-  </div>
 
-  <!-- Loading State -->
-  <div *ngIf="isLoading()" class="flex justify-center items-center py-12">
-    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-  </div>
-
-  <!-- Stock Cards Grid -->
-  <div *ngIf="!isLoading()" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
-    <div
-      *ngFor="let item of filteredStockData()"
-      class="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-6"
-    >
-      <div class="flex items-start justify-between mb-4">
-        <div>
-          <h3 class="text-xl font-bold text-gray-900">{{ item.barang }}</h3>
-          <p class="text-sm text-gray-500 mt-1">Update: {{ formatDate(item.last_updated) }}</p>
-        </div>
-        <span class="px-3 py-1 bg-blue-100 text-blue-800 text-xs font-semibold rounded-full">
-          {{ item.satuan }}
-        </span>
-      </div>
-
-      <div class="space-y-3">
-        <div class="flex justify-between items-center py-2 border-b border-gray-100">
-          <span class="text-sm text-gray-600">Stock Awal</span>
-          <span class="text-sm font-medium text-gray-900">{{ formatNumber(item.stock_awal) }}</span>
-        </div>
-
-        <div class="flex justify-between items-center py-2 border-b border-gray-100">
-          <span class="text-sm text-gray-600">Penerimaan</span>
-          <span class="text-sm font-medium text-green-600"
-            >+{{ formatNumber(item.penerimaan) }}</span
-          >
-        </div>
-
-        <div class="flex justify-between items-center py-2 border-b border-gray-100">
-          <span class="text-sm text-gray-600">Pemakaian</span>
-          <span class="text-sm font-medium text-red-600">-{{ formatNumber(item.pemakaian) }}</span>
-        </div>
-
-        <div class="flex justify-between items-center pt-2">
-          <span class="text-base font-semibold text-gray-900">Stock Akhir</span>
-          <span class="text-lg font-bold text-blue-600">{{ formatNumber(item.stock_akhir) }}</span>
+    <!-- Period Filter -->
+    <div class="period-filter">
+      <div class="filter-row">
+        <div class="filter-item">
+          <label class="filter-label">Report Period:</label>
+          <input
+            type="date"
+            [value]="periodStartDate()"
+            (change)="periodStartDate.set($any($event.target).value); calculatePeriodReport()"
+            class="filter-input-date"
+          />
+          <span class="date-separator">to</span>
+          <input
+            type="date"
+            [value]="periodEndDate()"
+            (change)="periodEndDate.set($any($event.target).value); calculatePeriodReport()"
+            class="filter-input-date"
+          />
         </div>
       </div>
-
-      <!-- Stock Status Indicator -->
-      <div class="mt-4 pt-4 border-t border-gray-100">
-        <div class="flex items-center gap-2">
-          <div class="flex-1 bg-gray-200 rounded-full h-2">
-            <div
-              class="h-2 rounded-full transition-all"
-              [class.bg-green-500]="item.stock_akhir / item.stock_awal > 0.5"
-              [class.bg-yellow-500]="
-                item.stock_akhir / item.stock_awal <= 0.5 &&
-                item.stock_akhir / item.stock_awal > 0.2
-              "
-              [class.bg-red-500]="item.stock_akhir / item.stock_awal <= 0.2"
-              [style.width.%]="(item.stock_akhir / item.stock_awal) * 100"
-            ></div>
-          </div>
-          <span class="text-xs font-medium text-gray-600">
-            {{ ((item.stock_akhir / item.stock_awal) * 100).toFixed(1) }}%
-          </span>
-        </div>
+      <div class="period-display">
+        Period:
+        <strong
+          >{{ formatDateShort(periodStartDate()) }} - {{ formatDateShort(periodEndDate()) }}</strong
+        >
       </div>
+    </div>
+
+    <div class="w-full border-b border-gray-100 my-3"></div>
+
+    <!-- Period Report Table -->
+    <div class="table-container">
+      <table class="period-report-table">
+        <thead>
+          <tr>
+            <th class="text-left">Item</th>
+            <th class="text-left">Description</th>
+            <th class="text-right">Beginning Balance (Kg)</th>
+            <th class="text-right">Received in Period (Kg)</th>
+            <th class="text-right">Used in Period (Kg)</th>
+            <th class="text-right">Ending Balance (Kg)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let report of periodReportData()" [class.total-row]="report.isTotal">
+            <td class="text-left">{{ report.item }}</td>
+            <td class="text-left">{{ report.description }}</td>
+            <td class="text-right">{{ formatNumber(report.beginningBalance) }}</td>
+            <td class="text-right text-green-600">{{ formatNumber(report.receivedInPeriod) }}</td>
+            <td class="text-right text-red-600">{{ formatNumber(report.usedInPeriod) }}</td>
+            <td class="text-right font-semibold">{{ formatNumber(report.endingBalance) }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="report-footer">
+      <span class="report-date">{{ getCurrentDateFormatted() }}</span>
     </div>
   </div>
 
-  <!-- Summary Statistics -->
-  <div
-    *ngIf="!isLoading() && filteredStockData().length > 0"
-    class="bg-white rounded-lg shadow-md p-6"
-  >
-    <h2 class="text-xl font-bold text-gray-900 mb-4">Ringkasan Total</h2>
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-      <div class="text-center">
-        <p class="text-sm text-gray-600 mb-1">Total Stock Awal</p>
-        <p class="text-2xl font-bold text-gray-900">
-          {{ formatNumber(totalStockAwal()) }}
-        </p>
-        <p class="text-xs text-gray-500 mt-1">Kg</p>
-      </div>
-
-      <div class="text-center">
-        <p class="text-sm text-gray-600 mb-1">Total Penerimaan</p>
-        <p class="text-2xl font-bold text-green-600">
-          {{ formatNumber(totalPenerimaan()) }}
-        </p>
-        <p class="text-xs text-gray-500 mt-1">Kg</p>
-      </div>
-
-      <div class="text-center">
-        <p class="text-sm text-gray-600 mb-1">Total Pemakaian</p>
-        <p class="text-2xl font-bold text-red-600">
-          {{ formatNumber(totalPemakaian()) }}
-        </p>
-        <p class="text-xs text-gray-500 mt-1">Kg</p>
-      </div>
-
-      <div class="text-center">
-        <p class="text-sm text-gray-600 mb-1">Total Stock Akhir</p>
-        <p class="text-2xl font-bold text-blue-600">
-          {{ formatNumber(totalStockAkhir()) }}
-        </p>
-        <p class="text-xs text-gray-500 mt-1">Kg</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- Empty State -->
-  <div
-    *ngIf="!isLoading() && filteredStockData().length === 0"
-    class="bg-white rounded-lg shadow-md p-12 text-center"
-  >
-    <svg
-      class="w-16 h-16 text-gray-400 mx-auto mb-4"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
+  <!-- Action Buttons -->
+  <div class="action-buttons no-print" *ngIf="!isLoading()">
+    <button
+      class="btn bg-neutral-800 text-white flex justify-center w-auto gap-3 items-center"
+      (click)="toggleRincian()"
     >
-      <path
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        stroke-width="2"
-        d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
-      />
-    </svg>
-    <h3 class="text-xl font-semibold text-gray-900 mb-2">Tidak ada data stock</h3>
-    <p class="text-gray-600">Data stock untuk barang yang dipilih tidak tersedia</p>
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          [attr.d]="isRincianVisible() ? 'M5 15l7-7 7 7' : 'M19 9l-7 7-7-7'"
+        />
+      </svg>
+      <span>{{ isRincianVisible() ? 'Hide' : 'Show' }} Summary</span>
+    </button>
   </div>
 </div>
 
 <!-- Modal Penerimaan -->
-<div
-  *ngIf="showPenerimaanModal()"
-  class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
-  (click)="closePenerimaanModal()"
->
-  <div
-    class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
-    (click)="$event.stopPropagation()"
-  >
-    <div
-      class="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between"
-    >
-      <h2 class="text-2xl font-bold text-gray-900">Penerimaan Bahan Baku</h2>
-      <button
-        (click)="closePenerimaanModal()"
-        class="text-gray-400 hover:text-gray-600 transition-colors"
-      >
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<div *ngIf="showPenerimaanModal()" class="modal-overlay" (click)="closePenerimaanModal()">
+  <div class="modal-container" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title">Material Receipt</h2>
+      <button class="modal-close" (click)="closePenerimaanModal()">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
             stroke-linecap="round"
             stroke-linejoin="round"
@@ -245,156 +283,101 @@
       </button>
     </div>
 
-    <form [formGroup]="penerimaanForm" (ngSubmit)="submitPenerimaan()" class="p-6 space-y-4">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">
-            Jenis Barang <span class="text-red-500">*</span>
-          </label>
-          <select
-            formControlName="barang"
-            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option value="">Pilih Barang</option>
+    <form [formGroup]="penerimaanForm" (ngSubmit)="submitPenerimaan()" class="modal-body">
+      <div class="info-grid">
+        <div class="form-group">
+          <label class="form-label">Item Type <span class="text-red-500">*</span></label>
+          <select formControlName="barang" class="form-input">
+            <option value="">Select Item</option>
             <option *ngFor="let option of bahanBakuOptions.slice(1)" [value]="option.value">
               {{ option.label }}
             </option>
           </select>
         </div>
 
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">
-            Jumlah (Kg) <span class="text-red-500">*</span>
-          </label>
-          <input
-            type="number"
-            formControlName="jumlah"
-            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            placeholder="0"
-          />
+        <div class="form-group">
+          <label class="form-label">Quantity (Kg) <span class="text-red-500">*</span></label>
+          <input type="number" formControlName="jumlah" class="form-input" placeholder="0" />
         </div>
 
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">
-            Nomor Bon <span class="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            formControlName="nomor_bon"
-            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            placeholder="Contoh: DLK-001"
-          />
+        <div class="form-group">
+          <label class="form-label">Receipt No. <span class="text-red-500">*</span></label>
+          <input type="text" formControlName="nomor_bon" class="form-input" placeholder="DLK-001" />
         </div>
 
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">
-            Nomor Kendaraan <span class="text-red-500">*</span>
-          </label>
+        <div class="form-group">
+          <label class="form-label">Vehicle No. <span class="text-red-500">*</span></label>
           <input
             type="text"
             formControlName="nomor_kendaraan"
-            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            placeholder="Contoh: BK 123 ADS"
+            class="form-input"
+            placeholder="BK 123 ADS"
           />
         </div>
 
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">
-            Suplier <span class="text-red-500">*</span>
-          </label>
+        <div class="form-group">
+          <label class="form-label">Supplier <span class="text-red-500">*</span></label>
           <input
             type="text"
             formControlName="suplier"
-            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            placeholder="Nama Suplier"
+            class="form-input"
+            placeholder="Supplier Name"
           />
         </div>
 
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">
-            Supir <span class="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            formControlName="supir"
-            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            placeholder="Nama Supir"
-          />
+        <div class="form-group">
+          <label class="form-label">Driver <span class="text-red-500">*</span></label>
+          <input type="text" formControlName="supir" class="form-input" placeholder="Driver Name" />
         </div>
 
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">
-            Tanggal <span class="text-red-500">*</span>
-          </label>
-          <input
-            type="date"
-            formControlName="tanggal"
-            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
+        <div class="form-group">
+          <label class="form-label">Date <span class="text-red-500">*</span></label>
+          <input type="date" formControlName="tanggal" class="form-input" />
         </div>
 
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">
-            Petugas <span class="text-red-500">*</span>
-          </label>
+        <div class="form-group">
+          <label class="form-label">Officer <span class="text-red-500">*</span></label>
           <input
             type="text"
             formControlName="petugas"
-            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            placeholder="Nama Petugas"
+            class="form-input"
+            placeholder="Officer Name"
           />
         </div>
       </div>
 
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Keterangan</label>
+      <div class="form-group mt-4">
+        <label class="form-label">Notes</label>
         <textarea
           formControlName="keterangan"
           rows="3"
-          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          placeholder="Keterangan tambahan (opsional)"
+          class="form-input"
+          placeholder="Additional notes (optional)"
         ></textarea>
       </div>
-
-      <div class="flex gap-3 pt-4">
-        <button
-          type="submit"
-          [disabled]="!penerimaanForm.valid"
-          class="flex-1 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors font-medium"
-        >
-          Simpan Penerimaan
-        </button>
-        <button
-          type="button"
-          (click)="closePenerimaanModal()"
-          class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium"
-        >
-          Batal
-        </button>
-      </div>
     </form>
+
+    <div class="modal-footer">
+      <button type="button" (click)="closePenerimaanModal()" class="btn-secondary">Cancel</button>
+      <button
+        type="submit"
+        [disabled]="!penerimaanForm.valid"
+        (click)="submitPenerimaan()"
+        class="btn bg-green-600 text-white"
+      >
+        Save Receipt
+      </button>
+    </div>
   </div>
 </div>
 
 <!-- Modal Pemakaian -->
-<div
-  *ngIf="showPemakaianModal()"
-  class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
-  (click)="closePemakaianModal()"
->
-  <div
-    class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
-    (click)="$event.stopPropagation()"
-  >
-    <div
-      class="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between"
-    >
-      <h2 class="text-2xl font-bold text-gray-900">Pemakaian Bahan Baku</h2>
-      <button
-        (click)="closePemakaianModal()"
-        class="text-gray-400 hover:text-gray-600 transition-colors"
-      >
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<div *ngIf="showPemakaianModal()" class="modal-overlay" (click)="closePemakaianModal()">
+  <div class="modal-container" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title">Material Usage</h2>
+      <button class="modal-close" (click)="closePemakaianModal()">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
             stroke-linecap="round"
             stroke-linejoin="round"
@@ -405,132 +388,86 @@
       </button>
     </div>
 
-    <form [formGroup]="pemakaianForm" (ngSubmit)="submitPemakaian()" class="p-6 space-y-4">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">
-            Jenis Barang <span class="text-red-500">*</span>
-          </label>
-          <select
-            formControlName="barang"
-            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option value="">Pilih Barang</option>
+    <form [formGroup]="pemakaianForm" (ngSubmit)="submitPemakaian()" class="modal-body">
+      <div class="info-grid">
+        <div class="form-group">
+          <label class="form-label">Item Type <span class="text-red-500">*</span></label>
+          <select formControlName="barang" class="form-input">
+            <option value="">Select Item</option>
             <option *ngFor="let option of bahanBakuOptions.slice(1)" [value]="option.value">
               {{ option.label }}
             </option>
           </select>
         </div>
 
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">
-            Jumlah (Kg) <span class="text-red-500">*</span>
-          </label>
-          <input
-            type="number"
-            formControlName="jumlah"
-            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            placeholder="0"
-          />
+        <div class="form-group">
+          <label class="form-label">Quantity (Kg) <span class="text-red-500">*</span></label>
+          <input type="number" formControlName="jumlah" class="form-input" placeholder="0" />
         </div>
 
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">
-            Nomor Bon <span class="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            formControlName="nomor_bon"
-            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            placeholder="Contoh: PM-001"
-          />
+        <div class="form-group">
+          <label class="form-label">Usage No. <span class="text-red-500">*</span></label>
+          <input type="text" formControlName="nomor_bon" class="form-input" placeholder="PM-001" />
         </div>
 
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">
-            Keperluan <span class="text-red-500">*</span>
-          </label>
+        <div class="form-group">
+          <label class="form-label">Purpose <span class="text-red-500">*</span></label>
           <input
             type="text"
             formControlName="keperluan"
-            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            placeholder="Contoh: Produksi"
+            class="form-input"
+            placeholder="Production"
           />
         </div>
 
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">
-            Tanggal <span class="text-red-500">*</span>
-          </label>
-          <input
-            type="date"
-            formControlName="tanggal"
-            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
+        <div class="form-group">
+          <label class="form-label">Date <span class="text-red-500">*</span></label>
+          <input type="date" formControlName="tanggal" class="form-input" />
         </div>
 
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">
-            Petugas <span class="text-red-500">*</span>
-          </label>
+        <div class="form-group">
+          <label class="form-label">Officer <span class="text-red-500">*</span></label>
           <input
             type="text"
             formControlName="petugas"
-            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            placeholder="Nama Petugas"
+            class="form-input"
+            placeholder="Officer Name"
           />
         </div>
       </div>
 
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Keterangan</label>
+      <div class="form-group mt-4">
+        <label class="form-label">Notes</label>
         <textarea
           formControlName="keterangan"
           rows="3"
-          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          placeholder="Keterangan tambahan (opsional)"
+          class="form-input"
+          placeholder="Additional notes (optional)"
         ></textarea>
       </div>
-
-      <div class="flex gap-3 pt-4">
-        <button
-          type="submit"
-          [disabled]="!pemakaianForm.valid"
-          class="flex-1 px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors font-medium"
-        >
-          Simpan Pemakaian
-        </button>
-        <button
-          type="button"
-          (click)="closePemakaianModal()"
-          class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium"
-        >
-          Batal
-        </button>
-      </div>
     </form>
+
+    <div class="modal-footer">
+      <button type="button" (click)="closePemakaianModal()" class="btn-secondary">Cancel</button>
+      <button
+        type="submit"
+        [disabled]="!pemakaianForm.valid"
+        (click)="submitPemakaian()"
+        class="btn bg-red-600 text-white"
+      >
+        Save Usage
+      </button>
+    </div>
   </div>
 </div>
 
 <!-- Modal Riwayat Transaksi -->
-<div
-  *ngIf="showHistoryModal()"
-  class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
-  (click)="closeHistoryModal()"
->
-  <div
-    class="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col"
-    (click)="$event.stopPropagation()"
-  >
-    <div
-      class="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between"
-    >
-      <h2 class="text-2xl font-bold text-gray-900">Riwayat Transaksi</h2>
-      <button
-        (click)="closeHistoryModal()"
-        class="text-gray-400 hover:text-gray-600 transition-colors"
-      >
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<div *ngIf="showHistoryModal()" class="modal-overlay" (click)="closeHistoryModal()">
+  <div class="modal-container modal-lg" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title">Transaction History</h2>
+      <button class="modal-close" (click)="closeHistoryModal()">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
             stroke-linecap="round"
             stroke-linejoin="round"
@@ -542,14 +479,14 @@
     </div>
 
     <!-- Filter Section -->
-    <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div>
-          <label class="block text-xs font-medium text-gray-700 mb-1">Jenis Barang</label>
+    <div class="modal-filter">
+      <div class="info-grid">
+        <div class="form-group">
+          <label class="form-label">Item Type</label>
           <select
             [value]="filterBarangHistory()"
             (change)="filterBarangHistory.set($any($event.target).value); applyHistoryFilter()"
-            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            class="form-input"
           >
             <option *ngFor="let option of bahanBakuOptions" [value]="option.value">
               {{ option.label }}
@@ -557,53 +494,48 @@
           </select>
         </div>
 
-        <div>
-          <label class="block text-xs font-medium text-gray-700 mb-1">Jenis Transaksi</label>
+        <div class="form-group">
+          <label class="form-label">Transaction Type</label>
           <select
             [value]="filterJenisTransaksi()"
             (change)="filterJenisTransaksi.set($any($event.target).value); applyHistoryFilter()"
-            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            class="form-input"
           >
-            <option value="semua">Semua Transaksi</option>
-            <option value="penerimaan">Penerimaan</option>
-            <option value="pemakaian">Pemakaian</option>
+            <option value="semua">All Transactions</option>
+            <option value="penerimaan">Receipt</option>
+            <option value="pemakaian">Usage</option>
           </select>
         </div>
 
-        <div>
-          <label class="block text-xs font-medium text-gray-700 mb-1">Dari Tanggal</label>
+        <div class="form-group">
+          <label class="form-label">From Date</label>
           <input
             type="date"
             [value]="filterDateFrom()"
             (change)="filterDateFrom.set($any($event.target).value); applyHistoryFilter()"
-            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            class="form-input"
           />
         </div>
 
-        <div>
-          <label class="block text-xs font-medium text-gray-700 mb-1">Sampai Tanggal</label>
+        <div class="form-group">
+          <label class="form-label">To Date</label>
           <input
             type="date"
             [value]="filterDateTo()"
             (change)="filterDateTo.set($any($event.target).value); applyHistoryFilter()"
-            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            class="form-input"
           />
         </div>
       </div>
 
       <div class="flex justify-end mt-3">
-        <button
-          (click)="resetHistoryFilter()"
-          class="px-4 py-2 text-sm bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
-        >
-          Reset Filter
-        </button>
+        <button (click)="resetHistoryFilter()" class="btn-secondary">Reset Filter</button>
       </div>
     </div>
 
     <!-- Transaction List -->
-    <div class="flex-1 overflow-y-auto p-6">
-      <div *ngIf="filteredTransactions().length === 0" class="text-center py-12">
+    <div class="modal-body">
+      <div *ngIf="filteredTransactions().length === 0" class="empty-state">
         <svg
           class="w-16 h-16 text-gray-400 mx-auto mb-4"
           fill="none"
@@ -617,93 +549,79 @@
             d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
           />
         </svg>
-        <h3 class="text-lg font-semibold text-gray-900 mb-2">Tidak ada transaksi</h3>
-        <p class="text-gray-600">Belum ada riwayat transaksi yang sesuai dengan filter</p>
+        <h3 class="text-lg font-semibold text-gray-900 mb-2">No transactions</h3>
+        <p class="text-gray-600">No transaction history matches the filters</p>
       </div>
 
-      <div class="space-y-3">
-        <div
-          *ngFor="let transaction of filteredTransactions()"
-          class="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
-        >
-          <div class="flex items-start justify-between mb-3">
-            <div class="flex items-start gap-3">
-              <div
-                class="w-10 h-10 rounded-full flex items-center justify-center"
-                [class.bg-green-100]="transaction.jenis === 'penerimaan'"
-                [class.bg-red-100]="transaction.jenis === 'pemakaian'"
-              >
-                <svg
-                  class="w-5 h-5"
-                  [class.text-green-600]="transaction.jenis === 'penerimaan'"
-                  [class.text-red-600]="transaction.jenis === 'pemakaian'"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    *ngIf="transaction.jenis === 'penerimaan'"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M12 4v16m8-8H4"
-                  />
-                  <path
-                    *ngIf="transaction.jenis === 'pemakaian'"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M20 12H4"
-                  />
-                </svg>
-              </div>
+      <div class="transaction-list">
+        <div *ngFor="let transaction of filteredTransactions()" class="transaction-card">
+          <div class="transaction-header">
+            <div
+              class="transaction-icon"
+              [class.icon-success]="transaction.jenis === 'penerimaan'"
+              [class.icon-danger]="transaction.jenis === 'pemakaian'"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  *ngIf="transaction.jenis === 'penerimaan'"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 4v16m8-8H4"
+                />
+                <path
+                  *ngIf="transaction.jenis === 'pemakaian'"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M20 12H4"
+                />
+              </svg>
+            </div>
 
-              <div>
-                <h4 class="font-semibold text-gray-900">{{ transaction.barang }}</h4>
-                <div class="flex items-center gap-2 mt-1">
-                  <span
-                    class="px-2 py-1 text-xs font-medium rounded"
-                    [class.bg-green-100]="transaction.jenis === 'penerimaan'"
-                    [class.text-green-800]="transaction.jenis === 'penerimaan'"
-                    [class.bg-red-100]="transaction.jenis === 'pemakaian'"
-                    [class.text-red-800]="transaction.jenis === 'pemakaian'"
-                  >
-                    {{ transaction.jenis === 'penerimaan' ? 'Penerimaan' : 'Pemakaian' }}
-                  </span>
-                  <span class="text-xs text-gray-500">{{ transaction.nomor_bon }}</span>
-                </div>
+            <div class="transaction-info">
+              <h4 class="transaction-title">{{ transaction.barang }}</h4>
+              <div class="transaction-meta">
+                <span
+                  class="badge"
+                  [class.badge-success]="transaction.jenis === 'penerimaan'"
+                  [class.badge-danger]="transaction.jenis === 'pemakaian'"
+                >
+                  {{ transaction.jenis === 'penerimaan' ? 'Receipt' : 'Usage' }}
+                </span>
+                <span class="transaction-no">{{ transaction.nomor_bon }}</span>
               </div>
             </div>
 
-            <div class="text-right">
+            <div class="transaction-amount">
               <p
-                class="text-lg font-bold"
+                class="amount-value"
                 [class.text-green-600]="transaction.jenis === 'penerimaan'"
                 [class.text-red-600]="transaction.jenis === 'pemakaian'"
               >
                 {{ transaction.jenis === 'penerimaan' ? '+' : '-'
                 }}{{ formatNumber(transaction.jumlah) }} Kg
               </p>
-              <p class="text-xs text-gray-500 mt-1">{{ formatDate(transaction.tanggal) }}</p>
+              <p class="amount-date">{{ formatDate(transaction.tanggal) }}</p>
             </div>
           </div>
 
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-3 pt-3 border-t border-gray-100 text-sm">
-            <div>
-              <span class="text-gray-500 block text-xs">Nomor Kendaraan</span>
-              <span class="font-medium text-gray-900">{{ transaction.nomor_kendaraan }}</span>
+          <div class="transaction-details">
+            <div class="detail-item">
+              <span class="detail-label">Vehicle No.</span>
+              <span class="detail-value">{{ transaction.nomor_kendaraan }}</span>
             </div>
-            <div *ngIf="transaction.suplier">
-              <span class="text-gray-500 block text-xs">Suplier</span>
-              <span class="font-medium text-gray-900">{{ transaction.suplier }}</span>
+            <div class="detail-item" *ngIf="transaction.suplier">
+              <span class="detail-label">Supplier</span>
+              <span class="detail-value">{{ transaction.suplier }}</span>
             </div>
-            <div>
-              <span class="text-gray-500 block text-xs">Supir</span>
-              <span class="font-medium text-gray-900">{{ transaction.supir }}</span>
+            <div class="detail-item">
+              <span class="detail-label">Driver</span>
+              <span class="detail-value">{{ transaction.supir }}</span>
             </div>
-            <div>
-              <span class="text-gray-500 block text-xs">Petugas</span>
-              <span class="font-medium text-gray-900">{{ transaction.petugas }}</span>
+            <div class="detail-item">
+              <span class="detail-label">Officer</span>
+              <span class="detail-value">{{ transaction.petugas }}</span>
             </div>
           </div>
         </div>
