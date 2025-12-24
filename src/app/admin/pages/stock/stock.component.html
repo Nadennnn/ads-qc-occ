@@ -3,7 +3,7 @@
 <div class="stock-container">
   <!-- Header -->
   <div class="header no-print">
-    <div class="flex justify-start items-center gap-3">
+    <div class="flex items-center justify-start gap-3">
       <img src="ads-logo1.png" class="w-10 h-auto" alt="PT. Agro Deli Serdang" />
       <h1 class="title">Stock Management</h1>
     </div>
@@ -16,6 +16,7 @@
       <div class="filter-compact-header">
         <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
+            stroke-linecap="round"
             stroke-linecap="round"
             stroke-linejoin="round"
             stroke-width="2"
@@ -36,18 +37,6 @@
       </select>
 
       <div class="filter-actions">
-        <!-- <button (click)="openPenerimaanModal()" class="action-btn action-btn-success">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M12 4v16m8-8H4"
-            />
-          </svg>
-          <span>Receive</span>
-        </button> -->
-
         <button (click)="openPemakaianModal()" class="action-btn action-btn-danger">
           <lucide-icons
             [iconsName]="'package-minus'"
@@ -62,18 +51,6 @@
           <lucide-icons [iconsName]="'history'" [color]="'white'" [strokewidth]="2" class="gray" />
           <span>History</span>
         </button>
-
-        <!-- <button (click)="exportToExcel()" class="action-btn action-btn-secondary">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-            />
-          </svg>
-          <span>Export</span>
-        </button> -->
       </div>
     </div>
   </div>
@@ -81,7 +58,7 @@
   <!-- Loading State -->
   <div *ngIf="isLoading()" class="loading-container">
     <div class="flex flex-col items-center justify-center py-12">
-      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+      <div class="w-12 h-12 mb-4 border-b-2 border-blue-600 rounded-full animate-spin"></div>
       <p class="text-gray-600">Loading stock data...</p>
     </div>
   </div>
@@ -94,7 +71,7 @@
     <div *ngIf="filteredStockData().length === 0" class="empty-state">
       <div class="flex flex-col items-center justify-center py-12">
         <svg
-          class="w-16 h-16 text-gray-400 mb-4"
+          class="w-16 h-16 mb-4 text-gray-400"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -106,7 +83,7 @@
             d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
           />
         </svg>
-        <h3 class="text-lg font-semibold text-gray-900 mb-2">No stock data available</h3>
+        <h3 class="mb-2 text-lg font-semibold text-gray-900">No stock data available</h3>
         <p class="text-gray-600">No data for the selected item</p>
       </div>
     </div>
@@ -168,7 +145,7 @@
   <!-- Period Report Section -->
   <div class="detail-stats" *ngIf="isRincianVisible() && !isLoading()">
     <div class="flex items-center justify-between mb-4">
-      <h3 class="section-title mb-0">Raw Material Period Report</h3>
+      <h3 class="mb-0 section-title">Raw Material Period Report</h3>
     </div>
 
     <!-- Period Filter -->
@@ -199,7 +176,7 @@
       </div>
     </div>
 
-    <div class="w-full border-b border-gray-100 my-3"></div>
+    <div class="w-full my-3 border-b border-gray-100"></div>
 
     <!-- Period Report Table -->
     <div class="table-container">
@@ -221,7 +198,7 @@
             <td class="text-right">{{ formatNumber(report.beginningBalance) }}</td>
             <td class="text-right text-green-600">{{ formatNumber(report.receivedInPeriod) }}</td>
             <td class="text-right text-red-600">{{ formatNumber(report.usedInPeriod) }}</td>
-            <td class="text-right font-semibold">{{ formatNumber(report.endingBalance) }}</td>
+            <td class="font-semibold text-right">{{ formatNumber(report.endingBalance) }}</td>
           </tr>
         </tbody>
       </table>
@@ -235,7 +212,7 @@
   <!-- Action Buttons -->
   <div class="action-buttons no-print" *ngIf="!isLoading()">
     <button
-      class="btn bg-neutral-800 text-white flex justify-center w-auto gap-3 items-center"
+      class="flex items-center justify-center w-auto gap-3 text-white btn bg-neutral-800"
       (click)="toggleRincian()"
     >
       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -251,7 +228,7 @@
 
     <button
       *ngIf="isRincianVisible()"
-      class="btn bg-neutral-800 text-white flex justify-center w-auto gap-3 items-center"
+      class="flex items-center justify-center w-auto gap-3 text-white btn bg-neutral-800"
       (click)="exportPeriodToExcel()"
     >
       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -267,7 +244,7 @@
 
     <button
       *ngIf="isRincianVisible()"
-      class="btn bg-gray-200 text-neutral-800 flex justify-center w-auto gap-3 items-center"
+      class="flex items-center justify-center w-auto gap-3 bg-gray-200 btn text-neutral-800"
       (click)="printPeriodReport()"
     >
       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -421,7 +398,7 @@
         </div>
       </div>
 
-      <div class="form-group mt-4">
+      <div class="mt-4 form-group">
         <label class="form-label">Notes</label>
         <textarea
           formControlName="keterangan"
@@ -438,7 +415,7 @@
         type="submit"
         [disabled]="!penerimaanForm.valid"
         (click)="submitPenerimaan()"
-        class="btn bg-green-600 text-white"
+        class="text-white bg-green-600 btn"
       >
         Save Receipt
       </button>
@@ -511,7 +488,7 @@
         </div>
       </div>
 
-      <div class="form-group mt-4">
+      <div class="mt-4 form-group">
         <label class="form-label">Notes</label>
         <textarea
           formControlName="keterangan"
@@ -528,7 +505,7 @@
         type="submit"
         [disabled]="!pemakaianForm.valid"
         (click)="submitPemakaian()"
-        class="btn bg-red-600 text-white"
+        class="text-white bg-red-600 btn"
       >
         Save Usage
       </button>
@@ -612,7 +589,7 @@
     <div class="modal-body">
       <div *ngIf="filteredTransactions().length === 0" class="empty-state">
         <svg
-          class="w-16 h-16 text-gray-400 mx-auto mb-4"
+          class="w-16 h-16 mx-auto mb-4 text-gray-400"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -624,7 +601,7 @@
             d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
           />
         </svg>
-        <h3 class="text-lg font-semibold text-gray-900 mb-2">No transactions</h3>
+        <h3 class="mb-2 text-lg font-semibold text-gray-900">No transactions</h3>
         <p class="text-gray-600">No transaction history matches the filters</p>
       </div>
 
