@@ -1,7 +1,7 @@
 {
   "html": {
     "snippets": {
-      "lucide-icons": "<lucide-icons [iconsName]=\"'user_check'\" [color]=\"'gray'\" class=\"gray\" />"
+      "lucide-icons": "<lucide-icons [iconsName]=\"'${1:history}'\" [color]=\"'${2:white}'\" [strokewidth]=\"${3:2}\" class=\"${4:gray}\" />"
     }
   },
   "css": {

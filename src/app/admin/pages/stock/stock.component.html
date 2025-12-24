@@ -36,7 +36,7 @@
       </select>
 
       <div class="filter-actions">
-        <button (click)="openPenerimaanModal()" class="action-btn action-btn-success">
+        <!-- <button (click)="openPenerimaanModal()" class="action-btn action-btn-success">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               stroke-linecap="round"
@@ -46,28 +46,24 @@
             />
           </svg>
           <span>Receive</span>
-        </button>
+        </button> -->
 
         <button (click)="openPemakaianModal()" class="action-btn action-btn-danger">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
-          </svg>
-          <span>Usage</span>
+          <lucide-icons
+            [iconsName]="'package-minus'"
+            [color]="'white'"
+            [strokewidth]="2"
+            class="gray"
+          />
+          <span>Add Usage</span>
         </button>
 
         <button (click)="openHistoryModal()" class="action-btn action-btn-primary">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
+          <lucide-icons [iconsName]="'history'" [color]="'white'" [strokewidth]="2" class="gray" />
           <span>History</span>
         </button>
 
-        <button (click)="exportToExcel()" class="action-btn action-btn-secondary">
+        <!-- <button (click)="exportToExcel()" class="action-btn action-btn-secondary">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               stroke-linecap="round"
@@ -77,7 +73,7 @@
             />
           </svg>
           <span>Export</span>
-        </button>
+        </button> -->
       </div>
     </div>
   </div>
@@ -127,7 +123,7 @@
             <th>Used</th>
             <th>Closing Stock</th>
             <th>Unit</th>
-            <th>Stock Level</th>
+            <!-- <th>Stock Level</th> -->
             <th>Last Updated</th>
           </tr>
         </thead>
@@ -144,7 +140,7 @@
               <strong>{{ formatNumber(item.stock_akhir) }}</strong>
             </td>
             <td class="text-center">{{ item.satuan }}</td>
-            <td class="text-center">
+            <!-- <td class="text-center">
               <div class="stock-level-bar">
                 <div
                   class="stock-level-fill"
@@ -161,7 +157,7 @@
                   >
                 </div>
               </div>
-            </td>
+            </td> -->
             <td class="text-center">{{ formatDate(item.last_updated) }}</td>
           </tr>
         </tbody>
@@ -173,17 +169,6 @@
   <div class="detail-stats" *ngIf="isRincianVisible() && !isLoading()">
     <div class="flex items-center justify-between mb-4">
       <h3 class="section-title mb-0">Raw Material Period Report</h3>
-      <button (click)="exportPeriodReport()" class="btn-export">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-          />
-        </svg>
-        Export Report
-      </button>
     </div>
 
     <!-- Period Filter -->
@@ -261,8 +246,98 @@
           [attr.d]="isRincianVisible() ? 'M5 15l7-7 7 7' : 'M19 9l-7 7-7-7'"
         />
       </svg>
-      <span>{{ isRincianVisible() ? 'Hide' : 'Show' }} Summary</span>
+      <span>{{ isRincianVisible() ? 'Hide' : 'Show' }} Period Report</span>
     </button>
+
+    <button
+      *ngIf="isRincianVisible()"
+      class="btn bg-neutral-800 text-white flex justify-center w-auto gap-3 items-center"
+      (click)="exportPeriodToExcel()"
+    >
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+        />
+      </svg>
+      Export to Excel
+    </button>
+
+    <button
+      *ngIf="isRincianVisible()"
+      class="btn bg-gray-200 text-neutral-800 flex justify-center w-auto gap-3 items-center"
+      (click)="printPeriodReport()"
+    >
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
+        />
+      </svg>
+      Print Report
+    </button>
+  </div>
+</div>
+
+<!-- PRINT REPORT (A4 OPTIMIZED) -->
+<div class="print-report-a4">
+  <div class="print-header-a4">
+    <div class="print-header-top">
+      <img src="ads-logo1.png" alt="Logo PT Agro Deli Serdang" class="print-logo-a4" />
+      <div class="print-title-block">
+        <h1 class="print-title">PT AGRO DELI SERDANG</h1>
+        <p class="print-subtitle">RAW MATERIAL PERIOD REPORT</p>
+      </div>
+    </div>
+    <div class="print-meta-row">
+      <div>
+        Period:
+        <strong
+          >{{ formatDateShort(periodStartDate()) }} - {{ formatDateShort(periodEndDate()) }}</strong
+        >
+      </div>
+      <div>
+        Print Date: <strong>{{ getCurrentDateFormatted() }}</strong>
+      </div>
+      <div *ngIf="selectedBarang() !== 'semua'">
+        Filter: <strong>{{ selectedBarang() }}</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- Period Report Table -->
+  <table class="print-period-table">
+    <thead>
+      <tr>
+        <th>Item</th>
+        <th>Description</th>
+        <th>Beginning Balance (Kg)</th>
+        <th>Received in Period (Kg)</th>
+        <th>Used in Period (Kg)</th>
+        <th>Ending Balance (Kg)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let report of periodReportData()" [class.print-total-row]="report.isTotal">
+        <td>{{ report.item }}</td>
+        <td>{{ report.description }}</td>
+        <td class="text-right">{{ formatNumber(report.beginningBalance) }}</td>
+        <td class="text-right">{{ formatNumber(report.receivedInPeriod) }}</td>
+        <td class="text-right">{{ formatNumber(report.usedInPeriod) }}</td>
+        <td class="text-right">
+          <strong>{{ formatNumber(report.endingBalance) }}</strong>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Print Footer -->
+  <div class="print-footer-a4">
+    <p>{{ getCurrentDateFormatted() }}</p>
   </div>
 </div>
 

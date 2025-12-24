@@ -2,6 +2,7 @@
 
 import { ChangeDetectionStrategy, Component, computed, OnInit, signal } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import * as XLSX from 'xlsx';
 
 interface BarangOption {
   value: string;
@@ -581,5 +582,119 @@ export class StockComponent implements OnInit {
   exportPeriodReport(): void {
     // TODO: Implement export period report to Excel
     alert('Period report export feature coming soon!');
+  }
+
+  printPeriodReport(): void {
+    window.print();
+  }
+
+  exportPeriodToExcel(): void {
+    // Prepare data for export
+    const exportData: any[] = [];
+
+    // Add header info
+    exportData.push(['PT AGRO DELI SERDANG']);
+    exportData.push(['RAW MATERIAL PERIOD REPORT']);
+    exportData.push([]);
+    exportData.push([
+      'Period:',
+      `${this.formatDateShort(this.periodStartDate())} - ${this.formatDateShort(this.periodEndDate())}`,
+    ]);
+    if (this.selectedBarang() !== 'semua') {
+      exportData.push(['Filter:', this.selectedBarang()]);
+    }
+    exportData.push(['Print Date:', this.getCurrentDateFormatted()]);
+    exportData.push([]);
+
+    // Add table headers
+    exportData.push([
+      'Item',
+      'Description',
+      'Beginning Balance (Kg)',
+      'Received in Period (Kg)',
+      'Used in Period (Kg)',
+      'Ending Balance (Kg)',
+    ]);
+
+    // Add data rows
+    this.periodReportData().forEach((report) => {
+      exportData.push([
+        report.item,
+        report.description,
+        report.beginningBalance,
+        report.receivedInPeriod,
+        report.usedInPeriod,
+        report.endingBalance,
+      ]);
+    });
+
+    // Create worksheet
+    const ws = XLSX.utils.aoa_to_sheet(exportData);
+
+    // Set column widths
+    ws['!cols'] = [
+      { wch: 15 }, // Item
+      { wch: 20 }, // Description
+      { wch: 20 }, // Beginning Balance
+      { wch: 22 }, // Received
+      { wch: 20 }, // Used
+      { wch: 20 }, // Ending Balance
+    ];
+
+    // Style header rows (bold)
+    const headerStyle = {
+      font: { bold: true },
+      alignment: { horizontal: 'center' },
+    };
+
+    // Apply styles to headers
+    if (ws['A1']) ws['A1'].s = { font: { bold: true, sz: 14 } };
+    if (ws['A2']) ws['A2'].s = { font: { bold: true, sz: 12 } };
+
+    // Find the data table header row (should be row with "Item", "Description", etc)
+    let headerRowIndex = -1;
+    for (let i = 0; i < exportData.length; i++) {
+      if (exportData[i][0] === 'Item') {
+        headerRowIndex = i;
+        break;
+      }
+    }
+
+    // Style table header row
+    if (headerRowIndex !== -1) {
+      const headerRow = headerRowIndex + 1; // XLSX uses 1-based indexing
+      ['A', 'B', 'C', 'D', 'E', 'F'].forEach((col) => {
+        const cellRef = `${col}${headerRow}`;
+        if (ws[cellRef]) {
+          ws[cellRef].s = {
+            font: { bold: true },
+            fill: { fgColor: { rgb: 'E8E8E8' } },
+            alignment: { horizontal: 'center' },
+          };
+        }
+      });
+    }
+
+    // Style TOTAL row
+    const totalRowIndex = exportData.length;
+    ['A', 'B', 'C', 'D', 'E', 'F'].forEach((col) => {
+      const cellRef = `${col}${totalRowIndex}`;
+      if (ws[cellRef]) {
+        ws[cellRef].s = {
+          font: { bold: true },
+          fill: { fgColor: { rgb: 'E8E8E8' } },
+        };
+      }
+    });
+
+    // Create workbook
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Period Report');
+
+    // Generate filename with date range
+    const filename = `Stock_Period_Report_${this.periodStartDate()}_to_${this.periodEndDate()}.xlsx`;
+
+    // Save file
+    XLSX.writeFile(wb, filename);
   }
 }
