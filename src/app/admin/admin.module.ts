@@ -61,6 +61,7 @@ import { TimbanganComponent } from './pages/cek-laporan/components/timbangan/tim
 import { CodeCustomerComponent } from './pages/code-customer/code-customer.component';
 import { CodeSupplierComponent } from './pages/code-supplier/code-supplier.component';
 import { ScaleDisplayComponent } from './pages/scale-display/scale-display.component';
+import { StockComponent } from './pages/stock/stock.component';
 import { UsersControlComponent } from './pages/users-control/users-control.component';
 import { TimbanganService } from './services/timbangan.service';
 import { AbhiLatihanComponent } from './unused/abhi-latihan.component';
@@ -86,6 +87,7 @@ import { AbhiLatihanComponent } from './unused/abhi-latihan.component';
     ModalComponent,
     TimbanganComponent,
     KelembapanComponent,
+    StockComponent,
   ],
   imports: [
     RouterModule.forChild(AdminRoutes),

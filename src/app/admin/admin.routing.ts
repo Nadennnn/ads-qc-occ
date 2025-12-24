@@ -10,6 +10,7 @@ import { CekLaporanComponent } from './pages/cek-laporan/cek-laporan.component';
 import { CodeCustomerComponent } from './pages/code-customer/code-customer.component';
 import { CodeSupplierComponent } from './pages/code-supplier/code-supplier.component';
 import { ScaleDisplayComponent } from './pages/scale-display/scale-display.component';
+import { StockComponent } from './pages/stock/stock.component';
 import { TimbanganMasukComponent } from './pages/timbangan-masuk/timbangan-masuk.component';
 import { UjiKelembapanComponent } from './pages/uji-kelembapan/uji-kelembapan.component';
 import { UsersControlComponent } from './pages/users-control/users-control.component';
@@ -93,6 +94,15 @@ export const AdminRoutes: Route[] = [
   {
     path: 'users-control',
     component: UsersControlComponent,
+    canActivate: [RoleGuard],
+    data: {
+      roles: ['1'], // Only Admin/Superadmin
+      title: 'Users Control',
+    },
+  },
+  {
+    path: 'stock',
+    component: StockComponent,
     canActivate: [RoleGuard],
     data: {
       roles: ['1'], // Only Admin/Superadmin

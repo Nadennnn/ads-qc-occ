@@ -136,6 +136,7 @@ export class AdminComponent implements OnInit {
       'cek-laporan': ['1', '7'], // Admin or Supervisor
       'uji-kelembapan': ['1', '6'], // Admin or Lab Staff
       'users-control': ['1'], // Admin only
+      stock: ['1'], // Admin only
     };
 
     const requiredRoles = routeRoleMap[route];
@@ -154,6 +155,7 @@ export class AdminComponent implements OnInit {
       'code-customer': 'dashboards/code-customer',
       'code-supplier': 'dashboards/code-supplier',
       'users-control': 'dashboards/users-control',
+      stock: 'dashboards/stock',
     };
 
     const path = navigationMap[route];

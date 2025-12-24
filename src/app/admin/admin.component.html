@@ -162,6 +162,23 @@
       </span>
       <span class="text-sm text-neutral-400 mt-1 block">Moisture testing</span>
     </button>
+
+    <!-- TODO Stock ON PROGRESS -->
+    <button
+      *ngIf="hasAnyRole(['1', '6'])"
+      (click)="navigateTo('stock')"
+      class="group relative bg-white p-8 rounded-lg border border-neutral-200 hover:border-neutral-800 transition-all duration-300 text-left overflow-hidden shadow-sm"
+    >
+      <div
+        class="absolute top-0 left-0 w-1 h-full bg-neutral-800 transform scale-y-0 group-hover:scale-y-100 transition-transform duration-300 origin-top"
+      ></div>
+      <span
+        class="text-lg font-medium text-neutral-700 group-hover:text-neutral-900 transition-colors block"
+      >
+        Stock
+      </span>
+      <span class="text-sm text-neutral-400 mt-1 block">Raw Material Period Report</span>
+    </button>
   </div>
 
   <!-- Logout Modal -->
