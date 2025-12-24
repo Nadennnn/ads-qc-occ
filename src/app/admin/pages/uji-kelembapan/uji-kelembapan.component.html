@@ -1,14 +1,14 @@
 <!-- src/app/admin/pages/uji-kelembapan/uji-kelembapan.component.html -->
 
-<div class="min-h-screen bg-gray-50 p-6">
+<div class="min-h-screen p-6 bg-gray-50">
   <div class="max-w-[90vw] mx-auto">
     <!-- Header -->
-    <div class="rounded-lg p-4 mb-6">
+    <div class="p-4 mb-6 rounded-lg">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-4">
           <div>
             <img src="./LOGO_ADS.png" class="w-auto h-7" alt="PT. Agro Deli Serdang" />
-            <p class="text-sm text-gray-600 mt-1">Laporan Pemeriksaan Bahan Baku Kertas Karton</p>
+            <p class="mt-1 text-sm text-gray-600">Laporan Pemeriksaan Bahan Baku Kertas Karton</p>
           </div>
         </div>
         <div class="text-right">
@@ -20,32 +20,65 @@
 
     <!-- List View -->
     <div *ngIf="!showForm">
-      <div class="bg-white border border-gray-300 rounded-lg p-6 mb-6">
+      <!-- Tab Navigation -->
+      <div class="mb-6 border-b border-gray-200">
+        <nav class="flex -mb-px space-x-8">
+          <button
+            (click)="switchTab('new')"
+            [class.border-blue-600]="activeTab === 'new'"
+            [class.text-blue-600]="activeTab === 'new'"
+            [class.border-transparent]="activeTab !== 'new'"
+            [class.text-gray-500]="activeTab !== 'new'"
+            class="px-1 py-4 text-sm font-medium transition-colors border-b-2 hover:text-gray-700 hover:border-gray-300"
+          >
+            <div class="flex items-center gap-2">
+              <lucide-icons [iconsName]="'plus-circle'" [size]="18" />
+              <span>Input Uji Baru</span>
+              <span
+                *ngIf="bahanBakuList.length > 0"
+                class="px-2 py-0.5 text-xs rounded-full bg-blue-100 text-blue-700"
+              >
+                {{ bahanBakuList.length }}
+              </span>
+            </div>
+          </button>
+
+          <button
+            (click)="switchTab('edit')"
+            [class.border-blue-600]="activeTab === 'edit'"
+            [class.text-blue-600]="activeTab === 'edit'"
+            [class.border-transparent]="activeTab !== 'edit'"
+            [class.text-gray-500]="activeTab !== 'edit'"
+            class="px-1 py-4 text-sm font-medium transition-colors border-b-2 hover:text-gray-700 hover:border-gray-300"
+          >
+            <div class="flex items-center gap-2">
+              <lucide-icons [iconsName]="'file-pen-line'" [size]="18" />
+              <span>Edit Data Uji</span>
+              <span
+                *ngIf="bahanBakuEditList.length > 0"
+                class="px-2 py-0.5 text-xs rounded-full bg-emerald-100 text-emerald-700"
+              >
+                {{ bahanBakuEditList.length }}
+              </span>
+            </div>
+          </button>
+        </nav>
+      </div>
+
+      <!-- Tab Content: Input Baru -->
+      <div *ngIf="activeTab === 'new'" class="p-6 mb-6 bg-white border border-gray-300 rounded-lg">
         <div class="flex items-center justify-between mb-6">
           <div>
-            <h2 class="text-2xl font-bold text-gray-900">Daftar Bahan Baku</h2>
-            <p class="text-sm text-gray-600 mt-1">Pilih data untuk melakukan uji kelembapan</p>
+            <h2 class="text-2xl font-bold text-gray-900">Daftar Bahan Baku Belum Diuji</h2>
+            <p class="mt-1 text-sm text-gray-600">Pilih data untuk melakukan uji kelembapan</p>
           </div>
           <div class="flex items-center gap-3">
             <button
               (click)="refreshList()"
               [disabled]="isLoadingList"
-              class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              class="flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors bg-white border rounded-lg border-neutral-300 text-neutral-700 hover:bg-neutral-50 disabled:opacity-50"
             >
-              <svg
-                *ngIf="!isLoadingList"
-                class="w-4 h-4 inline mr-1"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                />
-              </svg>
+              <lucide-icons [iconsName]="'refresh-cw'" [color]="'gray'" />
               <span *ngIf="isLoadingList">Memuat...</span>
               <span *ngIf="!isLoadingList">Refresh</span>
             </button>
@@ -57,9 +90,9 @@
         </div>
 
         <!-- Loading State -->
-        <div *ngIf="isLoadingList" class="text-center py-12">
+        <div *ngIf="isLoadingList" class="py-12 text-center">
           <div
-            class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"
+            class="inline-block w-12 h-12 border-b-2 border-blue-600 rounded-full animate-spin"
           ></div>
           <p class="mt-4 text-sm text-gray-600">Memuat data bahan baku...</p>
         </div>
@@ -67,16 +100,10 @@
         <!-- Error State -->
         <div
           *ngIf="errorMessage && !isLoadingList"
-          class="bg-red-50 border border-red-200 rounded-lg p-4 mb-4"
+          class="p-4 mb-4 border border-red-200 rounded-lg bg-red-50"
         >
           <div class="flex items-start gap-3">
-            <svg class="w-5 h-5 text-red-600 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                fill-rule="evenodd"
-                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                clip-rule="evenodd"
-              />
-            </svg>
+            <lucide-icons [iconsName]="'alert-circle'" [color]="'red'" [size]="20" />
             <div>
               <h3 class="text-sm font-medium text-red-900">Error</h3>
               <p class="mt-1 text-sm text-red-700">{{ errorMessage }}</p>
@@ -87,98 +114,194 @@
         <!-- Empty State -->
         <div
           *ngIf="!isLoadingList && !errorMessage && bahanBakuList.length === 0"
-          class="text-center py-12"
+          class="py-12 text-center"
         >
-          <svg
-            class="mx-auto h-12 w-12 text-gray-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
-            />
-          </svg>
-          <h3 class="mt-2 text-sm font-medium text-gray-900">Tidak ada data</h3>
+          <lucide-icons [iconsName]="'inbox'" [color]="'gray'" [size]="48" class="mx-auto mb-3" />
+          <h3 class="text-sm font-medium text-gray-900">Tidak ada data</h3>
           <p class="mt-1 text-sm text-gray-500">Belum ada data bahan baku yang perlu diuji</p>
         </div>
 
         <!-- List Table -->
         <div *ngIf="!isLoadingList && bahanBakuList.length > 0" class="overflow-x-auto">
           <table class="w-full">
-            <thead class="bg-gray-50 border-b border-gray-200">
+            <thead class="border-b border-gray-200 bg-gray-50">
               <tr>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                <th class="px-4 py-3 text-xs font-medium text-left text-gray-500 uppercase">
                   No Bon
                 </th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                <th class="px-4 py-3 text-xs font-medium text-left text-gray-500 uppercase">
                   Kendaraan
                 </th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                <th class="px-4 py-3 text-xs font-medium text-left text-gray-500 uppercase">
                   Barang
                 </th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Customer
-                </th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                <th class="px-4 py-3 text-xs font-medium text-left text-gray-500 uppercase">
                   Supplier
                 </th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                <th class="px-4 py-3 text-xs font-medium text-left text-gray-500 uppercase">
                   Supir
                 </th>
-                <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                <th class="px-4 py-3 text-xs font-medium text-right text-gray-500 uppercase">
                   Bruto (kg)
                 </th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                <th class="px-4 py-3 text-xs font-medium text-left text-gray-500 uppercase">
                   Waktu
                 </th>
-                <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">
-                  Status
-                </th>
-                <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">
+                <th class="px-4 py-3 text-xs font-medium text-center text-gray-500 uppercase">
                   Aksi
                 </th>
               </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
-              <tr *ngFor="let item of bahanBakuList" class="hover:bg-gray-50 transition-colors">
+              <tr *ngFor="let item of bahanBakuList" class="transition-colors hover:bg-gray-50">
                 <td class="px-4 py-3 text-sm font-medium text-gray-900">{{ item.nomor_bon }}</td>
                 <td class="px-4 py-3 text-sm text-gray-700">{{ item.nomor_kendaraan }}</td>
                 <td class="px-4 py-3 text-sm text-gray-700 capitalize">{{ item.barang }}</td>
-                <td class="px-4 py-3 text-sm text-gray-700">{{ item.customer || '-' }}</td>
                 <td class="px-4 py-3 text-sm text-gray-700">{{ item.suplier || '-' }}</td>
                 <td class="px-4 py-3 text-sm text-gray-700">{{ item.supir }}</td>
-                <td class="px-4 py-3 text-sm text-gray-900 text-right font-medium">
+                <td class="px-4 py-3 text-sm font-medium text-right text-gray-900">
                   {{ item.berat_bruto }}
                 </td>
                 <td class="px-4 py-3 text-sm text-gray-600">{{ formatDate(item.created_at) }}</td>
-                <td class="px-4 py-3 text-center">
-                  <span
-                    [class]="
-                      'inline-flex px-2 py-1 text-xs font-semibold rounded-full ' +
-                      getStatusBadgeClass(item.status)
-                    "
-                  >
-                    {{ getStatusText(item.status) }}
-                  </span>
-                </td>
-                <td class="px-4 py-3 text-center">
+                <td class="py-2 text-center">
                   <button
                     (click)="selectData(item)"
-                    class="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded hover:bg-blue-700 transition-colors"
+                    class="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700"
+                    title="Uji Kelembapan"
                   >
-                    <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                      />
-                    </svg>
-                    {{ item.status === 'Sudah Diuji' ? 'Lihat' : 'Uji' }}
+                    <lucide-icons [iconsName]="'test-tube-diagonal'" [size]="16" />
+                    <span>Uji</span>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tab Content: Edit Data -->
+      <div *ngIf="activeTab === 'edit'" class="p-6 mb-6 bg-white border border-gray-300 rounded-lg">
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <h2 class="text-2xl font-bold text-gray-900">Daftar Data Uji Kelembapan</h2>
+            <p class="mt-1 text-sm text-gray-600">Pilih data untuk mengedit hasil uji kelembapan</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <button
+              (click)="refreshList()"
+              [disabled]="isLoadingEditList"
+              class="flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors bg-white border rounded-lg border-neutral-300 text-neutral-700 hover:bg-neutral-50 disabled:opacity-50"
+            >
+              <lucide-icons [iconsName]="'refresh-cw'" [color]="'gray'" />
+              <span *ngIf="isLoadingEditList">Memuat...</span>
+              <span *ngIf="!isLoadingEditList">Refresh</span>
+            </button>
+            <div class="text-sm text-gray-600">
+              Total:
+              <span class="font-semibold text-gray-900">{{ bahanBakuEditList.length }}</span> data
+            </div>
+          </div>
+        </div>
+
+        <!-- Loading State -->
+        <div *ngIf="isLoadingEditList" class="py-12 text-center">
+          <div
+            class="inline-block w-12 h-12 border-b-2 rounded-full border-emerald-600 animate-spin"
+          ></div>
+          <p class="mt-4 text-sm text-gray-600">Memuat data uji kelembapan...</p>
+        </div>
+
+        <!-- Error State -->
+        <div
+          *ngIf="errorMessageEdit && !isLoadingEditList"
+          class="p-4 mb-4 border border-red-200 rounded-lg bg-red-50"
+        >
+          <div class="flex items-start gap-3">
+            <lucide-icons [iconsName]="'alert-circle'" [color]="'red'" [size]="20" />
+            <div>
+              <h3 class="text-sm font-medium text-red-900">Error</h3>
+              <p class="mt-1 text-sm text-red-700">{{ errorMessageEdit }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Empty State -->
+        <div
+          *ngIf="!isLoadingEditList && !errorMessageEdit && bahanBakuEditList.length === 0"
+          class="py-12 text-center"
+        >
+          <lucide-icons [iconsName]="'inbox'" [color]="'gray'" [size]="48" class="mx-auto mb-3" />
+          <h3 class="text-sm font-medium text-gray-900">Tidak ada data</h3>
+          <p class="mt-1 text-sm text-gray-500">Belum ada data uji kelembapan yang bisa diedit</p>
+        </div>
+
+        <!-- List Table Edit -->
+        <div *ngIf="!isLoadingEditList && bahanBakuEditList.length > 0" class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="border-b border-gray-200 bg-gray-50">
+              <tr>
+                <th class="px-4 py-3 text-xs font-medium text-left text-gray-500 uppercase">
+                  No Bon
+                </th>
+                <th class="px-4 py-3 text-xs font-medium text-left text-gray-500 uppercase">
+                  Kendaraan
+                </th>
+                <th class="px-4 py-3 text-xs font-medium text-left text-gray-500 uppercase">
+                  Barang
+                </th>
+                <th class="px-4 py-3 text-xs font-medium text-left text-gray-500 uppercase">
+                  Supplier
+                </th>
+                <th class="px-4 py-3 text-xs font-medium text-center text-gray-500 uppercase">
+                  Avg Moisture
+                </th>
+                <th class="px-4 py-3 text-xs font-medium text-center text-gray-500 uppercase">
+                  Claim
+                </th>
+                <th class="px-4 py-3 text-xs font-medium text-right text-gray-500 uppercase">
+                  Netto (kg)
+                </th>
+                <th class="px-4 py-3 text-xs font-medium text-left text-gray-500 uppercase">
+                  Waktu
+                </th>
+                <th class="px-4 py-3 text-xs font-medium text-center text-gray-500 uppercase">
+                  Aksi
+                </th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <tr *ngFor="let item of bahanBakuEditList" class="transition-colors hover:bg-gray-50">
+                <td class="px-4 py-3 text-sm font-medium text-gray-900">{{ item.nomor_bon }}</td>
+                <td class="px-4 py-3 text-sm text-gray-700">{{ item.nomor_kendaraan }}</td>
+                <td class="px-4 py-3 text-sm text-gray-700 capitalize">{{ item.barang }}</td>
+                <td class="px-4 py-3 text-sm text-gray-700">{{ item.suplier || '-' }}</td>
+                <td class="px-4 py-3 text-sm font-medium text-center text-gray-900">
+                  {{ item.uji_kelembapan?.avg_moisture || '-' }}
+                </td>
+                <td class="px-4 py-3 text-center">
+                  <span
+                    *ngIf="item.uji_kelembapan"
+                    [class]="
+                      item.uji_kelembapan.nilai_claim.includes('+')
+                        ? 'inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800'
+                        : 'inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800'
+                    "
+                  >
+                    {{ item.uji_kelembapan.nilai_claim }}
+                  </span>
+                </td>
+                <td class="px-4 py-3 text-sm font-medium text-right text-gray-900">
+                  {{ item.uji_kelembapan?.berat_netto || '-' }}
+                </td>
+                <td class="px-4 py-3 text-sm text-gray-600">{{ formatDate(item.created_at) }}</td>
+                <td class="py-2 text-center">
+                  <button
+                    (click)="selectDataForEdit(item)"
+                    class="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-white transition-colors rounded-lg bg-emerald-600 hover:bg-emerald-700"
+                    title="Edit Data Uji"
+                  >
+                    <lucide-icons [iconsName]="'pencil'" [size]="16" />
+                    <span>Edit</span>
                   </button>
                 </td>
               </tr>
@@ -191,7 +314,7 @@
       <div class="flex gap-3">
         <button
           (click)="navigateTo('menu-utama')"
-          class="px-6 py-3 bg-white border border-gray-300 text-gray-700 font-medium rounded hover:bg-gray-50 transition-colors"
+          class="px-6 py-3 font-medium text-gray-700 transition-colors bg-white border border-gray-300 rounded hover:bg-gray-50"
         >
           ← Kembali ke menu utama
         </button>
@@ -204,96 +327,110 @@
       <div class="mb-4">
         <button
           (click)="backToList()"
-          class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm font-medium rounded hover:bg-gray-50 transition-colors"
+          class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 transition-colors bg-white border border-gray-300 rounded hover:bg-gray-50"
         >
-          <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M10 19l-7-7m0 0l7-7m-7 7h18"
-            />
-          </svg>
+          <lucide-icons [iconsName]="'arrow-left'" [size]="16" class="mr-2" />
           Kembali ke Daftar
         </button>
       </div>
 
-      <!-- Selected Data Info -->
-      <div *ngIf="selectedData" class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+      <!-- Mode Indicator -->
+      <div *ngIf="isEditMode" class="p-4 mb-6 border rounded-lg bg-amber-50 border-amber-200">
         <div class="flex items-start gap-3">
-          <svg class="w-5 h-5 text-blue-600 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-            <path
-              fill-rule="evenodd"
-              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-              clip-rule="evenodd"
-            />
-          </svg>
+          <lucide-icons [iconsName]="'pencil'" [color]="'#d97706'" [size]="20" class="mt-0.5" />
           <div class="flex-1">
-            <h3 class="text-sm font-medium text-blue-900">Data yang dipilih:</h3>
-            <div class="mt-2 text-sm text-blue-800 grid grid-cols-2 md:grid-cols-4 gap-2">
+            <h3 class="text-sm font-medium text-amber-900">Mode Edit</h3>
+            <p class="mt-1 text-sm text-amber-700">
+              Anda sedang mengedit data uji kelembapan yang sudah ada. Perubahan akan diupdate ke
+              database.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Selected Data Info -->
+      <div *ngIf="selectedData" class="p-4 mb-6 border border-blue-200 rounded-lg bg-blue-50">
+        <div class="flex items-start gap-3">
+          <lucide-icons [iconsName]="'info'" [color]="'#2563eb'" [size]="20" class="mt-0.5" />
+          <div class="flex-1">
+            <h3 class="text-sm font-medium text-blue-900">
+              {{ isEditMode ? 'Data yang diedit:' : 'Data yang dipilih:' }}
+            </h3>
+            <div class="grid grid-cols-2 gap-2 mt-2 text-sm text-blue-800 md:grid-cols-4">
               <div><span class="font-medium">No Bon:</span> {{ selectedData.nomor_bon }}</div>
               <div>
                 <span class="font-medium">Kendaraan:</span> {{ selectedData.nomor_kendaraan }}
               </div>
               <div><span class="font-medium">Barang:</span> {{ selectedData.barang }}</div>
-              <div><span class="font-medium">Bruto:</span> {{ selectedData.berat_bruto }} kg</div>
+              <div>
+                <span class="font-medium">Bruto:</span>
+                {{
+                  isEditMode ? selectedData.uji_kelembapan?.berat_bruto : selectedData.berat_bruto
+                }}
+                kg
+              </div>
             </div>
           </div>
         </div>
       </div>
 
       <!-- Form Info -->
-      <div class="bg-white border border-gray-300 rounded-lg p-6 mb-6">
+      <div class="p-6 mb-6 bg-white border border-gray-300 rounded-lg">
         <div class="grid grid-cols-3 gap-4 mb-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1"> No Kendaraan </label>
+            <label class="block mb-1 text-sm font-medium text-gray-700"> No Kendaraan </label>
             <input
               type="text"
               [(ngModel)]="formData.noKendaraan"
-              class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="BK 0650 FC"
+              [disabled]="true"
+              class="w-full px-3 py-2 border border-gray-300 rounded cursor-not-allowed bg-gray-50"
             />
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1"> No Slip Timbang </label>
+            <label class="block mb-1 text-sm font-medium text-gray-700"> No Slip Timbang </label>
             <input
               type="text"
               [(ngModel)]="formData.noSlipTimbang"
-              class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="0049"
+              [disabled]="true"
+              class="w-full px-3 py-2 border border-gray-300 rounded cursor-not-allowed bg-gray-50"
             />
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1"> Tanggal </label>
+            <label class="block mb-1 text-sm font-medium text-gray-700"> Tanggal </label>
             <input
               type="date"
               [(ngModel)]="formData.tanggal"
-              class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              [disabled]="true"
+              class="w-full px-3 py-2 border border-gray-300 rounded cursor-not-allowed bg-gray-50"
             />
           </div>
         </div>
 
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1"> Supplier </label>
+            <label class="block mb-1 text-sm font-medium text-gray-700"> Supplier </label>
             <input
               type="text"
               [(ngModel)]="formData.supplier"
+              [disabled]="isEditMode"
+              [class.bg-gray-50]="isEditMode"
+              [class.cursor-not-allowed]="isEditMode"
               class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Nama Supplier"
             />
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1"> Jenis Barang </label>
+            <label class="block mb-1 text-sm font-medium text-gray-700"> Jenis Barang </label>
             <input
               type="text"
               [(ngModel)]="formData.jenisBarang"
+              [disabled]="isEditMode"
+              [class.bg-gray-50]="isEditMode"
+              [class.cursor-not-allowed]="isEditMode"
               class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="LOCC"
             />
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">
+            <label class="block mb-1 text-sm font-medium text-gray-700">
               Jumlah Ball Atau Serak
             </label>
             <input
@@ -304,7 +441,7 @@
             />
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1"> Berat Bahan (kg) </label>
+            <label class="block mb-1 text-sm font-medium text-gray-700"> Berat Bahan (kg) </label>
             <input
               type="number"
               step="0.01"
@@ -313,9 +450,8 @@
               placeholder="0.00"
             />
           </div>
-
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">
+            <label class="block mb-1 text-sm font-medium text-gray-700">
               Potongan Sampah (kg)
             </label>
             <input
@@ -331,14 +467,15 @@
       </div>
 
       <!-- Moisture Points Grid -->
-      <div class="bg-white border border-gray-300 rounded-lg p-6 mb-6">
+      <div class="p-6 mb-6 bg-white border border-gray-300 rounded-lg">
         <div class="flex items-center justify-between mb-4">
           <h3 class="text-lg font-semibold text-gray-900">
             Pengukuran Moisture per Titik (Standard: {{ STANDARD_MOISTURE }}%)
           </h3>
           <button
+            *ngIf="!isEditMode"
             (click)="fillSampleData()"
-            class="px-3 py-1 text-xs bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
+            class="px-3 py-1 text-xs text-gray-700 transition-colors bg-gray-200 rounded hover:bg-gray-300"
           >
             🧪 Fill Sample Data
           </button>
@@ -346,7 +483,7 @@
 
         <div class="grid grid-cols-10 gap-2">
           <div *ngFor="let index of pointsArray" class="relative">
-            <label class="block text-xs text-gray-600 mb-1 text-center">
+            <label class="block mb-1 text-xs text-center text-gray-600">
               {{ index + 1 }}
             </label>
             <input
@@ -357,31 +494,27 @@
               [(ngModel)]="moisturePoints[index]"
               (input)="validateMoistureInput($event, index)"
               [class.border-red-500]="isInvalidMoisture(index)"
-              class="w-full px-2 py-2 border border-gray-300 rounded text-center text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              class="w-full px-2 py-2 text-sm text-center border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="-"
             />
           </div>
         </div>
       </div>
 
-      <!-- Results -->
-      <!-- Results Section - Clean & Professional Design -->
-      <div *ngIf="results" class="bg-white border border-gray-200 rounded-lg p-6 mb-6">
-        <!-- Header -->
-        <div class="flex items-center justify-between mb-6 pb-3 border-b border-gray-200">
+      <!-- Results Section -->
+      <div *ngIf="results" class="p-6 mb-6 bg-white border border-gray-200 rounded-lg">
+        <div class="flex items-center justify-between pb-3 mb-6 border-b border-gray-200">
           <h3 class="text-lg font-semibold text-gray-900">Hasil Perhitungan</h3>
-          <span class="text-xs text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+          <span class="px-3 py-1 text-xs text-gray-500 bg-gray-100 rounded-full">
             {{ results.pointsChecked }} titik terisi
           </span>
         </div>
 
-        <!-- Moisture Stats Grid -->
         <div class="grid grid-cols-3 gap-4 mb-6">
-          <!-- Total Moisture -->
-          <div class="bg-slate-50 border border-slate-200 rounded-lg p-4">
+          <div class="p-4 border rounded-lg bg-slate-50 border-slate-200">
             <div class="flex items-center gap-2 mb-2">
               <lucide-icons [iconsName]="'droplets'" [size]="16" class="text-slate-600" />
-              <span class="text-xs font-medium text-slate-600 uppercase tracking-wide"
+              <span class="text-xs font-medium tracking-wide uppercase text-slate-600"
                 >Total Moisture</span
               >
             </div>
@@ -390,27 +523,25 @@
             </div>
           </div>
 
-          <!-- Average Moisture -->
-          <div class="bg-slate-50 border border-slate-200 rounded-lg p-4">
+          <div class="p-4 border rounded-lg bg-slate-50 border-slate-200">
             <div class="flex items-center gap-2 mb-2">
               <lucide-icons [iconsName]="'gauge'" [size]="16" class="text-slate-600" />
-              <span class="text-xs font-medium text-slate-600 uppercase tracking-wide"
+              <span class="text-xs font-medium tracking-wide uppercase text-slate-600"
                 >Rata-Rata</span
               >
             </div>
             <div class="text-3xl font-bold text-slate-900">
               {{ results.averageMoisture }}<span class="text-lg text-slate-500">%</span>
             </div>
-            <div class="text-xs text-slate-500 mt-1">Standar: {{ STANDARD_MOISTURE }}%</div>
+            <div class="mt-1 text-xs text-slate-500">Standar: {{ STANDARD_MOISTURE }}%</div>
           </div>
 
-          <!-- Claim Value -->
           <div
             [ngClass]="{
               'bg-red-50 border-red-200': results.claimPercentage > 0,
               'bg-emerald-50 border-emerald-200': results.claimPercentage <= 0,
             }"
-            class="border rounded-lg p-4"
+            class="p-4 border rounded-lg"
           >
             <div class="flex items-center gap-2 mb-2">
               <lucide-icons
@@ -422,7 +553,7 @@
                 }"
               />
               <span
-                class="text-xs font-medium uppercase tracking-wide"
+                class="text-xs font-medium tracking-wide uppercase"
                 [ngClass]="{
                   'text-red-600': results.claimPercentage > 0,
                   'text-emerald-600': results.claimPercentage <= 0,
@@ -437,11 +568,11 @@
                 'text-emerald-600': results.claimPercentage <= 0,
               }"
             >
-              {{ results.claimPercentage > 0 ? '+' : '' }}{{ results.claimPercentage
-              }}<span class="text-lg">%</span>
+              {{ results.claimPercentage > 0 ? '+' : '' }}{{ results.claimPercentage }}
+              <span class="text-lg">%</span>
             </div>
             <div
-              class="text-xs mt-1"
+              class="mt-1 text-xs"
               [ngClass]="{
                 'text-red-600': results.claimPercentage > 0,
                 'text-emerald-600': results.claimPercentage <= 0,
@@ -452,33 +583,30 @@
           </div>
         </div>
 
-        <!-- Weight Section -->
-        <div class="bg-slate-50 border border-slate-200 rounded-lg p-5">
+        <div class="p-5 border rounded-lg bg-slate-50 border-slate-200">
           <div class="flex items-center gap-2 mb-4">
             <lucide-icons [iconsName]="'scale'" [size]="18" class="text-slate-700" />
-            <h4 class="text-sm font-semibold text-slate-900 uppercase tracking-wide">
+            <h4 class="text-sm font-semibold tracking-wide uppercase text-slate-900">
               Perhitungan Berat
             </h4>
           </div>
 
           <div class="grid grid-cols-3 gap-4">
-            <!-- Berat Bahan -->
-            <div class="bg-white border border-slate-200 rounded-lg p-4">
-              <div class="text-xs text-slate-600 mb-1 font-medium">Berat Bahan (Bruto)</div>
+            <div class="p-4 bg-white border rounded-lg border-slate-200">
+              <div class="mb-1 text-xs font-medium text-slate-600">Berat Bahan (Bruto)</div>
               <div class="text-2xl font-bold text-slate-900">
                 {{ results.beratBahan }}
-                <span class="text-sm text-slate-500 font-normal ml-1">kg</span>
+                <span class="ml-1 text-sm font-normal text-slate-500">kg</span>
               </div>
             </div>
 
-            <!-- Pengurangan -->
-            <div class="bg-white border border-slate-200 rounded-lg p-4">
-              <div class="text-xs text-slate-600 mb-1 font-medium">Pengurangan</div>
+            <div class="p-4 bg-white border rounded-lg border-slate-200">
+              <div class="mb-1 text-xs font-medium text-slate-600">Pengurangan</div>
               <div class="text-2xl font-bold text-orange-600">
                 {{ getPengurangan() }}
-                <span class="text-sm text-slate-500 font-normal ml-1">kg</span>
+                <span class="ml-1 text-sm font-normal text-slate-500">kg</span>
               </div>
-              <div class="text-xs text-orange-600 mt-1">
+              <div class="mt-1 text-xs text-orange-600">
                 {{
                   results.claimPercentage > 0
                     ? results.claimPercentage + '% dari bruto'
@@ -487,21 +615,19 @@
               </div>
             </div>
 
-            <!-- Netto -->
             <div
-              class="bg-gradient-to-br from-slate-700 to-slate-900 border border-slate-800 rounded-lg p-4"
+              class="p-4 border rounded-lg bg-gradient-to-br from-slate-700 to-slate-900 border-slate-800"
             >
-              <div class="text-xs text-slate-300 mb-1 font-medium">Berat Netto (Final)</div>
+              <div class="mb-1 text-xs font-medium text-slate-300">Berat Netto (Final)</div>
               <div class="text-2xl font-bold text-white">
                 {{ results.netto }}
-                <span class="text-sm text-slate-300 font-normal ml-1">kg</span>
+                <span class="ml-1 text-sm font-normal text-slate-300">kg</span>
               </div>
-              <div class="text-xs text-emerald-400 mt-1">Setelah penyesuaian</div>
+              <div class="mt-1 text-xs text-emerald-400">Setelah penyesuaian</div>
             </div>
           </div>
 
-          <!-- Formula Info -->
-          <div class="mt-4 p-3 bg-white border border-slate-200 rounded-lg">
+          <div class="p-3 mt-4 bg-white border rounded-lg border-slate-200">
             <div class="flex items-start gap-2">
               <lucide-icons
                 [iconsName]="'info'"
@@ -522,69 +648,55 @@
           </div>
         </div>
       </div>
+      <!-- end: Hasil Perhitungan -->
 
-      <!-- Action Buttons -->
-      <!-- Action Buttons - Clean & Professional Design -->
-      <div class="flex gap-3 flex-wrap">
-        <!-- Calculate Button -->
+      <div class="flex flex-wrap gap-3">
         <button
           (click)="calculateResults()"
-          [disabled]="isLoading"
-          class="inline-flex items-center gap-2 px-5 py-2.5 bg-slate-900 text-white rounded-lg font-medium hover:bg-slate-800 active:bg-slate-950 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <lucide-icons [iconsName]="'calculator'" [size]="18" />
-          <span>Hitung Hasil</span>
-        </button>
-
-        <!-- Save Button -->
-        <button
-          *ngIf="results"
-          (click)="saveResults()"
+          class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50"
           [disabled]="isSaving"
-          class="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 active:bg-emerald-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <lucide-icons *ngIf="!isSaving" [iconsName]="'save'" [size]="18" />
-          <lucide-icons
-            *ngIf="isSaving"
-            [iconsName]="'loader-2'"
-            [size]="18"
-            class="animate-spin"
-          />
-          <span *ngIf="!isSaving">Simpan Hasil</span>
-          <span *ngIf="isSaving">Menyimpan...</span>
+          <lucide-icons [iconsName]="'calculator'" [size]="16" />
+          <span>Hitung Ulang</span>
         </button>
 
-        <!-- Reset Button -->
+        <button
+          (click)="saveResults()"
+          class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white rounded-lg bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50"
+          [disabled]="!results || isSaving"
+        >
+          <lucide-icons [iconsName]="'save'" [size]="16" />
+          <span>{{ isEditMode ? 'Update Data Uji' : 'Simpan Hasil Uji' }}</span>
+        </button>
+
+        <button
+          (click)="exportToJson()"
+          class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+          [disabled]="!results"
+        >
+          <lucide-icons [iconsName]="'file-down'" [size]="16" />
+          <span>Export JSON</span>
+        </button>
+
+        <button
+          (click)="printReport()"
+          class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+          [disabled]="!results"
+        >
+          <lucide-icons [iconsName]="'printer'" [size]="16" />
+          <span>Cetak Laporan</span>
+        </button>
+
         <button
           (click)="resetForm()"
-          class="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-slate-700 border border-slate-300 rounded-lg font-medium hover:bg-slate-50 active:bg-slate-100 transition-colors"
+          class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
         >
-          <lucide-icons [iconsName]="'rotate-ccw'" [size]="18" />
+          <lucide-icons [iconsName]="'rotate-ccw'" [size]="16" />
           <span>Reset Form</span>
         </button>
-
-        <!-- Export JSON Button (Optional) -->
-        <!-- <button
-          *ngIf="results"
-          (click)="exportToJson()"
-          class="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-slate-700 border border-slate-300 rounded-lg font-medium hover:bg-slate-50 active:bg-slate-100 transition-colors"
-        >
-          <lucide-icons [iconsName]="'download'" [size]="18" />
-          <span>Export JSON</span>
-        </button> -->
-
-        <!-- Print Button (Optional) -->
-        <!-- <button
-          *ngIf="results"
-          (click)="printReport()"
-          class="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-slate-700 border border-slate-300 rounded-lg font-medium hover:bg-slate-50 active:bg-slate-100 transition-colors"
-        >
-          <lucide-icons [iconsName]="'printer'" [size]="18" />
-          <span>Print / PDF</span>
-        </button> -->
       </div>
     </div>
 
-    <app-modal></app-modal>
+    <!-- Action Buttons -->
   </div>
 </div>
