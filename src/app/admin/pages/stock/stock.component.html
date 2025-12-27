@@ -184,7 +184,7 @@
         <thead>
           <tr>
             <th class="text-left">Item</th>
-            <th class="text-left">Description</th>
+            <!-- <th class="text-left">Description</th> -->
             <th class="text-right">Beginning Balance (Kg)</th>
             <th class="text-right">Received in Period (Kg)</th>
             <th class="text-right">Used in Period (Kg)</th>
@@ -193,7 +193,7 @@
         </thead>
         <tbody>
           <tr *ngFor="let report of periodReportData()" [class.total-row]="report.isTotal">
-            <td class="text-left">{{ report.item }}</td>
+            <!-- <td class="text-left">{{ report.item }}</td> -->
             <td class="text-left">{{ report.description }}</td>
             <td class="text-right">{{ formatNumber(report.beginningBalance) }}</td>
             <td class="text-right text-green-600">{{ formatNumber(report.receivedInPeriod) }}</td>
