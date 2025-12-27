@@ -3,7 +3,7 @@
 <div class="laporan-container">
   <!-- Header -->
   <div class="header no-print">
-    <div class="flex justify-start items-center gap-3">
+    <div class="flex items-center justify-start gap-3">
       <img src="ads-logo1.png" class="w-10 h-auto" alt="PT. Agro Deli Serdang" />
       <h1 class="title">Weighing Report</h1>
     </div>
@@ -59,20 +59,20 @@
   <!-- Loading Indicator -->
   <div *ngIf="isLoading" class="loading-container">
     <div class="flex flex-col items-center justify-center py-12">
-      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+      <div class="w-12 h-12 mb-4 border-b-2 border-blue-600 rounded-full animate-spin"></div>
       <p class="text-gray-600">Loading report data...</p>
     </div>
   </div>
 
   <!-- Data Table -->
-  <div class="data-section mb-6" *ngIf="!isLoading">
+  <div class="mb-6 data-section" *ngIf="!isLoading">
     <h3 class="section-title">Weighing Data ({{ filteredData.length }} records)</h3>
 
     <div *ngIf="filteredData.length === 0" class="empty-state">
       <div class="flex flex-col items-center justify-center py-12">
         <lucide-icons [iconsName]="'inbox'" [size]="48" [color]="'#9CA3AF'" class="mb-4" />
-        <p class="text-gray-500 text-lg font-medium">No data found for the selected filters</p>
-        <p class="text-gray-400 text-sm mt-2">Try changing the filters or time period</p>
+        <p class="text-lg font-medium text-gray-500">No data found for the selected filters</p>
+        <p class="mt-2 text-sm text-gray-400">Try changing the filters or time period</p>
       </div>
     </div>
 
@@ -98,7 +98,7 @@
           <tr *ngFor="let item of filteredData; let i = index">
             <td class="text-center">{{ i + 1 }}</td>
             <td class="text-center">{{ formatDate(item.timestamp) }}</td>
-            <td class="text-center font-semibold">{{ item.noTiket }}</td>
+            <td class="font-semibold text-center">{{ item.noTiket }}</td>
             <td class="text-center">{{ item.noKendaraan }}</td>
             <td class="text-center">
               {{
@@ -114,7 +114,9 @@
                   : item.laporanSupplier
               }}
             </td>
-            <td class="text-center">{{ item.namaBarang }}</td>
+            <td class="text-center">
+              {{ item.namaBarang == 'DAN LAIN-LAIN' ? item.keteranganBarang : item.namaBarang }}
+            </td>
             <td class="text-center">
               <span class="badge" [ngClass]="getTipeClass(item.tipeBahan)">
                 {{ getTipeBadge(item.tipeBahan) == 'Bahan Baku' ? 'Raw Material' : 'Other' }}
@@ -124,7 +126,7 @@
             <td class="text-center">
               {{ formatNumber(item.timbanganPertama - (item.beratNetto || 0)) + 'Kg' }}
             </td>
-            <td class="text-center font-semibold">
+            <td class="font-semibold text-center">
               {{ item.beratNetto ? formatNumber(item.beratNetto) + 'Kg' : '-' }}
             </td>
             <!-- <td class="text-center">
@@ -141,7 +143,7 @@
   <!-- Detailed Stats -->
   <div class="detail-stats" *ngIf="isRincianVisible && !isLoading">
     <h3 class="section-title">Weight Details</h3>
-    <div class="w-full border-b border-gray-100 my-2"></div>
+    <div class="w-full my-2 border-b border-gray-100"></div>
 
     <div class="stats-table">
       <div class="stats-group">
@@ -155,7 +157,7 @@
         </div>
       </div>
 
-      <div class="w-full border-b border-gray-100 my-2"></div>
+      <div class="w-full my-2 border-b border-gray-100"></div>
 
       <div class="stats-group">
         <div class="stats-row">
@@ -168,7 +170,7 @@
         </div>
       </div>
 
-      <div class="w-full border-b border-gray-100 my-2"></div>
+      <div class="w-full my-2 border-b border-gray-100"></div>
 
       <div class="stats-group">
         <div class="stats-row">
@@ -186,7 +188,7 @@
   <!-- Action Buttons -->
   <div class="action-buttons no-print" *ngIf="!isLoading">
     <button
-      class="btn bg-neutral-800 text-white flex justify-center w-auto gap-3 items-center"
+      class="flex items-center justify-center w-auto gap-3 text-white btn bg-neutral-800"
       (click)="toggleShowRincian()"
     >
       <lucide-icon [name]="isRincianVisible ? 'chevron-up' : 'chevron-down'"></lucide-icon>
@@ -194,14 +196,14 @@
       <span *ngIf="!isRincianVisible">Show Details</span>
     </button>
     <button
-      class="btn bg-neutral-800 text-white flex justify-center w-auto gap-3 items-center"
+      class="flex items-center justify-center w-auto gap-3 text-white btn bg-neutral-800"
       (click)="exportToExcel()"
       [disabled]="filteredData.length === 0"
     >
       <lucide-icons [iconsName]="'sheet'" class="text-white" /> Export to Excel
     </button>
     <button
-      class="btn bg-gray-200 text-neutral-800 flex justify-center w-auto gap-3 items-center"
+      class="flex items-center justify-center w-auto gap-3 bg-gray-200 btn text-neutral-800"
       (click)="printLaporan()"
       [disabled]="filteredData.length === 0"
     >
