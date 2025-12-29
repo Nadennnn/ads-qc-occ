@@ -461,7 +461,7 @@
           <input type="text" formControlName="nomor_bon" class="form-input" placeholder="PM-001" />
         </div>
 
-        <div class="form-group">
+        <!-- <div class="form-group">
           <label class="form-label">Purpose <span class="text-red-500">*</span></label>
           <input
             type="text"
@@ -469,7 +469,7 @@
             class="form-input"
             placeholder="Production"
           />
-        </div>
+        </div> -->
 
         <div class="form-group">
           <label class="form-label">Date <span class="text-red-500">*</span></label>
@@ -504,7 +504,7 @@
         type="submit"
         [disabled]="!pemakaianForm.valid"
         (click)="submitPemakaian()"
-        class="text-white bg-red-600 btn"
+        class="px-5 py-2 font-bold text-white bg-red-600 border border-red-300 rounded-xl btn"
       >
         Save Usage
       </button>

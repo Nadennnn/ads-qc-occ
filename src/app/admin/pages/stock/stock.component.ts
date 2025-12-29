@@ -3,7 +3,7 @@
 import { ChangeDetectionStrategy, Component, computed, OnInit, signal } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import * as XLSX from 'xlsx';
-import { StockItem, TransactionHistory as ApiTransactionHistory } from './interfaces/stock.interface';
+import { StockItem } from './interfaces/stock.interface';
 import { StockService } from './services/stock.service';
 
 interface BarangOption {
@@ -99,7 +99,10 @@ export class StockComponent implements OnInit {
     this.filteredStockData().reduce((sum, item) => sum + item.stock_akhir, 0),
   );
 
-  constructor(private fb: FormBuilder, private stockService: StockService) {}
+  constructor(
+    private fb: FormBuilder,
+    private stockService: StockService,
+  ) {}
 
   ngOnInit(): void {
     this.initializeForms();
@@ -125,7 +128,7 @@ export class StockComponent implements OnInit {
       barang: ['', Validators.required],
       jumlah: ['', [Validators.required, Validators.min(1)]],
       nomor_bon: ['', Validators.required],
-      keperluan: ['', Validators.required],
+      keperluan: ['-'],
       tanggal: [new Date().toISOString().split('T')[0], Validators.required],
       petugas: ['', Validators.required],
       keterangan: [''],
