@@ -95,10 +95,11 @@
           <tr>
             <th>No.</th>
             <th>Item Name</th>
-            <th>Opening Stock</th>
-            <th>Received</th>
-            <th>Used</th>
-            <th>Closing Stock</th>
+            <!-- <th>Opening Stock</th> -->
+            <!-- <th>Received</th> -->
+            <!-- <th>Used</th> -->
+            <!-- <th>Closing Stock</th> -->
+            <th>Stock</th>
             <th>Unit</th>
             <!-- <th>Stock Level</th> -->
             <th>Last Updated</th>
@@ -110,11 +111,11 @@
             <td>
               <strong>{{ item.barang }}</strong>
             </td>
-            <td class="text-right">{{ formatNumber(item.stock_awal) }}</td>
-            <td class="text-right text-green-600">+{{ formatNumber(item.penerimaan) }}</td>
-            <td class="text-right text-red-600">-{{ formatNumber(item.pemakaian) }}</td>
+            <!-- <td class="text-right">{{ formatNumber(item.stock_awal) }}</td> -->
+            <!-- <td class="text-right text-green-600">+{{ formatNumber(item.penerimaan) }}</td> -->
+            <!-- <td class="text-right text-red-600">-{{ formatNumber(item.pemakaian) }}</td> -->
             <td class="text-right">
-              <strong>{{ formatNumber(item.stock_akhir) }}</strong>
+              <strong>{{ item.stock_barang }}</strong>
             </td>
             <td class="text-center">{{ item.satuan }}</td>
             <td class="text-center">{{ formatDate(item.last_updated) }}</td>
@@ -496,19 +497,18 @@
           placeholder="Additional notes (optional)"
         ></textarea>
       </div>
-    </form>
 
-    <div class="modal-footer">
-      <button type="button" (click)="closePemakaianModal()" class="btn-secondary">Cancel</button>
-      <button
-        type="submit"
-        [disabled]="!pemakaianForm.valid"
-        (click)="submitPemakaian()"
-        class="px-5 py-2 font-bold text-white bg-red-600 border border-red-300 rounded-xl btn"
-      >
-        Save Usage
-      </button>
-    </div>
+      <div class="modal-footer">
+        <button type="button" (click)="closePemakaianModal()" class="btn-secondary">Cancel</button>
+        <button
+          type="submit"
+          [disabled]="!pemakaianForm.valid"
+          class="px-5 py-2 font-bold text-white bg-red-600 border border-red-300 rounded-xl btn"
+        >
+          Save Usage
+        </button>
+      </div>
+    </form>
   </div>
 </div>
 

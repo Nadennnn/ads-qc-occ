@@ -4,7 +4,6 @@ import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { Router } from '@angular/router';
 import { finalize, Subject, takeUntil } from 'rxjs';
 import { ApiService } from '../../services/api.service';
-import { ModalService } from '../../services/modal.service';
 
 // Interface untuk response API dari backend
 interface BahanBakuApiResponse {
@@ -22,33 +21,10 @@ interface BahanBakuApiResponse {
   berat_bruto: string;
   berat_netto: string | null;
   petugas: string;
-  status: string;
-  is_finished: string;
+  status: string; // "Belum Diuji" | "Sudah Diuji"
+  is_finished: string; // "0" | "1"
   created_at: string;
   updated_at: string;
-  tara?: {
-    id: number;
-    berat_bruto: string;
-    berat_tara: string;
-    potongan_moisture: string;
-    berat_netto: string;
-    potongan_sampah: string;
-  };
-  uji_kelembapan?: {
-    id: number;
-    jumlah_ball: string;
-    total_moisture: string;
-    avg_moisture: string;
-    nilai_claim: string;
-    berat_bruto: string;
-    berat_netto: string;
-    potongan_sampah: string;
-  };
-  titik?: Array<{
-    id: number;
-    titik: string;
-    nilai: string;
-  }>;
 }
 
 interface MoistureResults {
@@ -70,24 +46,16 @@ interface MoistureResults {
 export class UjiKelembapanComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
-  // Tab Management
-  activeTab: 'new' | 'edit' = 'new';
-
   // List data dari API
   bahanBakuList: BahanBakuApiResponse[] = [];
-  bahanBakuEditList: BahanBakuApiResponse[] = [];
   selectedData: BahanBakuApiResponse | null = null;
   showForm = false;
-  isEditMode = false;
-  editingUjiId: number | null = null;
 
   // Loading & Error states
   isLoading = false;
   isLoadingList = false;
-  isLoadingEditList = false;
   isSaving = false;
   errorMessage = '';
-  errorMessageEdit = '';
 
   // Form Data
   formData = {
@@ -120,12 +88,10 @@ export class UjiKelembapanComponent implements OnInit, OnDestroy {
   constructor(
     private router: Router,
     private apiService: ApiService,
-    private modalService: ModalService,
   ) {}
 
   ngOnInit(): void {
     this.loadBahanBakuList();
-    this.loadBahanBakuEditList();
   }
 
   ngOnDestroy(): void {
@@ -134,17 +100,7 @@ export class UjiKelembapanComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Switch between tabs
-   */
-  switchTab(tab: 'new' | 'edit'): void {
-    this.activeTab = tab;
-    if (this.showForm) {
-      this.backToList();
-    }
-  }
-
-  /**
-   * Load daftar bahan baku untuk input baru
+   * Load daftar bahan baku dari API
    */
   private loadBahanBakuList(): void {
     this.isLoadingList = true;
@@ -159,9 +115,11 @@ export class UjiKelembapanComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (response) => {
           if (response.success && response.data) {
+            // Filter hanya yang belum diuji (status "Belum Diuji")
             this.bahanBakuList = response.data.filter(
               (item) => item.status === 'Belum Diuji' && item.type_bahan === 'Bahan Baku',
             );
+            console.log('Loaded bahan baku list:', this.bahanBakuList);
           } else {
             this.errorMessage = 'Gagal memuat data';
           }
@@ -174,56 +132,20 @@ export class UjiKelembapanComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Load daftar bahan baku untuk edit (sudah diuji)
-   */
-  private loadBahanBakuEditList(): void {
-    this.isLoadingEditList = true;
-    this.errorMessageEdit = '';
-
-    this.apiService
-      .get<BahanBakuApiResponse[]>('daftar-tara-selesai')
-      .pipe(
-        takeUntil(this.destroy$),
-        finalize(() => (this.isLoadingEditList = false)),
-      )
-      .subscribe({
-        next: (response) => {
-          if (response.success && response.data) {
-            this.bahanBakuEditList = response.data.filter(
-              (item) => item.type_bahan === 'Bahan Baku' && item.uji_kelembapan,
-            );
-            console.log('Loaded edit list:', this.bahanBakuEditList);
-          } else {
-            this.errorMessageEdit = 'Gagal memuat data';
-          }
-        },
-        error: (error) => {
-          console.error('Error loading edit list:', error);
-          this.errorMessageEdit = error.message || 'Gagal memuat data untuk edit';
-        },
-      });
-  }
-
-  /**
    * Refresh list data
    */
   refreshList(): void {
-    if (this.activeTab === 'new') {
-      this.loadBahanBakuList();
-    } else {
-      this.loadBahanBakuEditList();
-    }
+    this.loadBahanBakuList();
   }
 
   /**
-   * Select data untuk uji kelembapan baru
+   * Select data untuk uji kelembapan
    */
   selectData(data: BahanBakuApiResponse): void {
     this.selectedData = data;
     this.showForm = true;
-    this.isEditMode = false;
-    this.editingUjiId = null;
 
+    // Populate form dengan data dari API
     this.formData = {
       noKendaraan: data.nomor_kendaraan || '',
       noSlipTimbang: data.nomor_bon || '',
@@ -232,75 +154,14 @@ export class UjiKelembapanComponent implements OnInit, OnDestroy {
       jenisBarang: data.barang || '',
       jumlahBall: '',
       beratBahan: data.berat_bruto || '0',
-      potonganSampah: '0',
+      potonganSampah: '0', // ← TAMBAHKAN INI
     };
 
+    // Reset moisture points
     this.moisturePoints = Array(80).fill('');
     this.results = null;
 
-    setTimeout(() => {
-      document.getElementById('form-section')?.scrollIntoView({ behavior: 'smooth' });
-    }, 100);
-  }
-
-  /**
-   * Select data untuk edit uji kelembapan
-   */
-  selectDataForEdit(data: BahanBakuApiResponse): void {
-    if (!data.uji_kelembapan) {
-      this.modalService.confirm({
-        title: 'Data Tidak Lengkap',
-        message: 'Data uji kelembapan tidak ditemukan',
-        icon: 'warning',
-        type: 'warning',
-        confirmText: 'OK',
-        cancelText: 'Tutup',
-      });
-      return;
-    }
-
-    this.selectedData = data;
-    this.showForm = true;
-    this.isEditMode = true;
-    this.editingUjiId = data.uji_kelembapan.id;
-
-    // Populate form dengan data existing
-    this.formData = {
-      noKendaraan: data.nomor_kendaraan || '',
-      noSlipTimbang: data.nomor_bon || '',
-      tanggal: new Date(data.created_at).toISOString().split('T')[0],
-      supplier: data.suplier || '',
-      jenisBarang: data.barang || '',
-      jumlahBall: data.uji_kelembapan.jumlah_ball || '0',
-      beratBahan: data.uji_kelembapan.berat_bruto || '0',
-      potonganSampah: data.uji_kelembapan.potongan_sampah || '0',
-    };
-
-    // Populate moisture points dari data existing
-    this.moisturePoints = Array(80).fill('');
-    if (data.titik && data.titik.length > 0) {
-      data.titik.forEach((point) => {
-        const index = parseInt(point.titik) - 1;
-        if (index >= 0 && index < 80) {
-          this.moisturePoints[index] = point.nilai;
-        }
-      });
-    }
-
-    // Parse dan set results dari data existing
-    const avgMoisture = parseFloat(data.uji_kelembapan.avg_moisture.replace('%', ''));
-    const claimValue = parseFloat(data.uji_kelembapan.nilai_claim.replace('%', ''));
-    const totalMoisture = parseFloat(data.uji_kelembapan.total_moisture.replace('%', ''));
-
-    this.results = {
-      totalMoisture: totalMoisture,
-      averageMoisture: avgMoisture,
-      claimPercentage: claimValue,
-      beratBahan: parseFloat(data.uji_kelembapan.berat_bruto),
-      netto: parseFloat(data.uji_kelembapan.berat_netto),
-      pointsChecked: data.titik?.length || 0,
-    };
-
+    // Scroll to form
     setTimeout(() => {
       document.getElementById('form-section')?.scrollIntoView({ behavior: 'smooth' });
     }, 100);
@@ -309,102 +170,82 @@ export class UjiKelembapanComponent implements OnInit, OnDestroy {
   backToList(): void {
     this.showForm = false;
     this.selectedData = null;
-    this.isEditMode = false;
-    this.editingUjiId = null;
     this.resetForm();
   }
 
-  async calculateResults(): Promise<boolean> {
+  calculateResults(): void {
+    // Validate form completeness
     if (!this.formData.supplier || !this.formData.jenisBarang) {
-      await this.modalService.confirm({
-        title: 'Data Tidak Lengkap',
-        message: 'Harap lengkapi data supplier dan jenis barang',
-        icon: 'warning',
-        type: 'warning',
-        confirmText: 'OK',
-        cancelText: 'Tutup',
-      });
-      return false;
+      alert('Harap lengkapi data supplier dan jenis barang');
+      return;
     }
 
+    // Validate berat bahan
     if (!this.formData.beratBahan || parseFloat(this.formData.beratBahan) <= 0) {
-      await this.modalService.confirm({
-        title: 'Berat Bahan Kosong',
-        message: 'Harap isi Berat Bahan terlebih dahulu',
-        icon: 'warning',
-        type: 'warning',
-        confirmText: 'OK',
-        cancelText: 'Tutup',
-      });
-      return false;
+      alert('Harap isi Berat Bahan terlebih dahulu');
+      return;
     }
 
+    // Filter only filled moisture points
     const filledPoints = this.moisturePoints
       .filter((point) => point !== '' && !isNaN(parseFloat(point)))
       .map((point) => parseFloat(point));
 
+    // Validate minimum points
     if (filledPoints.length === 0) {
-      await this.modalService.confirm({
-        title: 'Tidak Ada Data Moisture',
-        message: 'Harap isi minimal satu titik pengukuran moisture',
-        icon: 'warning',
-        type: 'warning',
-        confirmText: 'OK',
-        cancelText: 'Tutup',
-      });
-      return false;
+      alert('Harap isi minimal satu titik pengukuran moisture');
+      return;
     }
 
+    // Validate minimum 10 points
     if (filledPoints.length < 10) {
-      const proceed = await this.modalService.confirm({
-        title: 'Titik Pengukuran Kurang',
-        message: `Hanya ${filledPoints.length} titik yang terisi. Minimal 10 titik direkomendasikan.`,
-        icon: 'warning',
-        type: 'warning',
-        confirmText: 'Lanjutkan',
-        cancelText: 'Batal',
-      });
-
-      if (!proceed) return false;
+      if (
+        !confirm(
+          `Hanya ${filledPoints.length} titik yang terisi. Minimal 10 titik direkomendasikan.\n\nLanjutkan perhitungan?`,
+        )
+      ) {
+        return;
+      }
     }
 
+    // NEW: Validate jumlah ball
     if (!this.formData.jumlahBall || parseInt(this.formData.jumlahBall) < 0) {
-      const proceed = await this.modalService.confirm({
-        title: 'Jumlah Ball Kosong',
-        message: 'Jumlah Ball belum diisi. Lanjutkan dengan 0?',
-        icon: 'warning',
-        type: 'warning',
-        confirmText: 'Ya, Lanjutkan',
-        cancelText: 'Batal',
-      });
-
-      if (!proceed) return false;
+      if (!confirm('Jumlah Ball belum diisi. Lanjutkan dengan 0?')) {
+        return;
+      }
       this.formData.jumlahBall = '0';
     }
 
+    // Validate moisture range (5-30%)
     const invalidPoints = filledPoints.filter((p) => p < 5 || p > 30);
     if (invalidPoints.length > 0) {
-      const proceed = await this.modalService.confirm({
-        title: 'Nilai Tidak Wajar Terdeteksi',
-        message: `Ada ${invalidPoints.length} titik dengan nilai tidak wajar: ${invalidPoints.join(', ')}%`,
-        icon: 'warning',
-        type: 'warning',
-        confirmText: 'Lanjutkan',
-        cancelText: 'Batal',
-      });
-
-      if (!proceed) return false;
+      if (
+        !confirm(
+          `Ada ${invalidPoints.length} titik dengan nilai tidak wajar.\n` +
+            `Nilai: ${invalidPoints.join(', ')}%\n\n` +
+            `Lanjutkan perhitungan?`,
+        )
+      ) {
+        return;
+      }
     }
 
     const totalMoisture = filledPoints.reduce((sum, val) => sum + val, 0);
     const averageMoisture = totalMoisture / filledPoints.length;
+
+    // Calculate claim percentage (difference from standard)
     const claimPercentage = averageMoisture - this.STANDARD_MOISTURE;
+
+    // Calculate netto based on Bruto
     const beratBahan = parseFloat(this.formData.beratBahan);
 
+    // ✅ BAGIAN BARU - LOGIKA YANG BENAR
     let netto: number;
     if (claimPercentage <= 0) {
+      // Kelembapan di bawah atau sama dengan standar -> tidak ada penyesuaian
       netto = beratBahan;
     } else {
+      // Kelembapan di atas standar -> ada pengurangan
       netto = beratBahan - beratBahan * (claimPercentage / 100);
     }
 
@@ -416,64 +257,43 @@ export class UjiKelembapanComponent implements OnInit, OnDestroy {
       netto: parseFloat(netto.toFixed(2)),
       pointsChecked: filledPoints.length,
     };
-
-    return true;
   }
 
   /**
-   * Save atau Update hasil uji kelembapan
+   * ANCHOR Save hasil uji kelembapan ke backend
    */
-  async saveResults(): Promise<void> {
-    // Recalculate dulu supaya hasil selalu up-to-date
-    const ok = await this.calculateResults();
-    if (!ok) {
-      // Validasi gagal / user batal → jangan lanjut simpan
-      return;
-    }
-
+  saveResults(): void {
     if (!this.results || !this.selectedData) {
-      await this.modalService.confirm({
-        title: 'Hasil Belum Dihitung',
-        message: 'Harap hitung hasil terlebih dahulu',
-        icon: 'warning',
-        type: 'warning',
-        confirmText: 'OK',
-        cancelText: 'Tutup',
-      });
+      alert('Harap hitung hasil terlebih dahulu');
       return;
     }
 
-    const actionText = this.isEditMode ? 'mengupdate' : 'menyimpan';
-    const confirmed = await this.modalService.confirm({
-      title: `Konfirmasi ${this.isEditMode ? 'Update' : 'Simpan'} Data`,
-      message: `Apakah Anda yakin ingin ${actionText} hasil uji kelembapan ini?`,
-      details: [
-        { label: 'Kelembapan Rata-rata', value: `${this.results.averageMoisture}%` },
-        { label: 'Standar', value: `${this.STANDARD_MOISTURE}%` },
-        {
-          label: 'Selisih',
-          value: `${this.results.claimPercentage > 0 ? '+' : ''}${this.results.claimPercentage}%`,
-        },
-        { label: 'Berat Netto', value: `${this.results.netto} kg` },
-      ],
-      icon: 'save',
-      type: 'info',
-      confirmText: `Ya, ${this.isEditMode ? 'Update' : 'Simpan'}`,
-      cancelText: 'Batal',
-    });
-
-    if (!confirmed) return;
+    // Confirm before save
+    if (
+      !confirm(
+        `Simpan hasil uji kelembapan?\n\n` +
+          `Kelembapan Rata-rata: ${this.results.averageMoisture}%\n` +
+          `Standar: ${this.STANDARD_MOISTURE}%\n` +
+          `Selisih: ${this.results.claimPercentage}%\n` +
+          `Berat Netto: ${this.results.netto} kg`,
+      )
+    ) {
+      return;
+    }
 
     this.isSaving = true;
 
+    // Build titik array - HANYA yang terisi
     const titikArray = this.moisturePoints
       .map((value, index) => ({
         titik: index + 1,
         value: value !== '' && !isNaN(parseFloat(value)) ? parseFloat(value) : null,
       }))
-      .filter((item) => item.value !== null);
+      .filter((item) => item.value !== null); // Filter hanya yang ada valuenya
 
+    // Build payload sesuai format backend
     const payload = {
+      timbangan_masuk_id: this.selectedData.id,
       jumlah_ball: parseInt(this.formData.jumlahBall) || 0,
       total_moisture: `${this.results.totalMoisture}%`,
       avg_moisture: `${this.results.averageMoisture}%`,
@@ -484,72 +304,33 @@ export class UjiKelembapanComponent implements OnInit, OnDestroy {
       titik: titikArray,
     };
 
-    // Jika edit mode, tambahkan timbangan_masuk_id untuk endpoint insert
-    // atau gunakan endpoint update dengan ID
-    const endpoint = this.isEditMode
-      ? `update-uji-kelembapan/${this.editingUjiId}`
-      : 'insert-uji-kelembapan';
-
-    const apiMethod = this.isEditMode ? 'put' : 'post';
-
-    // Untuk insert, perlu timbangan_masuk_id
-    if (!this.isEditMode) {
-      (payload as any).timbangan_masuk_id = this.selectedData.id;
-    }
-
     console.log('Payload yang dikirim:', payload);
 
-    this.apiService[apiMethod](endpoint, payload)
+    this.apiService
+      .post('insert-uji-kelembapan', payload)
       .pipe(
         takeUntil(this.destroy$),
         finalize(() => (this.isSaving = false)),
       )
       .subscribe({
-        next: async (response) => {
+        next: (response) => {
           if (response.success) {
-            await this.modalService.confirm({
-              title: `Berhasil ${this.isEditMode ? 'Diupdate' : 'Disimpan'}!`,
-              message: `Hasil uji kelembapan berhasil ${this.isEditMode ? 'diupdate' : 'disimpan'} ke database`,
-              details: [
-                { label: 'Kelembapan Rata-rata', value: `${this.results!.averageMoisture}%` },
-                { label: 'Standar', value: `${this.STANDARD_MOISTURE}%` },
-                {
-                  label: 'Selisih',
-                  value: `${this.results!.claimPercentage > 0 ? '+' : ''}${this.results!.claimPercentage}%`,
-                },
-                { label: 'Berat Netto', value: `${this.results!.netto} kg` },
-              ],
-              icon: 'success',
-              type: 'success',
-              confirmText: 'OK',
-              cancelText: 'Tutup',
-            });
+            alert(
+              `✓ Hasil uji kelembapan berhasil disimpan!\n\n` +
+                `Kelembapan Rata-rata: ${this.results!.averageMoisture}%\n` +
+                `Standar: ${this.STANDARD_MOISTURE}%\n` +
+                `Selisih: ${this.results!.claimPercentage}%\n` +
+                `Berat Netto: ${this.results!.netto} kg`,
+            );
             this.backToList();
-            this.refreshList();
-            if (this.isEditMode) {
-              this.loadBahanBakuEditList();
-            }
+            this.refreshList(); // Refresh list setelah save
           } else {
-            await this.modalService.confirm({
-              title: 'Gagal Menyimpan',
-              message: response.message || 'Terjadi kesalahan saat menyimpan data',
-              icon: 'danger',
-              type: 'danger',
-              confirmText: 'OK',
-              cancelText: 'Tutup',
-            });
+            alert(`Gagal menyimpan: ${response.message}`);
           }
         },
-        error: async (error) => {
+        error: (error) => {
           console.error('Error saving hasil uji:', error);
-          await this.modalService.confirm({
-            title: 'Error',
-            message: error.message || 'Terjadi kesalahan saat menyimpan hasil',
-            icon: 'danger',
-            type: 'danger',
-            confirmText: 'OK',
-            cancelText: 'Tutup',
-          });
+          alert(`Gagal menyimpan hasil: ${error.message || 'Terjadi kesalahan'}`);
         },
       });
   }
@@ -658,6 +439,9 @@ export class UjiKelembapanComponent implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * Validate moisture input (0-100%)
+   */
   validateMoistureInput(event: any, index: number): void {
     const value = parseFloat(event.target.value);
     if (!isNaN(value) && (value < 0 || value > 100)) {
@@ -671,19 +455,13 @@ export class UjiKelembapanComponent implements OnInit, OnDestroy {
     return !isNaN(value) && (value < 0 || value > 100);
   }
 
-  async fillSampleData(): Promise<void> {
-    const confirmed = await this.modalService.confirm({
-      title: 'Isi Data Sample',
-      message: 'Isi dengan data sample untuk testing?',
-      icon: 'info',
-      type: 'info',
-      confirmText: 'Ya, Isi',
-      cancelText: 'Batal',
-    });
-
-    if (confirmed) {
+  /**
+   * Fill sample data for testing (optional)
+   */
+  fillSampleData(): void {
+    if (confirm('Isi dengan data sample untuk testing?')) {
       for (let i = 0; i < 20; i++) {
-        this.moisturePoints[i] = (14 + Math.random() * 4).toFixed(1);
+        this.moisturePoints[i] = (14 + Math.random() * 4).toFixed(1); // 14-18%
       }
     }
   }

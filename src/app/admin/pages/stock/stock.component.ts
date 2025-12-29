@@ -3,6 +3,7 @@
 import { ChangeDetectionStrategy, Component, computed, OnInit, signal } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import * as XLSX from 'xlsx';
+import { ApiService } from '../../services/api.service';
 import { StockItem } from './interfaces/stock.interface';
 import { StockService } from './services/stock.service';
 
@@ -61,6 +62,7 @@ export class StockComponent implements OnInit {
   isLoading = signal<boolean>(false);
   isRincianVisible = signal<boolean>(false);
   isPeriodLoading = signal<boolean>(false);
+  isSubmittingPemakaian = signal<boolean>(false);
 
   // Modal states
   showPenerimaanModal = signal<boolean>(false);
@@ -102,6 +104,7 @@ export class StockComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private stockService: StockService,
+    private api: ApiService,
   ) {}
 
   ngOnInit(): void {
@@ -126,9 +129,8 @@ export class StockComponent implements OnInit {
 
     this.pemakaianForm = this.fb.group({
       barang: ['', Validators.required],
-      jumlah: ['', [Validators.required, Validators.min(1)]],
+      jumlah: ['', [Validators.required, Validators.min(0.01)]],
       nomor_bon: ['', Validators.required],
-      keperluan: ['-'],
       tanggal: [new Date().toISOString().split('T')[0], Validators.required],
       petugas: ['', Validators.required],
       keterangan: [''],
@@ -142,8 +144,6 @@ export class StockComponent implements OnInit {
     return `${year}-${month}-${day}`;
   }
 
-  // Load stock data from API /api/raw-material-report with dynamic dates
-  // Rule: start_date = yesterday, end_date = today
   loadStockData(): void {
     this.isLoading.set(true);
 
@@ -163,14 +163,15 @@ export class StockComponent implements OnInit {
           penerimaan: item.received_in_period,
           pemakaian: item.used_in_period,
           stock_akhir: item.ending_ballance,
+          stock_barang: item.stok,
           satuan: 'Kg',
-          // API tidak menyediakan last_updated, jadi kita gunakan tanggal hari ini
           last_updated: new Date().toISOString(),
         }));
 
         this.stockData.set(mappedData);
         this.filteredStockData.set(mappedData);
         this.isLoading.set(false);
+        console.log('cek data ini : ', this.stockData());
       },
       error: (error) => {
         console.error('Failed to load stock data from API', error);
@@ -180,7 +181,6 @@ export class StockComponent implements OnInit {
   }
 
   loadTransactionHistory(): void {
-    // Dummy transaction history
     const dummyHistory: TransactionHistory[] = [
       {
         id: 1,
@@ -193,41 +193,6 @@ export class StockComponent implements OnInit {
         supir: 'YOGA',
         tanggal: '2025-12-11T03:00:03Z',
         petugas: 'NADEN',
-      },
-      {
-        id: 2,
-        barang: 'DLK',
-        jenis: 'penerimaan',
-        jumlah: 1500,
-        nomor_bon: 'DLK-002',
-        nomor_kendaraan: 'L 456 XYZ',
-        suplier: 'PT MAJU JAYA',
-        supir: 'BUDI',
-        tanggal: '2025-12-12T04:30:00Z',
-        petugas: 'SITI',
-      },
-      {
-        id: 3,
-        barang: 'LOCC/OCC',
-        jenis: 'pemakaian',
-        jumlah: 2500,
-        nomor_bon: 'PM-001',
-        nomor_kendaraan: '-',
-        supir: '-',
-        tanggal: '2025-12-13T02:15:00Z',
-        petugas: 'AHMAD',
-      },
-      {
-        id: 4,
-        barang: 'MIX WASTE',
-        jenis: 'penerimaan',
-        jumlah: 750,
-        nomor_bon: 'MW-001',
-        nomor_kendaraan: 'N 789 ABC',
-        suplier: 'CV BERKAH',
-        supir: 'DEDI',
-        tanggal: '2025-12-14T05:00:00Z',
-        petugas: 'RINI',
       },
     ];
 
@@ -245,7 +210,6 @@ export class StockComponent implements OnInit {
       this.filteredStockData.set(allData.filter((item) => item.barang === selected));
     }
 
-    // Recalculate period report when filter changes
     this.calculatePeriodReport();
   }
 
@@ -272,6 +236,7 @@ export class StockComponent implements OnInit {
   openPemakaianModal(): void {
     this.pemakaianForm.reset({
       tanggal: new Date().toISOString().split('T')[0],
+      keterangan: '',
     });
     this.showPemakaianModal.set(true);
   }
@@ -293,10 +258,8 @@ export class StockComponent implements OnInit {
     if (this.penerimaanForm.valid) {
       const formData = this.penerimaanForm.value;
 
-      // TODO: Kirim ke API
       console.log('Penerimaan submitted:', formData);
 
-      // Update stock (dummy)
       const currentStock = this.stockData();
       const updatedStock = currentStock.map((item) => {
         if (item.barang === formData.barang) {
@@ -313,7 +276,6 @@ export class StockComponent implements OnInit {
       this.stockData.set(updatedStock);
       this.filterStock();
 
-      // Add to history
       const newTransaction: TransactionHistory = {
         id: this.transactionHistory().length + 1,
         barang: formData.barang,
@@ -335,70 +297,125 @@ export class StockComponent implements OnInit {
   }
 
   submitPemakaian(): void {
-    if (this.pemakaianForm.valid) {
-      const formData = this.pemakaianForm.value;
-
-      // Cek apakah stock cukup
-      const stockItem = this.stockData().find((item) => item.barang === formData.barang);
-      if (stockItem && stockItem.stock_akhir < formData.jumlah) {
-        alert('Insufficient stock!');
-        return;
-      }
-
-      // TODO: Kirim ke API
-      console.log('Pemakaian submitted:', formData);
-
-      // Update stock (dummy)
-      const currentStock = this.stockData();
-      const updatedStock = currentStock.map((item) => {
-        if (item.barang === formData.barang) {
-          return {
-            ...item,
-            pemakaian: item.pemakaian + Number(formData.jumlah),
-            stock_akhir: item.stock_akhir - Number(formData.jumlah),
-            last_updated: new Date().toISOString(),
-          };
-        }
-        return item;
-      });
-
-      this.stockData.set(updatedStock);
-      this.filterStock();
-
-      // Add to history
-      const newTransaction: TransactionHistory = {
-        id: this.transactionHistory().length + 1,
-        barang: formData.barang,
-        jenis: 'pemakaian',
-        jumlah: formData.jumlah,
-        nomor_bon: formData.nomor_bon,
-        nomor_kendaraan: '-',
-        supir: '-',
-        tanggal: new Date().toISOString(),
-        petugas: formData.petugas,
-      };
-
-      this.transactionHistory.set([newTransaction, ...this.transactionHistory()]);
-
-      this.closePemakaianModal();
-      alert('Usage successfully added!');
+    if (!this.pemakaianForm.valid) {
+      alert('Please fill in all required fields correctly');
+      return;
     }
+
+    const formData = this.pemakaianForm.value;
+    const jumlah = Number(formData.jumlah);
+
+    // Cari stock item berdasarkan nama barang
+    const stockItem = this.stockData().find((item) => item.barang === formData.barang);
+
+    if (!stockItem) {
+      alert('Item not found in stock data');
+      return;
+    }
+
+    // Validasi stock mencukupi
+    if (stockItem.stock_akhir < jumlah) {
+      alert(`Insufficient stock! Available: ${this.formatNumber(stockItem.stock_akhir)} Kg`);
+      return;
+    }
+
+    // Set loading state
+    this.isSubmittingPemakaian.set(true);
+
+    // Payload sesuai dokumentasi API
+    const payload = {
+      id: stockItem.id.toString(), // ID bahan baku dari API
+      qty: jumlah.toString(), // Jumlah penggunaan
+      usage_no: formData.nomor_bon, // Nomor bon penggunaan
+      purpose: '-', // Keperluan (bisa diisi default atau dari form)
+      date: formData.tanggal, // Tanggal penggunaan
+      officer: formData.petugas, // Petugas yang mencatat
+      notes: formData.keterangan || '', // Catatan tambahan (opsional)
+    };
+
+    console.log('Submitting pemakaian with payload:', payload);
+
+    // Kirim ke API menggunakan ApiService
+    this.api.postMultipart('pemakaian-barang', payload).subscribe({
+      next: (response: any) => {
+        console.log('Pemakaian API response:', response);
+
+        if (response.success) {
+          // Update stock data di frontend
+          const currentStock = this.stockData();
+          const updatedStock = currentStock.map((item) => {
+            if (item.id === stockItem.id) {
+              return {
+                ...item,
+                pemakaian: item.pemakaian + jumlah,
+                stock_akhir: item.stock_akhir - jumlah,
+                last_updated: new Date().toISOString(),
+              };
+            }
+            return item;
+          });
+
+          this.stockData.set(updatedStock);
+          this.filterStock();
+
+          // Tambahkan ke transaction history
+          const newTransaction: TransactionHistory = {
+            id: this.transactionHistory().length + 1,
+            barang: formData.barang,
+            jenis: 'pemakaian',
+            jumlah,
+            nomor_bon: formData.nomor_bon,
+            nomor_kendaraan: '-',
+            supir: '-',
+            tanggal: new Date().toISOString(),
+            petugas: formData.petugas,
+          };
+
+          this.transactionHistory.set([newTransaction, ...this.transactionHistory()]);
+
+          // Refresh stock data from server untuk data terbaru
+          this.loadStockData();
+          this.calculatePeriodReport();
+
+          // Tutup modal dan tampilkan pesan sukses
+          this.closePemakaianModal();
+          alert(response.message || 'Material usage recorded successfully!');
+        } else {
+          alert(response.message || 'Failed to record usage');
+        }
+
+        this.isSubmittingPemakaian.set(false);
+      },
+      error: (error) => {
+        console.error('Failed to submit pemakaian:', error);
+
+        let errorMessage = 'Failed to record material usage. ';
+
+        if (error.error?.message) {
+          errorMessage += error.error.message;
+        } else if (error.message) {
+          errorMessage += error.message;
+        } else {
+          errorMessage += 'Please try again.';
+        }
+
+        alert(errorMessage);
+        this.isSubmittingPemakaian.set(false);
+      },
+    });
   }
 
   applyHistoryFilter(): void {
     let filtered = this.transactionHistory();
 
-    // Filter by barang
     if (this.filterBarangHistory() !== 'semua') {
       filtered = filtered.filter((t) => t.barang === this.filterBarangHistory());
     }
 
-    // Filter by jenis transaksi
     if (this.filterJenisTransaksi() !== 'semua') {
       filtered = filtered.filter((t) => t.jenis === this.filterJenisTransaksi());
     }
 
-    // Filter by date range
     if (this.filterDateFrom()) {
       const fromDate = new Date(this.filterDateFrom());
       filtered = filtered.filter((t) => new Date(t.tanggal) >= fromDate);
@@ -436,11 +453,9 @@ export class StockComponent implements OnInit {
   }
 
   exportToExcel(): void {
-    // TODO: Implement export to Excel
     alert('Export feature coming soon!');
   }
 
-  // Helper functions for period report
   getFirstDayOfMonth(): string {
     const today = new Date();
     const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -464,13 +479,11 @@ export class StockComponent implements OnInit {
 
     this.stockService.getRawMaterialReport(startDate, endDate).subscribe({
       next: (res) => {
-        // Filter by selected item if needed
         let items = res.data;
         if (this.selectedBarang() !== 'semua') {
           items = items.filter((i) => i.nama === this.selectedBarang());
         }
 
-        // Hanya tampilkan item yang punya aktivitas (received atau used in period != 0/null)
         items = items.filter((i) => {
           const received = i.received_in_period ?? 0;
           const used = i.used_in_period ?? 0;
@@ -490,7 +503,6 @@ export class StockComponent implements OnInit {
           const usedInPeriod = item.used_in_period;
           const endingBalance = item.ending_ballance;
 
-          // Generate item code (optional, not shown in table but kept for consistency)
           const itemCode = `RM_${item.nama.replace(/\//g, '_').replace(/\s+/g, '_')}_${String(
             item.id ?? index + 1,
           ).padStart(2, '0')}`;
@@ -510,7 +522,6 @@ export class StockComponent implements OnInit {
           totalEnding += endingBalance;
         });
 
-        // Tambahkan baris TOTAL
         reportData.push({
           item: 'TOTAL',
           description: '',
@@ -551,7 +562,6 @@ export class StockComponent implements OnInit {
   }
 
   exportPeriodReport(): void {
-    // TODO: Implement export period report to Excel
     alert('Period report export feature coming soon!');
   }
 
@@ -560,10 +570,8 @@ export class StockComponent implements OnInit {
   }
 
   exportPeriodToExcel(): void {
-    // Prepare data for export
     const exportData: any[] = [];
 
-    // Add header info
     exportData.push(['PT AGRO DELI SERDANG']);
     exportData.push(['RAW MATERIAL PERIOD REPORT']);
     exportData.push([]);
@@ -577,7 +585,6 @@ export class StockComponent implements OnInit {
     exportData.push(['Print Date:', this.getCurrentDateFormatted()]);
     exportData.push([]);
 
-    // Add table headers
     exportData.push([
       'Item',
       'Description',
@@ -587,7 +594,6 @@ export class StockComponent implements OnInit {
       'Ending Balance (Kg)',
     ]);
 
-    // Add data rows
     this.periodReportData().forEach((report) => {
       exportData.push([
         report.item,
@@ -599,30 +605,18 @@ export class StockComponent implements OnInit {
       ]);
     });
 
-    // Create worksheet
     const ws = XLSX.utils.aoa_to_sheet(exportData);
 
-    // Set column widths
-    ws['!cols'] = [
-      { wch: 15 }, // Item
-      { wch: 20 }, // Description
-      { wch: 20 }, // Beginning Balance
-      { wch: 22 }, // Received
-      { wch: 20 }, // Used
-      { wch: 20 }, // Ending Balance
-    ];
+    ws['!cols'] = [{ wch: 15 }, { wch: 20 }, { wch: 20 }, { wch: 22 }, { wch: 20 }, { wch: 20 }];
 
-    // Style header rows (bold)
     const headerStyle = {
       font: { bold: true },
       alignment: { horizontal: 'center' },
     };
 
-    // Apply styles to headers
     if (ws['A1']) ws['A1'].s = { font: { bold: true, sz: 14 } };
     if (ws['A2']) ws['A2'].s = { font: { bold: true, sz: 12 } };
 
-    // Find the data table header row (should be row with "Item", "Description", etc)
     let headerRowIndex = -1;
     for (let i = 0; i < exportData.length; i++) {
       if (exportData[i][0] === 'Item') {
@@ -631,9 +625,8 @@ export class StockComponent implements OnInit {
       }
     }
 
-    // Style table header row
     if (headerRowIndex !== -1) {
-      const headerRow = headerRowIndex + 1; // XLSX uses 1-based indexing
+      const headerRow = headerRowIndex + 1;
       ['A', 'B', 'C', 'D', 'E', 'F'].forEach((col) => {
         const cellRef = `${col}${headerRow}`;
         if (ws[cellRef]) {
@@ -646,7 +639,6 @@ export class StockComponent implements OnInit {
       });
     }
 
-    // Style TOTAL row
     const totalRowIndex = exportData.length;
     ['A', 'B', 'C', 'D', 'E', 'F'].forEach((col) => {
       const cellRef = `${col}${totalRowIndex}`;
@@ -658,14 +650,11 @@ export class StockComponent implements OnInit {
       }
     });
 
-    // Create workbook
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Period Report');
 
-    // Generate filename with date range
     const filename = `Stock_Period_Report_${this.periodStartDate()}_to_${this.periodEndDate()}.xlsx`;
 
-    // Save file
     XLSX.writeFile(wb, filename);
   }
 }

@@ -14,6 +14,7 @@ export interface StockItem {
   stock_akhir: number;
   satuan: string;
   last_updated: string;
+  stock_barang: any;
 }
 
 export interface TransactionHistory {

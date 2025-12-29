@@ -22,7 +22,10 @@ export class StockService {
   private apiUrl = 'stock'; // endpoint relatif untuk ApiService
   private rawMaterialReportEndpoint = 'raw-material-report';
 
-  constructor(private http: HttpClient, private api: ApiService) {}
+  constructor(
+    private http: HttpClient,
+    private api: ApiService,
+  ) {}
 
   /**
    * Get all stock data
@@ -41,6 +44,7 @@ export class StockService {
         pemakaian: 188658,
         stock_akhir: 15791255,
         satuan: 'Kg',
+        stock_barang: '6200',
         last_updated: new Date().toISOString(),
       },
       {
@@ -51,6 +55,7 @@ export class StockService {
         pemakaian: 40170,
         stock_akhir: 205200,
         satuan: 'Kg',
+        stock_barang: '6200',
         last_updated: new Date().toISOString(),
       },
       {
@@ -61,6 +66,7 @@ export class StockService {
         pemakaian: 15000,
         stock_akhir: 122500,
         satuan: 'Kg',
+        stock_barang: '6200',
         last_updated: new Date().toISOString(),
       },
       {
@@ -71,6 +77,7 @@ export class StockService {
         pemakaian: 10790,
         stock_akhir: 38850,
         satuan: 'Kg',
+        stock_barang: '6200',
         last_updated: new Date().toISOString(),
       },
       {
@@ -81,6 +88,7 @@ export class StockService {
         pemakaian: 950,
         stock_akhir: 8750,
         satuan: 'Kg',
+        stock_barang: '6200',
         last_updated: new Date().toISOString(),
       },
       {
@@ -90,6 +98,7 @@ export class StockService {
         penerimaan: 800,
         pemakaian: 1100,
         stock_akhir: 5900,
+        stock_barang: '6200',
         satuan: 'Kg',
         last_updated: new Date().toISOString(),
       },
