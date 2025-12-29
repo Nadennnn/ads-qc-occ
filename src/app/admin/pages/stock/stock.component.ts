@@ -3,21 +3,12 @@
 import { ChangeDetectionStrategy, Component, computed, OnInit, signal } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import * as XLSX from 'xlsx';
+import { StockItem, TransactionHistory as ApiTransactionHistory } from './interfaces/stock.interface';
+import { StockService } from './services/stock.service';
 
 interface BarangOption {
   value: string;
   label: string;
-}
-
-interface StockItem {
-  id: number;
-  barang: string;
-  stock_awal: number;
-  penerimaan: number;
-  pemakaian: number;
-  stock_akhir: number;
-  satuan: string;
-  last_updated: string;
 }
 
 interface TransactionHistory {
@@ -69,6 +60,7 @@ export class StockComponent implements OnInit {
   selectedBarang = signal<string>('semua');
   isLoading = signal<boolean>(false);
   isRincianVisible = signal<boolean>(false);
+  isPeriodLoading = signal<boolean>(false);
 
   // Modal states
   showPenerimaanModal = signal<boolean>(false);
@@ -107,7 +99,7 @@ export class StockComponent implements OnInit {
     this.filteredStockData().reduce((sum, item) => sum + item.stock_akhir, 0),
   );
 
-  constructor(private fb: FormBuilder) {}
+  constructor(private fb: FormBuilder, private stockService: StockService) {}
 
   ngOnInit(): void {
     this.initializeForms();
@@ -140,79 +132,48 @@ export class StockComponent implements OnInit {
     });
   }
 
-  // Dummy data - ganti dengan API call nanti
+  private formatDateParam(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  // Load stock data from API /api/raw-material-report with dynamic dates
+  // Rule: start_date = yesterday, end_date = today
   loadStockData(): void {
     this.isLoading.set(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      const dummyData: StockItem[] = [
-        {
-          id: 1,
-          barang: 'LOCC/OCC',
-          stock_awal: 15804333,
-          penerimaan: 175580,
-          pemakaian: 188658,
-          stock_akhir: 15791255,
-          satuan: 'Kg',
-          last_updated: '2025-12-23T08:00:00Z',
-        },
-        {
-          id: 2,
-          barang: 'DLK',
-          stock_awal: 211080,
-          penerimaan: 34290,
-          pemakaian: 40170,
-          stock_akhir: 205200,
-          satuan: 'Kg',
-          last_updated: '2025-12-23T08:00:00Z',
-        },
-        {
-          id: 3,
-          barang: 'DUPLEK',
-          stock_awal: 125000,
-          penerimaan: 12500,
-          pemakaian: 15000,
-          stock_akhir: 122500,
-          satuan: 'Kg',
-          last_updated: '2025-12-23T08:00:00Z',
-        },
-        {
-          id: 4,
-          barang: 'MIX WASTE',
-          stock_awal: 43840,
-          penerimaan: 5800,
-          pemakaian: 10790,
-          stock_akhir: 38850,
-          satuan: 'Kg',
-          last_updated: '2025-12-23T08:00:00Z',
-        },
-        {
-          id: 5,
-          barang: 'SARANG TELOR',
-          stock_awal: 8500,
-          penerimaan: 1200,
-          pemakaian: 950,
-          stock_akhir: 8750,
-          satuan: 'Kg',
-          last_updated: '2025-12-23T08:00:00Z',
-        },
-        {
-          id: 6,
-          barang: 'TUNGKUL',
-          stock_awal: 6200,
-          penerimaan: 800,
-          pemakaian: 1100,
-          stock_akhir: 5900,
-          satuan: 'Kg',
-          last_updated: '2025-12-23T08:00:00Z',
-        },
-      ];
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
 
-      this.stockData.set(dummyData);
-      this.filteredStockData.set(dummyData);
-      this.isLoading.set(false);
-    }, 500);
+    const startDate = this.formatDateParam(yesterday);
+    const endDate = this.formatDateParam(today);
+
+    this.stockService.getRawMaterialReport(startDate, endDate).subscribe({
+      next: (res) => {
+        const mappedData: StockItem[] = res.data.map((item) => ({
+          id: item.id,
+          barang: item.nama,
+          stock_awal: item.beginning_ballance,
+          penerimaan: item.received_in_period,
+          pemakaian: item.used_in_period,
+          stock_akhir: item.ending_ballance,
+          satuan: 'Kg',
+          // API tidak menyediakan last_updated, jadi kita gunakan tanggal hari ini
+          last_updated: new Date().toISOString(),
+        }));
+
+        this.stockData.set(mappedData);
+        this.filteredStockData.set(mappedData);
+        this.isLoading.set(false);
+      },
+      error: (error) => {
+        console.error('Failed to load stock data from API', error);
+        this.isLoading.set(false);
+      },
+    });
   }
 
   loadTransactionHistory(): void {
@@ -488,77 +449,84 @@ export class StockComponent implements OnInit {
   }
 
   calculatePeriodReport(): void {
-    const startDate = new Date(this.periodStartDate());
-    const endDate = new Date(this.periodEndDate());
-    endDate.setHours(23, 59, 59);
+    const startDate = this.periodStartDate();
+    const endDate = this.periodEndDate();
 
-    // Jika filter stock aktif (bukan "semua"), hanya tampilkan item yang dipilih
-    const itemsToProcess =
-      this.selectedBarang() === 'semua'
-        ? this.stockData()
-        : this.stockData().filter((item) => item.barang === this.selectedBarang());
+    if (!startDate || !endDate) {
+      this.periodReportData.set([]);
+      return;
+    }
 
-    const reportData: PeriodReport[] = [];
+    this.isPeriodLoading.set(true);
 
-    let totalBeginning = 0;
-    let totalReceived = 0;
-    let totalUsed = 0;
-    let totalEnding = 0;
+    this.stockService.getRawMaterialReport(startDate, endDate).subscribe({
+      next: (res) => {
+        // Filter by selected item if needed
+        let items = res.data;
+        if (this.selectedBarang() !== 'semua') {
+          items = items.filter((i) => i.nama === this.selectedBarang());
+        }
 
-    itemsToProcess.forEach((stockItem) => {
-      // Filter transaksi untuk item ini dalam periode
-      const itemTransactions = this.transactionHistory().filter(
-        (t) =>
-          t.barang === stockItem.barang &&
-          new Date(t.tanggal) >= startDate &&
-          new Date(t.tanggal) <= endDate,
-      );
+        // Hanya tampilkan item yang punya aktivitas (received atau used in period != 0/null)
+        items = items.filter((i) => {
+          const received = i.received_in_period ?? 0;
+          const used = i.used_in_period ?? 0;
+          return received !== 0 || used !== 0;
+        });
 
-      // Hitung penerimaan dan pemakaian dalam periode
-      const receivedInPeriod = itemTransactions
-        .filter((t) => t.jenis === 'penerimaan')
-        .reduce((sum, t) => sum + t.jumlah, 0);
+        const reportData: PeriodReport[] = [];
 
-      const usedInPeriod = itemTransactions
-        .filter((t) => t.jenis === 'pemakaian')
-        .reduce((sum, t) => sum + t.jumlah, 0);
+        let totalBeginning = 0;
+        let totalReceived = 0;
+        let totalUsed = 0;
+        let totalEnding = 0;
 
-      // Hitung beginning balance (stock akhir - transaksi dalam periode)
-      const beginningBalance = stockItem.stock_akhir - receivedInPeriod + usedInPeriod;
+        items.forEach((item, index) => {
+          const beginningBalance = item.beginning_ballance;
+          const receivedInPeriod = item.received_in_period;
+          const usedInPeriod = item.used_in_period;
+          const endingBalance = item.ending_ballance;
 
-      // Ending balance adalah stock akhir saat ini
-      const endingBalance = stockItem.stock_akhir;
+          // Generate item code (optional, not shown in table but kept for consistency)
+          const itemCode = `RM_${item.nama.replace(/\//g, '_').replace(/\s+/g, '_')}_${String(
+            item.id ?? index + 1,
+          ).padStart(2, '0')}`;
 
-      // Buat item code (contoh: RM_DLK_03)
-      const itemCode = `RM_${stockItem.barang.replace(/\//g, '_').replace(/\s+/g, '_')}_${String(stockItem.id).padStart(2, '0')}`;
+          reportData.push({
+            item: itemCode,
+            description: item.nama,
+            beginningBalance,
+            receivedInPeriod,
+            usedInPeriod,
+            endingBalance,
+          });
 
-      reportData.push({
-        item: itemCode,
-        description: stockItem.barang,
-        beginningBalance: beginningBalance,
-        receivedInPeriod: receivedInPeriod,
-        usedInPeriod: usedInPeriod,
-        endingBalance: endingBalance,
-      });
+          totalBeginning += beginningBalance;
+          totalReceived += receivedInPeriod;
+          totalUsed += usedInPeriod;
+          totalEnding += endingBalance;
+        });
 
-      totalBeginning += beginningBalance;
-      totalReceived += receivedInPeriod;
-      totalUsed += usedInPeriod;
-      totalEnding += endingBalance;
+        // Tambahkan baris TOTAL
+        reportData.push({
+          item: 'TOTAL',
+          description: '',
+          beginningBalance: totalBeginning,
+          receivedInPeriod: totalReceived,
+          usedInPeriod: totalUsed,
+          endingBalance: totalEnding,
+          isTotal: true,
+        });
+
+        this.periodReportData.set(reportData);
+        this.isPeriodLoading.set(false);
+      },
+      error: (error) => {
+        console.error('Failed to load period report from API', error);
+        this.periodReportData.set([]);
+        this.isPeriodLoading.set(false);
+      },
     });
-
-    // Tambahkan baris TOTAL
-    reportData.push({
-      item: 'TOTAL',
-      description: '',
-      beginningBalance: totalBeginning,
-      receivedInPeriod: totalReceived,
-      usedInPeriod: totalUsed,
-      endingBalance: totalEnding,
-      isTotal: true,
-    });
-
-    this.periodReportData.set(reportData);
   }
 
   formatDateShort(dateString: string): string {

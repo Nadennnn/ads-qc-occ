@@ -278,6 +278,7 @@
 }
 /* ========================================
    KELEMBAPAN PRINT REPORT - PORTRAIT A4
+   (mode default: print laporan tabel)
    ======================================== */
 
 .print-report-a4 {
@@ -285,29 +286,29 @@
 }
 
 @media print {
-  /* Reset & Hide UI */
+  /* Reset & Hide UI untuk mode laporan (bukan saat print modal) */
   @page {
     size: A4 portrait;
     margin: 8mm 6mm;
   }
 
-  .no-print,
-  .action-buttons,
-  .filter-section,
-  .header,
-  .data-section:not(.print-report-a4),
-  .detail-stats,
-  .modal-overlay {
+  body:not(.printing-modal) .no-print,
+  body:not(.printing-modal) .action-buttons,
+  body:not(.printing-modal) .filter-section,
+  body:not(.printing-modal) .header,
+  body:not(.printing-modal) .data-section:not(.print-report-a4),
+  body:not(.printing-modal) .detail-stats,
+  body:not(.printing-modal) .modal-overlay {
     display: none !important;
   }
 
-  body {
+  body:not(.printing-modal) {
     margin: 0;
     padding: 0;
   }
 
-  /* Show Print Report */
-  .print-report-a4 {
+  /* Show Print Report hanya saat TIDAK dalam mode print modal */
+  body:not(.printing-modal) .print-report-a4 {
     display: block !important;
     font-family: 'Arial', 'Helvetica', sans-serif;
     font-size: 8pt;
@@ -842,23 +843,24 @@
   }
 }
 
-// Print Styles
+// Print Styles untuk modal (generic)
 @media print {
-  .modal-overlay {
+  body.printing-modal .modal-overlay {
     background: none;
+    display: flex !important; /* override aturan sebelumnya yang menyembunyikan modal */
   }
 
-  .modal-container {
+  body.printing-modal .modal-container {
     box-shadow: none;
     max-height: none;
   }
 
-  .modal-header,
-  .modal-footer {
+  body.printing-modal .modal-header,
+  body.printing-modal .modal-footer {
     background: #ffffff;
   }
 
-  .modal-close {
+  body.printing-modal .modal-close {
     display: none;
   }
 }
@@ -991,5 +993,425 @@
   .filter-compact-input {
     width: 100%;
     min-width: unset;
+  }
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+.modal-container {
+  background: #ffffff;
+  border-radius: 0.75rem;
+  max-width: 800px;
+  width: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow:
+    0 10px 15px -3px rgba(15, 23, 42, 0.1),
+    0 4px 6px -4px rgba(15, 23, 42, 0.1);
+  overflow: hidden;
+}
+
+.modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.modal-header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.modal-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+.modal-subtitle {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.icon-button {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 999px;
+}
+
+.icon-button:hover {
+  background-color: #f3f4f6;
+}
+
+.modal-body {
+  padding: 1.25rem 1.5rem 1.5rem;
+  overflow-y: auto;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 0.75rem 1.5rem 1rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+/* Buttons */
+.btn-primary,
+.btn-secondary {
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  padding: 0.5rem 1.25rem;
+  font-weight: 500;
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background-color: #2563eb;
+  color: #ffffff;
+  border-color: #2563eb;
+}
+
+.btn-primary:hover {
+  background-color: #1d4ed8;
+  border-color: #1d4ed8;
+}
+
+.btn-secondary {
+  background-color: #ffffff;
+  color: #374151;
+  border-color: #d1d5db;
+}
+
+.btn-secondary:hover {
+  background-color: #f9fafb;
+}
+
+/* Info sections */
+.info-section {
+  margin-bottom: 1.25rem;
+}
+
+.info-section-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 0.75rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem 1.5rem;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.info-label {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.info-value {
+  font-size: 0.875rem;
+  color: #111827;
+}
+
+.info-value-strong {
+  font-weight: 600;
+}
+
+/* Measurement points */
+.titik-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 0.5rem;
+}
+
+.titik-card {
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+  padding: 0.5rem;
+  text-align: center;
+  background-color: #f9fafb;
+}
+
+.titik-number {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-bottom: 0.25rem;
+}
+
+.titik-value {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+/* Print-Only Header Styles (hidden on screen) */
+.print-only-header {
+  display: none;
+}
+
+/* Print styles: Professional A4 layout untuk modal */
+@media print {
+  body.printing-modal {
+    margin: 0;
+    padding: 0;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    font-family: 'Segoe UI', 'Arial', sans-serif;
+    font-size: 10pt;
+    line-height: 1.4;
+    color: #000;
+  }
+
+  body.printing-modal * {
+    visibility: hidden;
+  }
+
+  body.printing-modal .printable-modal,
+  body.printing-modal .printable-modal * {
+    visibility: visible;
+  }
+
+  body.printing-modal .modal-overlay {
+    position: static;
+    inset: unset;
+    background: #ffffff !important;
+    box-shadow: none;
+    justify-content: flex-start;
+    align-items: flex-start;
+    display: flex !important;
+    padding: 0;
+  }
+
+  body.printing-modal .modal-container {
+    max-height: none;
+    box-shadow: none;
+    border-radius: 0;
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  body.printing-modal .no-print {
+    display: none !important;
+  }
+
+  /* Professional A4 Page Setup */
+  @page {
+    size: A4 portrait;
+    margin: 15mm 20mm;
+  }
+
+  /* Show Print Header (Letterhead) */
+  body.printing-modal .print-only-header {
+    display: block !important;
+    visibility: visible !important;
+    margin-bottom: 20pt;
+  }
+
+  /* Company Letterhead Styling */
+  body.printing-modal .print-letterhead {
+    display: flex;
+    align-items: center;
+    gap: 12pt;
+    padding-bottom: 10pt;
+    border-bottom: 2pt solid #000;
+    margin-bottom: 12pt;
+  }
+
+  body.printing-modal .print-company-logo {
+    width: 40pt;
+    height: auto;
+  }
+
+  body.printing-modal .print-company-info {
+    flex: 1;
+  }
+
+  body.printing-modal .print-company-name {
+    font-size: 14pt;
+    font-weight: bold;
+    margin: 0;
+    color: #000;
+    letter-spacing: 0.5pt;
+  }
+
+  body.printing-modal .print-company-address {
+    font-size: 9pt;
+    color: #333;
+    margin: 2pt 0 0;
+  }
+
+  /* Document Title */
+  body.printing-modal .print-document-title {
+    text-align: center;
+    margin-bottom: 15pt;
+    padding: 8pt 0;
+    background: #f5f5f5;
+    border: 1pt solid #ddd;
+  }
+
+  body.printing-modal .print-document-title h2 {
+    font-size: 13pt;
+    font-weight: bold;
+    margin: 0 0 4pt;
+    color: #000;
+    letter-spacing: 1pt;
+  }
+
+  body.printing-modal .print-doc-number {
+    font-size: 8pt;
+    color: #555;
+    margin: 0;
+  }
+
+  /* Modal Body Adjustments */
+  body.printing-modal .modal-body {
+    padding: 0 !important;
+    font-size: 9pt;
+  }
+
+  /* Info Sections */
+  body.printing-modal .info-section {
+    margin-bottom: 12pt;
+    page-break-inside: avoid;
+  }
+
+  body.printing-modal .info-section-title {
+    font-size: 10pt;
+    font-weight: bold;
+    color: #000;
+    margin: 0 0 6pt;
+    padding: 4pt 6pt;
+    background: #e8e8e8;
+    border-left: 3pt solid #333;
+    text-transform: uppercase;
+    letter-spacing: 0.5pt;
+  }
+
+  body.printing-modal .info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6pt 12pt;
+    padding: 8pt;
+    background: #fafafa;
+    border: 0.5pt solid #ddd;
+  }
+
+  body.printing-modal .info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2pt;
+  }
+
+  body.printing-modal .info-label {
+    font-size: 8pt;
+    color: #555;
+    font-weight: 500;
+  }
+
+  body.printing-modal .info-value {
+    font-size: 9pt;
+    color: #000;
+    font-weight: 600;
+  }
+
+  body.printing-modal .info-value-strong {
+    font-weight: bold;
+    font-size: 10pt;
+  }
+
+  /* Color Classes untuk Claim Value */
+  body.printing-modal .text-red-600 {
+    color: #dc2626 !important;
+  }
+
+  body.printing-modal .text-green-600 {
+    color: #16a34a !important;
+  }
+
+  body.printing-modal .text-gray-600 {
+    color: #4b5563 !important;
+  }
+
+  /* Measurement Points Grid */
+  body.printing-modal .titik-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 5pt;
+    padding: 8pt;
+    background: #fff;
+  }
+
+  body.printing-modal .titik-card {
+    border: 1pt solid #ccc;
+    padding: 6pt;
+    text-align: center;
+    background: #f9f9f9;
+    border-radius: 0;
+  }
+
+  body.printing-modal .titik-number {
+    font-size: 7pt;
+    color: #666;
+    margin-bottom: 2pt;
+    text-transform: uppercase;
+  }
+
+  body.printing-modal .titik-value {
+    font-size: 11pt;
+    font-weight: bold;
+    color: #000;
+    font-family: 'Courier New', monospace;
+  }
+
+  /* Footer/Signature Area */
+  body.printing-modal .modal-body::after {
+    content: '';
+    display: block;
+    margin-top: 20pt;
+    padding-top: 10pt;
+    border-top: 1pt solid #ccc;
+  }
+
+  /* Remove unnecessary spacing */
+  body.printing-modal .modal-header {
+    display: none !important;
+  }
+
+  body.printing-modal .modal-footer {
+    display: none !important;
+  }
+
+  /* Ensure clean page breaks */
+  body.printing-modal .info-section:last-child {
+    page-break-after: avoid;
   }
 }

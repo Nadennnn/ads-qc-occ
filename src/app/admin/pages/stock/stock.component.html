@@ -46,11 +46,11 @@
           />
           <span>Add Usage</span>
         </button>
-
+        <!--
         <button (click)="openHistoryModal()" class="action-btn action-btn-primary">
           <lucide-icons [iconsName]="'history'" [color]="'white'" [strokewidth]="2" class="gray" />
           <span>History</span>
-        </button>
+        </button> -->
       </div>
     </div>
   </div>
@@ -63,7 +63,7 @@
     </div>
   </div>
 
-  <!-- Stock Data Table -->
+  <!-- ANCHOR Stock Data Table -->
   <div class="data-section" *ngIf="!isLoading()">
     <h3 class="section-title">Stock Inventory ({{ filteredStockData().length }} items)</h3>
 
@@ -117,24 +117,6 @@
               <strong>{{ formatNumber(item.stock_akhir) }}</strong>
             </td>
             <td class="text-center">{{ item.satuan }}</td>
-            <!-- <td class="text-center">
-              <div class="stock-level-bar">
-                <div
-                  class="stock-level-fill"
-                  [class.level-high]="item.stock_akhir / item.stock_awal > 0.5"
-                  [class.level-medium]="
-                    item.stock_akhir / item.stock_awal <= 0.5 &&
-                    item.stock_akhir / item.stock_awal > 0.2
-                  "
-                  [class.level-low]="item.stock_akhir / item.stock_awal <= 0.2"
-                  [style.width.%]="(item.stock_akhir / item.stock_awal) * 100"
-                >
-                  <span class="level-text"
-                    >{{ ((item.stock_akhir / item.stock_awal) * 100).toFixed(1) }}%</span
-                  >
-                </div>
-              </div>
-            </td> -->
             <td class="text-center">{{ formatDate(item.last_updated) }}</td>
           </tr>
         </tbody>
@@ -142,7 +124,7 @@
     </div>
   </div>
 
-  <!-- Period Report Section -->
+  <!-- ANCHOR Period Report Section -->
   <div class="detail-stats" *ngIf="isRincianVisible() && !isLoading()">
     <div class="flex items-center justify-between mb-4">
       <h3 class="mb-0 section-title">Raw Material Period Report</h3>
@@ -156,16 +138,25 @@
           <input
             type="date"
             [value]="periodStartDate()"
-            (change)="periodStartDate.set($any($event.target).value); calculatePeriodReport()"
+            (change)="periodStartDate.set($any($event.target).value)"
             class="filter-input-date"
           />
           <span class="date-separator">to</span>
           <input
             type="date"
             [value]="periodEndDate()"
-            (change)="periodEndDate.set($any($event.target).value); calculatePeriodReport()"
+            (change)="periodEndDate.set($any($event.target).value)"
             class="filter-input-date"
           />
+          <button
+            type="button"
+            class="px-4 py-2 ml-3 text-white bg-neutral-800 btn"
+            [disabled]="isPeriodLoading()"
+            (click)="calculatePeriodReport()"
+          >
+            <span *ngIf="!isPeriodLoading()">Search</span>
+            <span *ngIf="isPeriodLoading()">Loading...</span>
+          </button>
         </div>
       </div>
       <div class="period-display">
@@ -178,8 +169,16 @@
 
     <div class="w-full my-3 border-b border-gray-100"></div>
 
+    <!-- Period Report Loading State -->
+    <div *ngIf="isPeriodLoading()" class="loading-container">
+      <div class="flex flex-col items-center justify-center py-8">
+        <div class="w-10 h-10 mb-3 border-b-2 border-blue-600 rounded-full animate-spin"></div>
+        <p class="text-gray-600">Loading period report...</p>
+      </div>
+    </div>
+
     <!-- Period Report Table -->
-    <div class="table-container">
+    <div *ngIf="!isPeriodLoading()" class="table-container">
       <table class="period-report-table">
         <thead>
           <tr>
@@ -514,170 +513,3 @@
 </div>
 
 <!-- Modal Riwayat Transaksi -->
-<div *ngIf="showHistoryModal()" class="modal-overlay" (click)="closeHistoryModal()">
-  <div class="modal-container modal-lg" (click)="$event.stopPropagation()">
-    <div class="modal-header">
-      <h2 class="modal-title">Transaction History</h2>
-      <button class="modal-close" (click)="closeHistoryModal()">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M6 18L18 6M6 6l12 12"
-          />
-        </svg>
-      </button>
-    </div>
-
-    <!-- Filter Section -->
-    <div class="modal-filter">
-      <div class="info-grid">
-        <div class="form-group">
-          <label class="form-label">Item Type</label>
-          <select
-            [value]="filterBarangHistory()"
-            (change)="filterBarangHistory.set($any($event.target).value); applyHistoryFilter()"
-            class="form-input"
-          >
-            <option *ngFor="let option of bahanBakuOptions" [value]="option.value">
-              {{ option.label }}
-            </option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Transaction Type</label>
-          <select
-            [value]="filterJenisTransaksi()"
-            (change)="filterJenisTransaksi.set($any($event.target).value); applyHistoryFilter()"
-            class="form-input"
-          >
-            <option value="semua">All Transactions</option>
-            <option value="penerimaan">Receipt</option>
-            <option value="pemakaian">Usage</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">From Date</label>
-          <input
-            type="date"
-            [value]="filterDateFrom()"
-            (change)="filterDateFrom.set($any($event.target).value); applyHistoryFilter()"
-            class="form-input"
-          />
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">To Date</label>
-          <input
-            type="date"
-            [value]="filterDateTo()"
-            (change)="filterDateTo.set($any($event.target).value); applyHistoryFilter()"
-            class="form-input"
-          />
-        </div>
-      </div>
-
-      <div class="flex justify-end mt-3">
-        <button (click)="resetHistoryFilter()" class="btn-secondary">Reset Filter</button>
-      </div>
-    </div>
-
-    <!-- Transaction List -->
-    <div class="modal-body">
-      <div *ngIf="filteredTransactions().length === 0" class="empty-state">
-        <svg
-          class="w-16 h-16 mx-auto mb-4 text-gray-400"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-          />
-        </svg>
-        <h3 class="mb-2 text-lg font-semibold text-gray-900">No transactions</h3>
-        <p class="text-gray-600">No transaction history matches the filters</p>
-      </div>
-
-      <div class="transaction-list">
-        <div *ngFor="let transaction of filteredTransactions()" class="transaction-card">
-          <div class="transaction-header">
-            <div
-              class="transaction-icon"
-              [class.icon-success]="transaction.jenis === 'penerimaan'"
-              [class.icon-danger]="transaction.jenis === 'pemakaian'"
-            >
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  *ngIf="transaction.jenis === 'penerimaan'"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M12 4v16m8-8H4"
-                />
-                <path
-                  *ngIf="transaction.jenis === 'pemakaian'"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M20 12H4"
-                />
-              </svg>
-            </div>
-
-            <div class="transaction-info">
-              <h4 class="transaction-title">{{ transaction.barang }}</h4>
-              <div class="transaction-meta">
-                <span
-                  class="badge"
-                  [class.badge-success]="transaction.jenis === 'penerimaan'"
-                  [class.badge-danger]="transaction.jenis === 'pemakaian'"
-                >
-                  {{ transaction.jenis === 'penerimaan' ? 'Receipt' : 'Usage' }}
-                </span>
-                <span class="transaction-no">{{ transaction.nomor_bon }}</span>
-              </div>
-            </div>
-
-            <div class="transaction-amount">
-              <p
-                class="amount-value"
-                [class.text-green-600]="transaction.jenis === 'penerimaan'"
-                [class.text-red-600]="transaction.jenis === 'pemakaian'"
-              >
-                {{ transaction.jenis === 'penerimaan' ? '+' : '-'
-                }}{{ formatNumber(transaction.jumlah) }} Kg
-              </p>
-              <p class="amount-date">{{ formatDate(transaction.tanggal) }}</p>
-            </div>
-          </div>
-
-          <div class="transaction-details">
-            <div class="detail-item">
-              <span class="detail-label">Vehicle No.</span>
-              <span class="detail-value">{{ transaction.nomor_kendaraan }}</span>
-            </div>
-            <div class="detail-item" *ngIf="transaction.suplier">
-              <span class="detail-label">Supplier</span>
-              <span class="detail-value">{{ transaction.suplier }}</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">Driver</span>
-              <span class="detail-value">{{ transaction.supir }}</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">Officer</span>
-              <span class="detail-value">{{ transaction.petugas }}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>

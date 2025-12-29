@@ -723,6 +723,8 @@ export class KelembapanComponent implements OnInit, OnDestroy {
   }
 
   printLaporan(): void {
+    // Pastikan mode print hanya untuk laporan tabel (bukan modal)
+    document.body.classList.remove('printing-modal');
     window.print();
   }
 
@@ -738,6 +740,21 @@ export class KelembapanComponent implements OnInit, OnDestroy {
 
     this.selectedItem = item;
     this.isModalOpen = true;
+  }
+
+  printModal(): void {
+    if (!this.selectedItem) {
+      return;
+    }
+
+    // Aktifkan mode print khusus modal
+    document.body.classList.add('printing-modal');
+    window.print();
+
+    // Hapus flag setelah print selesai (print dialog akan mem-block JS)
+    setTimeout(() => {
+      document.body.classList.remove('printing-modal');
+    }, 0);
   }
 
   closeModal(): void {

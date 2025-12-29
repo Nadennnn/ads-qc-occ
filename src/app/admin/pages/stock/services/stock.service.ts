@@ -11,15 +11,18 @@ import {
   StockResponse,
   TransactionHistory,
   TransactionResponse,
+  RawMaterialReportResponse,
 } from '../interfaces/stock.interface';
+import { ApiService } from '../../../services/api.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class StockService {
-  private apiUrl = '/api/stock'; // Ganti dengan URL API Anda
+  private apiUrl = 'stock'; // endpoint relatif untuk ApiService
+  private rawMaterialReportEndpoint = 'raw-material-report';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private api: ApiService) {}
 
   /**
    * Get all stock data
@@ -259,5 +262,15 @@ export class StockService {
         total_items: 6,
       },
     }).pipe(delay(300));
+  }
+
+  /**
+   * Get raw material report (used for stock table)
+   */
+  getRawMaterialReport(startDate: string, endDate: string): Observable<RawMaterialReportResponse> {
+    return this.api.get<RawMaterialReportResponse>(this.rawMaterialReportEndpoint, {
+      start_date: startDate,
+      end_date: endDate,
+    }) as unknown as Observable<RawMaterialReportResponse>;
   }
 }

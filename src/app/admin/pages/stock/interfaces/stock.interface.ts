@@ -63,3 +63,28 @@ export interface TransactionResponse {
   message: string;
   data: TransactionHistory[];
 }
+
+// API response for /api/raw-material-report
+export interface RawMaterialReportItem {
+  id: number;
+  nama: string;
+  stok: number;
+  used_in_period: number;
+  received_in_period: number;
+  beginning_ballance: number;
+  ending_ballance: number;
+}
+
+export interface RawMaterialReportStats {
+  total_beginning_ballance: number;
+  total_ending_ballance: number;
+  total_received_in_period: number;
+  total_used_in_period: number;
+}
+
+export interface RawMaterialReportResponse {
+  success: boolean;
+  message: string;
+  data: RawMaterialReportItem[];
+  statistik: RawMaterialReportStats;
+}
