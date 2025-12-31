@@ -1,25 +1,32 @@
-<div class="ganti-bg min-h-screen flex flex-col items-center justify-center p-4 sm:p-6">
+<div class="flex flex-col items-center justify-center min-h-screen p-4 ganti-bg sm:p-6">
   <!-- Loading State when fetching roles -->
   <div
     *ngIf="isLoadingRoles"
     class="fixed inset-0 z-50 flex items-center justify-center bg-black/10"
   >
-    <div class="bg-white p-6 rounded-lg shadow-xl flex flex-col items-center gap-3">
-      <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-neutral-800"></div>
+    <div class="flex flex-col items-center gap-3 p-6 bg-white rounded-lg shadow-xl">
+      <div class="w-10 h-10 border-b-2 rounded-full animate-spin border-neutral-800"></div>
       <p class="text-sm text-neutral-600">Loading data...</p>
     </div>
   </div>
 
   <!-- Header -->
   <div class="mb-16 text-center">
-    <div class="flex justify-center items-center gap-3 sm:gap-4">
+    <div class="flex-col items-end hidden lg:flex">
+      <div class="flex items-center gap-2 text-slate-700">
+        <lucide-icon name="clock" class="w-4 h-4 text-slate-400"></lucide-icon>
+        <span class="text-sm font-semibold">{{ currentTime }}</span>
+      </div>
+      <div class="text-xs text-slate-500">{{ currentDay }}, {{ currentDate }}</div>
+    </div>
+    <div class="flex items-center justify-center gap-3 sm:gap-4">
       <img src="./ads-logo1.png" class="w-auto h-10 sm:h-12" alt="PT. Agro Deli Serdang" />
-      <div class="h-10 sm:h-12 w-px bg-neutral-700"></div>
+      <div class="w-px h-10 sm:h-12 bg-neutral-700"></div>
       <h1 class="sm:text-[60px] xs:text-3xl font-bold text-neutral-800 tracking-tight text-center">
         PT. AGRO DELI SERDANG
       </h1>
     </div>
-    <!-- <h1 class="text-2xl sm:text-3xl font-semibold text-neutral-800 tracking-tight my-3">
+    <!-- <h1 class="my-3 text-2xl font-semibold tracking-tight sm:text-3xl text-neutral-800">
       {{
         hasAnyRole(['1', '2']) ? 'Weighing System' : hasRole('5') ? '' : 'Raw Material Warehouse'
       }}
@@ -28,7 +35,7 @@
     <!-- User Info & Logout -->
     <div class="flex items-center justify-center gap-3 mt-7">
       <div
-        class="text-sm text-neutral-600 hover:text-red-700 hover:underline transition-colors flex justify-center items-center gap-1"
+        class="flex items-center justify-center gap-1 text-sm transition-colors text-neutral-600 hover:text-red-700 hover:underline"
       >
         <lucide-icons [iconsName]="'user-round'" [color]="'gray'" />
         <span>{{ dataCurrentUser?.username?.toUpperCase() || 'User Name' }}</span>
@@ -36,20 +43,20 @@
 
       <!-- Show Users Control button only for Admin/Superadmin (role 1) -->
       <ng-container *ngIf="hasRole('1')">
-        <div class="h-4 w-px bg-neutral-300"></div>
+        <div class="w-px h-4 bg-neutral-300"></div>
         <button
           (click)="navigateTo('users-control')"
-          class="text-sm text-neutral-600 hover:text-red-700 hover:underline transition-colors flex justify-center items-center gap-1"
+          class="flex items-center justify-center gap-1 text-sm transition-colors text-neutral-600 hover:text-red-700 hover:underline"
         >
           <lucide-icons [iconsName]="'users-round'" [color]="'gray'" />
           USERS CONTROL
         </button>
       </ng-container>
 
-      <div class="h-4 w-px bg-neutral-300"></div>
+      <div class="w-px h-4 bg-neutral-300"></div>
       <button
         (click)="logout()"
-        class="text-red-600 hover:text-red-700 hover:underline transition-colors w-auto flex justify-center items-center gap-1"
+        class="flex items-center justify-center w-auto gap-1 text-red-600 transition-colors hover:text-red-700 hover:underline"
       >
         <lucide-icons [iconsName]="'power'" [color]="'red'" />
         LOGOUT
@@ -59,125 +66,125 @@
 
   <!-- Grid Menu - only display after roles are loaded -->
   <div
-    class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl w-full"
+    class="grid w-full max-w-4xl grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
     *ngIf="!isLoadingRoles"
   >
     <!-- Weighing Input - Admin (1) or Weighing Operator (3) -->
     <button
       *ngIf="hasAnyRole(['1', '3'])"
-      class="group relative bg-white p-8 rounded-lg border border-neutral-200 hover:border-neutral-800 transition-all duration-300 text-left overflow-hidden shadow-sm"
+      class="relative p-8 overflow-hidden text-left transition-all duration-300 bg-white border rounded-lg shadow-sm group border-neutral-200 hover:border-neutral-800"
       (click)="navigateTo('timbangan-masuk')"
     >
       <div
-        class="absolute top-0 left-0 w-1 h-full bg-neutral-800 transform scale-y-0 group-hover:scale-y-100 transition-transform duration-300 origin-top"
+        class="absolute top-0 left-0 w-1 h-full transition-transform duration-300 origin-top transform scale-y-0 bg-neutral-800 group-hover:scale-y-100"
       ></div>
       <span
-        class="text-lg font-medium text-neutral-700 group-hover:text-neutral-900 transition-colors block"
+        class="block text-lg font-medium transition-colors text-neutral-700 group-hover:text-neutral-900"
       >
         Weighing Input
       </span>
-      <span class="text-sm text-neutral-400 mt-1 block">Input incoming data</span>
+      <span class="block mt-1 text-sm text-neutral-400">Input incoming data</span>
     </button>
 
     <!-- Customer Code - Admin (1) or Customer Manager (4) -->
     <button
       *ngIf="hasAnyRole(['1', '4'])"
-      class="group relative bg-white p-8 rounded-lg border border-neutral-200 hover:border-neutral-800 transition-all duration-300 text-left overflow-hidden shadow-sm"
+      class="relative p-8 overflow-hidden text-left transition-all duration-300 bg-white border rounded-lg shadow-sm group border-neutral-200 hover:border-neutral-800"
       (click)="navigateTo('code-customer')"
     >
       <div
-        class="absolute top-0 left-0 w-1 h-full bg-neutral-800 transform scale-y-0 group-hover:scale-y-100 transition-transform duration-300 origin-top"
+        class="absolute top-0 left-0 w-1 h-full transition-transform duration-300 origin-top transform scale-y-0 bg-neutral-800 group-hover:scale-y-100"
       ></div>
       <span
-        class="text-lg font-medium text-neutral-700 group-hover:text-neutral-900 transition-colors block"
+        class="block text-lg font-medium transition-colors text-neutral-700 group-hover:text-neutral-900"
       >
         Customer Code
       </span>
-      <span class="text-sm text-neutral-400 mt-1 block">Manage customer codes</span>
+      <span class="block mt-1 text-sm text-neutral-400">Manage customer codes</span>
     </button>
 
     <!-- Supplier Code - Admin (1) or Supplier Manager (5) -->
     <button
       *ngIf="hasAnyRole(['1', '5'])"
-      class="group relative bg-white p-8 rounded-lg border border-neutral-200 hover:border-neutral-800 transition-all duration-300 text-left overflow-hidden shadow-sm"
+      class="relative p-8 overflow-hidden text-left transition-all duration-300 bg-white border rounded-lg shadow-sm group border-neutral-200 hover:border-neutral-800"
       (click)="navigateTo('code-supplier')"
     >
       <div
-        class="absolute top-0 left-0 w-1 h-full bg-neutral-800 transform scale-y-0 group-hover:scale-y-100 transition-transform duration-300 origin-top"
+        class="absolute top-0 left-0 w-1 h-full transition-transform duration-300 origin-top transform scale-y-0 bg-neutral-800 group-hover:scale-y-100"
       ></div>
       <span
-        class="text-lg font-medium text-neutral-700 group-hover:text-neutral-900 transition-colors block"
+        class="block text-lg font-medium transition-colors text-neutral-700 group-hover:text-neutral-900"
       >
         Supplier Code
       </span>
-      <span class="text-sm text-neutral-400 mt-1 block">Manage supplier codes</span>
+      <span class="block mt-1 text-sm text-neutral-400">Manage supplier codes</span>
     </button>
 
     <!-- View Reports - Admin (1) or Supervisor (7) -->
     <button
       *ngIf="hasAnyRole(['1', '7'])"
-      class="group relative bg-white p-8 rounded-lg border border-neutral-200 hover:border-neutral-800 transition-all duration-300 text-left overflow-hidden shadow-sm"
+      class="relative p-8 overflow-hidden text-left transition-all duration-300 bg-white border rounded-lg shadow-sm group border-neutral-200 hover:border-neutral-800"
       (click)="navigateTo('cek-laporan')"
     >
       <div
-        class="absolute top-0 left-0 w-1 h-full bg-neutral-800 transform scale-y-0 group-hover:scale-y-100 transition-transform duration-300 origin-top"
+        class="absolute top-0 left-0 w-1 h-full transition-transform duration-300 origin-top transform scale-y-0 bg-neutral-800 group-hover:scale-y-100"
       ></div>
       <span
-        class="text-lg font-medium text-neutral-700 group-hover:text-neutral-900 transition-colors block"
+        class="block text-lg font-medium transition-colors text-neutral-700 group-hover:text-neutral-900"
       >
         View Reports
       </span>
-      <span class="text-sm text-neutral-400 mt-1 block">View data reports</span>
+      <span class="block mt-1 text-sm text-neutral-400">View data reports</span>
     </button>
 
     <!-- Change Password - Admin Only (1) -->
     <button
-      class="group relative bg-white p-8 rounded-lg border border-neutral-200 hover:border-neutral-800 transition-all duration-300 text-left overflow-hidden shadow-sm"
+      class="relative p-8 overflow-hidden text-left transition-all duration-300 bg-white border rounded-lg shadow-sm group border-neutral-200 hover:border-neutral-800"
       (click)="openChangePasswordModal()"
     >
       <div
-        class="absolute top-0 left-0 w-1 h-full bg-neutral-800 transform scale-y-0 group-hover:scale-y-100 transition-transform duration-300 origin-top"
+        class="absolute top-0 left-0 w-1 h-full transition-transform duration-300 origin-top transform scale-y-0 bg-neutral-800 group-hover:scale-y-100"
       ></div>
       <span
-        class="text-lg font-medium text-neutral-700 group-hover:text-neutral-900 transition-colors block"
+        class="block text-lg font-medium transition-colors text-neutral-700 group-hover:text-neutral-900"
       >
         Change Password
       </span>
-      <span class="text-sm text-neutral-400 mt-1 block">Account security</span>
+      <span class="block mt-1 text-sm text-neutral-400">Account security</span>
     </button>
 
     <!-- Moisture Test - Admin (1) or Lab Staff (6) -->
     <button
       *ngIf="hasAnyRole(['1', '6'])"
       (click)="navigateTo('uji-kelembapan')"
-      class="group relative bg-white p-8 rounded-lg border border-neutral-200 hover:border-neutral-800 transition-all duration-300 text-left overflow-hidden shadow-sm"
+      class="relative p-8 overflow-hidden text-left transition-all duration-300 bg-white border rounded-lg shadow-sm group border-neutral-200 hover:border-neutral-800"
     >
       <div
-        class="absolute top-0 left-0 w-1 h-full bg-neutral-800 transform scale-y-0 group-hover:scale-y-100 transition-transform duration-300 origin-top"
+        class="absolute top-0 left-0 w-1 h-full transition-transform duration-300 origin-top transform scale-y-0 bg-neutral-800 group-hover:scale-y-100"
       ></div>
       <span
-        class="text-lg font-medium text-neutral-700 group-hover:text-neutral-900 transition-colors block"
+        class="block text-lg font-medium transition-colors text-neutral-700 group-hover:text-neutral-900"
       >
         Moisture Measurement
       </span>
-      <span class="text-sm text-neutral-400 mt-1 block">Moisture testing</span>
+      <span class="block mt-1 text-sm text-neutral-400">Moisture testing</span>
     </button>
 
     <!-- TODO Stock ON PROGRESS -->
     <button
       *ngIf="hasAnyRole(['1', '6'])"
       (click)="navigateTo('stock')"
-      class="group relative bg-white p-8 rounded-lg border border-neutral-200 hover:border-neutral-800 transition-all duration-300 text-left overflow-hidden shadow-sm"
+      class="relative p-8 overflow-hidden text-left transition-all duration-300 bg-white border rounded-lg shadow-sm group border-neutral-200 hover:border-neutral-800"
     >
       <div
-        class="absolute top-0 left-0 w-1 h-full bg-neutral-800 transform scale-y-0 group-hover:scale-y-100 transition-transform duration-300 origin-top"
+        class="absolute top-0 left-0 w-1 h-full transition-transform duration-300 origin-top transform scale-y-0 bg-neutral-800 group-hover:scale-y-100"
       ></div>
       <span
-        class="text-lg font-medium text-neutral-700 group-hover:text-neutral-900 transition-colors block"
+        class="block text-lg font-medium transition-colors text-neutral-700 group-hover:text-neutral-900"
       >
         Stock
       </span>
-      <span class="text-sm text-neutral-400 mt-1 block">Raw Material Period Report</span>
+      <span class="block mt-1 text-sm text-neutral-400">Raw Material Period Report</span>
     </button>
   </div>
 
@@ -190,13 +197,13 @@
     <div class="absolute inset-0 bg-black/30" (click)="cancelLogout()"></div>
 
     <div
-      class="relative bg-white rounded-xl shadow-2xl max-w-md w-full transform"
+      class="relative w-full max-w-md transform bg-white shadow-2xl rounded-xl"
       style="animation: slideUp 0.3s ease-out"
       (click)="$event.stopPropagation()"
     >
       <button
         (click)="cancelLogout()"
-        class="absolute top-4 right-4 text-neutral-400 hover:text-neutral-600 transition-colors"
+        class="absolute transition-colors top-4 right-4 text-neutral-400 hover:text-neutral-600"
       >
         <lucide-icons [iconsName]="'x'" [color]="'gray'" class="w-5 h-5"></lucide-icons>
       </button>
@@ -205,23 +212,23 @@
         <div class="mx-auto w-[4dvw] rounded-full flex items-center justify-center mb-4">
           <img src="./ads-logo1.png" class="w-10 h-10" alt="" />
         </div>
-        <h3 class="text-2xl font-bold text-neutral-900 mb-2">Logout Confirmation</h3>
+        <h3 class="mb-2 text-2xl font-bold text-neutral-900">Logout Confirmation</h3>
         <p class="text-neutral-600">Are you sure you want to logout from the system?</p>
-        <p class="text-sm text-neutral-500 mt-2">
+        <p class="mt-2 text-sm text-neutral-500">
           You will need to login again to access the system
         </p>
       </div>
 
-      <div class="px-8 pb-8 flex flex-col sm:flex-row gap-3">
+      <div class="flex flex-col gap-3 px-8 pb-8 sm:flex-row">
         <button
           (click)="cancelLogout()"
-          class="flex-1 px-6 py-3 rounded-lg border-2 border-neutral-300 text-neutral-700 font-semibold hover:bg-neutral-50 active:scale-95 transition-all"
+          class="flex-1 px-6 py-3 font-semibold transition-all border-2 rounded-lg border-neutral-300 text-neutral-700 hover:bg-neutral-50 active:scale-95"
         >
           Cancel
         </button>
         <button
           (click)="confirmLogout()"
-          class="flex-1 px-6 py-3 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 active:scale-95 transition-all flex items-center justify-center gap-2"
+          class="flex items-center justify-center flex-1 gap-2 px-6 py-3 font-semibold text-white transition-all bg-red-600 rounded-lg hover:bg-red-700 active:scale-95"
         >
           Yes, Logout
         </button>
@@ -230,7 +237,7 @@
   </div>
 
   <!-- Footer -->
-  <div class="mt-12 text-center text-sm text-neutral-400">
+  <div class="mt-12 text-sm text-center text-neutral-400">
     <p>© {{ currentYear }} PT Agro Deli Serdang. All rights reserved.</p>
   </div>
 
@@ -252,15 +259,15 @@
 
     <!-- Modal Content -->
     <div
-      class="relative bg-white rounded-2xl shadow-2xl max-w-md w-full transform overflow-hidden"
+      class="relative w-full max-w-md overflow-hidden transform bg-white shadow-2xl rounded-2xl"
       style="animation: slideUp 0.3s ease-out"
       (click)="$event.stopPropagation()"
     >
       <!-- Header -->
-      <div class="bg-gradient-to-r from-neutral-800 to-neutral-700 px-6 py-5">
+      <div class="px-6 py-5 bg-gradient-to-r from-neutral-800 to-neutral-700">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center">
+            <div class="flex items-center justify-center w-10 h-10 rounded-lg bg-white/10">
               <lucide-icons [iconsName]="'lock'" [color]="'white'" class="w-5 h-5"></lucide-icons>
             </div>
             <div>
@@ -270,7 +277,7 @@
           </div>
           <button
             (click)="closeChangePasswordModal()"
-            class="text-white/60 hover:text-white transition-colors p-1 hover:bg-white/10 rounded-lg"
+            class="p-1 transition-colors rounded-lg text-white/60 hover:text-white hover:bg-white/10"
             [disabled]="isChangingPassword"
           >
             <lucide-icons [iconsName]="'x'" [color]="'white'" class="w-5 h-5"></lucide-icons>
@@ -281,7 +288,7 @@
       <!-- Form -->
       <div class="p-6 space-y-5">
         <!-- User Info -->
-        <div class="bg-neutral-50 rounded-lg p-4 border border-neutral-200">
+        <div class="p-4 border rounded-lg bg-neutral-50 border-neutral-200">
           <div class="flex items-center gap-2 text-sm text-neutral-600">
             <lucide-icons
               [iconsName]="'user-round'"
@@ -289,14 +296,14 @@
               class="w-4 h-4"
             ></lucide-icons>
             <span class="font-medium">Username:</span>
-            <span class="text-neutral-800 font-semibold">{{ dataCurrentUser?.username }}</span>
+            <span class="font-semibold text-neutral-800">{{ dataCurrentUser?.username }}</span>
           </div>
         </div>
 
         <!-- General Error Alert -->
         <div
           *ngIf="changePasswordErrors.general"
-          class="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3"
+          class="flex items-start gap-3 p-4 border border-red-200 rounded-lg bg-red-50"
         >
           <lucide-icons
             [iconsName]="'alert-circle'"
@@ -320,7 +327,7 @@
               type="text"
               [(ngModel)]="changePasswordForm.newUsername"
               [disabled]="isChangingPassword"
-              class="w-full px-4 py-3 pr-11 border rounded-lg focus:ring-2 focus:ring-neutral-500 focus:border-transparent transition-all"
+              class="w-full px-4 py-3 transition-all border rounded-lg pr-11 focus:ring-2 focus:ring-neutral-500 focus:border-transparent"
               [class.border-red-300]="changePasswordErrors.newUsername"
               [class.border-neutral-300]="!changePasswordErrors.newUsername"
               placeholder="Type New Username here ..."
@@ -340,7 +347,7 @@
               type="password"
               [(ngModel)]="changePasswordForm.currentPassword"
               [disabled]="isChangingPassword"
-              class="w-full px-4 py-3 pr-11 border rounded-lg focus:ring-2 focus:ring-neutral-500 focus:border-transparent transition-all"
+              class="w-full px-4 py-3 transition-all border rounded-lg pr-11 focus:ring-2 focus:ring-neutral-500 focus:border-transparent"
               [class.border-red-300]="changePasswordErrors.currentPassword"
               [class.border-neutral-300]="!changePasswordErrors.currentPassword"
               placeholder="Enter current password"
@@ -349,7 +356,7 @@
             <button
               type="button"
               (click)="togglePasswordVisibility('current')"
-              class="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
+              class="absolute -translate-y-1/2 right-3 top-1/2 text-neutral-400 hover:text-neutral-600"
               [disabled]="isChangingPassword"
             >
               <lucide-icons [iconsName]="'eye'" [color]="'gray'" class="w-5 h-5"></lucide-icons>
@@ -357,7 +364,7 @@
           </div>
           <p
             *ngIf="changePasswordErrors.currentPassword"
-            class="text-sm text-red-600 flex items-center gap-1"
+            class="flex items-center gap-1 text-sm text-red-600"
           >
             <lucide-icons
               [iconsName]="'alert-circle'"
@@ -379,7 +386,7 @@
               type="password"
               [(ngModel)]="changePasswordForm.newPassword"
               [disabled]="isChangingPassword"
-              class="w-full px-4 py-3 pr-11 border rounded-lg focus:ring-2 focus:ring-neutral-500 focus:border-transparent transition-all"
+              class="w-full px-4 py-3 transition-all border rounded-lg pr-11 focus:ring-2 focus:ring-neutral-500 focus:border-transparent"
               [class.border-red-300]="changePasswordErrors.newPassword"
               [class.border-neutral-300]="!changePasswordErrors.newPassword"
               placeholder="Enter new password"
@@ -388,7 +395,7 @@
             <button
               type="button"
               (click)="togglePasswordVisibility('new')"
-              class="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
+              class="absolute -translate-y-1/2 right-3 top-1/2 text-neutral-400 hover:text-neutral-600"
               [disabled]="isChangingPassword"
             >
               <lucide-icons [iconsName]="'eye'" [color]="'gray'" class="w-5 h-5"></lucide-icons>
@@ -407,7 +414,7 @@
               type="password"
               [(ngModel)]="changePasswordForm.confirmPassword"
               [disabled]="isChangingPassword"
-              class="w-full px-4 py-3 pr-11 border rounded-lg focus:ring-2 focus:ring-neutral-500 focus:border-transparent transition-all"
+              class="w-full px-4 py-3 transition-all border rounded-lg pr-11 focus:ring-2 focus:ring-neutral-500 focus:border-transparent"
               [class.border-red-300]="changePasswordErrors.confirmPassword"
               [class.border-neutral-300]="!changePasswordErrors.confirmPassword"
               placeholder="Re-enter new password"
@@ -416,7 +423,7 @@
             <button
               type="button"
               (click)="togglePasswordVisibility('confirm')"
-              class="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
+              class="absolute -translate-y-1/2 right-3 top-1/2 text-neutral-400 hover:text-neutral-600"
               [disabled]="isChangingPassword"
             >
               <lucide-icons [iconsName]="'eye'" [color]="'gray'" class="w-5 h-5"></lucide-icons>
@@ -424,7 +431,7 @@
           </div>
           <p
             *ngIf="changePasswordErrors.confirmPassword"
-            class="text-sm text-red-600 flex items-center gap-1"
+            class="flex items-center gap-1 text-sm text-red-600"
           >
             <lucide-icons
               [iconsName]="'alert-circle'"
@@ -438,7 +445,7 @@
         <!-- Password Strength Indicator (Optional) -->
         <div *ngIf="changePasswordForm.newPassword.length > 0" class="space-y-2">
           <div class="flex items-center gap-2">
-            <div class="flex-1 h-2 bg-neutral-200 rounded-full overflow-hidden">
+            <div class="flex-1 h-2 overflow-hidden rounded-full bg-neutral-200">
               <div
                 class="h-full transition-all duration-300"
                 [class.w-1/3]="changePasswordForm.newPassword.length < 6"
@@ -476,7 +483,7 @@
         </div>
 
         <!-- Warning Notice -->
-        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 flex items-start gap-3">
+        <div class="flex items-start gap-3 p-4 border border-yellow-200 rounded-lg bg-yellow-50">
           <lucide-icons
             [iconsName]="'alert-triangle'"
             [color]="'orange'"
@@ -493,11 +500,11 @@
       </div>
 
       <!-- Footer Actions -->
-      <div class="px-6 pb-6 flex flex-col sm:flex-row gap-3">
+      <div class="flex flex-col gap-3 px-6 pb-6 sm:flex-row">
         <button
           (click)="closeChangePasswordModal()"
           [disabled]="isChangingPassword"
-          class="flex-1 px-5 py-3 rounded-lg border-2 border-neutral-300 text-neutral-700 font-semibold hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 transition-all flex items-center justify-center gap-2"
+          class="flex items-center justify-center flex-1 gap-2 px-5 py-3 font-semibold transition-all border-2 rounded-lg border-neutral-300 text-neutral-700 hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
         >
           <lucide-icons [iconsName]="'x'" [color]="'gray'" class="w-5 h-5"></lucide-icons>
           Cancel
@@ -505,7 +512,7 @@
         <button
           (click)="submitChangePassword()"
           [disabled]="isChangingPassword"
-          class="flex-1 px-5 py-3 rounded-lg bg-neutral-800 text-white font-semibold hover:bg-neutral-900 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 transition-all flex items-center justify-center gap-2"
+          class="flex items-center justify-center flex-1 gap-2 px-5 py-3 font-semibold text-white transition-all rounded-lg bg-neutral-800 hover:bg-neutral-900 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
         >
           <lucide-icons
             *ngIf="!isChangingPassword"
@@ -515,7 +522,7 @@
           ></lucide-icons>
           <div
             *ngIf="isChangingPassword"
-            class="animate-spin rounded-full h-5 w-5 border-b-2 border-white"
+            class="w-5 h-5 border-b-2 border-white rounded-full animate-spin"
           ></div>
           {{ isChangingPassword ? 'Changing...' : 'Change Password' }}
         </button>

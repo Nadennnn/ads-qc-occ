@@ -2,7 +2,7 @@
 // FILE: src/app/admin/admin.component.ts
 // SECURE VERSION - Compatible dengan struktur API kamu
 // ============================================
-import { Component, OnInit, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { Router } from '@angular/router';
 import { lastValueFrom } from 'rxjs';
 import { ApiService } from './services/api.service';
@@ -33,6 +33,7 @@ export class AdminComponent implements OnInit {
     private router: Router,
     private authService: AuthService,
     private api: ApiService,
+    private cdr: ChangeDetectorRef,
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -49,7 +50,116 @@ export class AdminComponent implements OnInit {
 
     // Load user profile & roles dari backend
     await this.loadUserProfile();
+    this.updateDateTime();
   }
+
+  ngAfterViewInit(): void {
+    // Mulai update setiap detik setelah view siap
+    this.intervalId = setInterval(() => {
+      this.updateDateTime();
+      // console.log('Jam updated:', this.currentTime); // Opsional untuk debug
+    }, 1000);
+  }
+
+  ngOnDestroy(): void {
+    if (this.intervalId) {
+      clearInterval(this.intervalId);
+    }
+  }
+
+  // ANCHOR CLOCK AND DATE
+  currentTime: string = '';
+  currentDate: string = '';
+  currentDay: string = '';
+  currentGreeting: string = '';
+  currentGreetingIcon: string = '';
+
+  private intervalId: any;
+
+  updateDateTime(): void {
+    const now = new Date();
+
+    this.currentTime = now.toLocaleTimeString('id-ID', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+    });
+
+    this.currentDate = now.toLocaleDateString('id-ID', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    });
+
+    this.currentDay = now.toLocaleDateString('id-ID', {
+      weekday: 'long',
+    });
+
+    // Set greeting berdasarkan waktu
+    const hour = now.getHours();
+    if (hour >= 5 && hour < 11) {
+      this.currentGreeting = 'Selamat Pagi';
+      this.currentGreetingIcon = 'sunrise'; // Icon matahari terbit
+    } else if (hour >= 11 && hour < 15) {
+      this.currentGreeting = 'Selamat Siang';
+      this.currentGreetingIcon = 'sun'; // Icon matahari terik
+    } else if (hour >= 15 && hour < 18) {
+      this.currentGreeting = 'Selamat Sore';
+      this.currentGreetingIcon = 'sunset'; // Icon matahari terbenam
+    } else {
+      this.currentGreeting = 'Selamat Malam';
+      this.currentGreetingIcon = 'moon'; // Icon bulan
+    }
+
+    // WAJIB karena pakai OnPush!
+    this.cdr.markForCheck();
+  }
+
+  getTimeBasedEmoji(): string {
+    const currentHour = new Date().getHours();
+
+    if (currentHour >= 5 && currentHour < 11) {
+      return '🌅'; // Sunrise
+    } else if (currentHour >= 11 && currentHour < 15) {
+      return '☀️'; // Sun
+    } else if (currentHour >= 15 && currentHour < 18) {
+      return '🌇'; // Sunset
+    } else {
+      return '🌙'; // Moon
+    }
+  }
+
+  getTimeBasedGreeting(): string {
+    const currentHour = new Date().getHours();
+
+    if (currentHour >= 5 && currentHour < 11) {
+      return 'Selamat Pagi';
+    } else if (currentHour >= 11 && currentHour < 15) {
+      return 'Selamat Siang';
+    } else if (currentHour >= 15 && currentHour < 18) {
+      return 'Selamat Sore';
+    } else {
+      return 'Selamat Malam';
+    }
+  }
+
+  getCurrentTime(): string {
+    return new Date().toLocaleTimeString('id-ID', {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  }
+
+  getCurrentDate(): string {
+    return new Date().toLocaleDateString('id-ID', {
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short',
+    });
+  }
+
+  // ANCHOR END CLOCK DATE
 
   /**
    * Load user profile dari backend

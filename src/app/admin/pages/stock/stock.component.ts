@@ -156,7 +156,18 @@ export class StockComponent implements OnInit {
 
     this.stockService.getRawMaterialReport(startDate, endDate).subscribe({
       next: (res) => {
-        const mappedData: StockItem[] = res.data.map((item) => ({
+        // Langsung filter res.data di sini, misalnya hanya id === 1
+        const dataFiltered = res.data.filter(
+          (item: any) =>
+            item.id == 1 ||
+            item.id == 2 ||
+            item.id == 3 ||
+            item.id == 4 ||
+            item.id == 5 ||
+            item.id == 7,
+        );
+
+        const mappedData: StockItem[] = dataFiltered.map((item) => ({
           id: item.id,
           barang: item.nama,
           stock_awal: item.beginning_ballance,
@@ -171,7 +182,8 @@ export class StockComponent implements OnInit {
         this.stockData.set(mappedData);
         this.filteredStockData.set(mappedData);
         this.isLoading.set(false);
-        console.log('cek data ini : ', this.stockData());
+
+        console.log('cek data ini (hanya id 1): ', this.stockData());
       },
       error: (error) => {
         console.error('Failed to load stock data from API', error);
@@ -479,7 +491,16 @@ export class StockComponent implements OnInit {
 
     this.stockService.getRawMaterialReport(startDate, endDate).subscribe({
       next: (res) => {
-        let items = res.data;
+        const dataFiltered = res.data.filter(
+          (item: any) =>
+            item.id == 1 ||
+            item.id == 2 ||
+            item.id == 3 ||
+            item.id == 4 ||
+            item.id == 5 ||
+            item.id == 7,
+        );
+        let items = dataFiltered;
         if (this.selectedBarang() !== 'semua') {
           items = items.filter((i) => i.nama === this.selectedBarang());
         }

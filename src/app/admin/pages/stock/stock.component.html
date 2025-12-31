@@ -151,10 +151,11 @@
           />
           <button
             type="button"
-            class="px-4 py-2 ml-3 text-white bg-neutral-800 btn"
+            class="flex items-center justify-center gap-3 px-4 py-2 ml-3 text-white rounded-lg bg-neutral-800 btn"
             [disabled]="isPeriodLoading()"
             (click)="calculatePeriodReport()"
           >
+            <lucide-icons [iconsName]="'search'" [color]="'white'" [strokewidth]="3" [size]="16" />
             <span *ngIf="!isPeriodLoading()">Search</span>
             <span *ngIf="isPeriodLoading()">Loading...</span>
           </button>
