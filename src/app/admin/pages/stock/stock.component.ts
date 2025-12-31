@@ -164,7 +164,7 @@ export class StockComponent implements OnInit {
             item.id == 3 ||
             item.id == 4 ||
             item.id == 5 ||
-            item.id == 7,
+            item.id == 6,
         );
 
         const mappedData: StockItem[] = dataFiltered.map((item) => ({
@@ -498,7 +498,7 @@ export class StockComponent implements OnInit {
             item.id == 3 ||
             item.id == 4 ||
             item.id == 5 ||
-            item.id == 7,
+            item.id == 6,
         );
         let items = dataFiltered;
         if (this.selectedBarang() !== 'semua') {
