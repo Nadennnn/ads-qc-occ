@@ -101,7 +101,7 @@
             <!-- <th>Closing Stock</th> -->
             <th>Stock</th>
             <th>Unit</th>
-            <!-- <th>Stock Level</th> -->
+            <th>Stock Level</th>
             <th>Last Updated</th>
           </tr>
         </thead>
@@ -118,6 +118,44 @@
               <strong>{{ item.stock_barang }}</strong>
             </td>
             <td class="text-center">{{ item.satuan }}</td>
+            <td class="text-center">
+              <div class="flex items-center justify-center gap-3">
+                <!-- Progress Bar - Clean & Simple -->
+                <div class="relative w-48 h-6 overflow-hidden bg-gray-200 rounded">
+                  <div
+                    class="h-full transition-all duration-300"
+                    [style.width.%]="getStockPercentage(item)"
+                    [ngClass]="{
+                      'bg-green-500': getStockLevelClass(item) === 'level-high',
+                      'bg-amber-500': getStockLevelClass(item) === 'level-medium',
+                      'bg-red-500': getStockLevelClass(item) === 'level-low',
+                    }"
+                  ></div>
+
+                  <!-- Percentage Label - Always visible, centered -->
+                  <div
+                    class="absolute inset-0 flex items-center justify-center text-xs font-semibold text-gray-800"
+                  >
+                    {{ getStockPercentage(item) | number: '1.1-1' }}%
+                  </div>
+                </div>
+
+                <!-- Status Text -->
+                <div class="flex items-center min-w-14">
+                  <span
+                    class="text-sm font-medium"
+                    [ngClass]="{
+                      'text-green-600': getStockLevelClass(item) === 'level-high',
+                      'text-amber-600': getStockLevelClass(item) === 'level-medium',
+                      'text-red-600': getStockLevelClass(item) === 'level-low',
+                    }"
+                  >
+                    <!-- UBAH TEKS INI -->
+                    <span *ngIf="needsRestockWarning(item)">Use First!</span>
+                  </span>
+                </div>
+              </div>
+            </td>
             <td class="text-center">{{ formatDate(item.last_updated) }}</td>
           </tr>
         </tbody>

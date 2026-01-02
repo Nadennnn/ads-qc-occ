@@ -678,4 +678,53 @@ export class StockComponent implements OnInit {
 
     XLSX.writeFile(wb, filename);
   }
+
+  // ANCHOR STOCK LEVEL
+  // Cari stok LOCC/OCC sebagai reference (id === 1) - gunakan stock_barang
+  getLoccOccStock(): number {
+    const loccItem = this.stockData().find((item) => item.id === 1);
+    return loccItem ? loccItem.stock_barang : 0;
+  }
+
+  // Tentukan apakah item adalah primary (LOCC/OCC atau DLK)
+  isPrimaryItem(item: StockItem): boolean {
+    return item.id === 1 || item.id === 2; // LOCC/OCC atau DLK
+  }
+
+  // Hitung persentase stock level
+  getStockPercentage(item: StockItem): number {
+    if (this.isPrimaryItem(item)) {
+      return 100; // Selalu 100% untuk LOCC/OCC dan DLK
+    }
+
+    const loccStock = this.getLoccOccStock();
+    if (loccStock <= 0) {
+      return 0;
+    }
+
+    // Gunakan stock_barang untuk perhitungan
+    const percentage = (item.stock_barang / loccStock) * 100;
+    return Math.min(100, Math.max(0, percentage)); // Batasi 0-100%
+  }
+
+  // Tentukan level warna: high, medium, low + warning
+  getStockLevelClass(item: StockItem): string {
+    if (this.isPrimaryItem(item)) {
+      return 'level-high'; // Selalu hijau
+    }
+
+    const percentage = this.getStockPercentage(item);
+
+    if (percentage >= 50) return 'level-high';
+    if (percentage >= 20) return 'level-medium';
+    return 'level-low'; // <20% → merah + warning
+  }
+
+  // Apakah perlu warning "gunakan dulu"?
+  needsRestockWarning(item: StockItem): boolean {
+    if (this.isPrimaryItem(item)) return false;
+    // DIBALIK: warning jika >= 20% (bukan < 20%)
+    return this.getStockPercentage(item) >= 20;
+  }
+  // ANCHOR END STOCK LEVEL
 }
