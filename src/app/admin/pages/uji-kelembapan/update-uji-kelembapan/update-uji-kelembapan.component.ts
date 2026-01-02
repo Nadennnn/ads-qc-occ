@@ -3,7 +3,7 @@
 import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { Router } from '@angular/router';
 import { finalize, Subject, takeUntil } from 'rxjs';
-import { ApiService } from '../../services/api.service';
+import { ApiService } from '../../../services/api.service';
 
 // Interface untuk response API dari backend
 interface BahanBakuApiResponse {
@@ -37,20 +37,19 @@ interface MoistureResults {
 }
 
 @Component({
-  selector: 'app-uji-kelembapan',
-  templateUrl: './uji-kelembapan.component.html',
-  styleUrls: ['./uji-kelembapan.component.scss'],
+  selector: 'app-update-uji-kelembapan',
+  templateUrl: './update-uji-kelembapan.component.html',
+  styleUrls: ['./update-uji-kelembapan.component.scss'],
   encapsulation: ViewEncapsulation.None,
   standalone: false,
 })
-export class UjiKelembapanComponent implements OnInit, OnDestroy {
+export class UpdateUjiKelembapanComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   // List data dari API
   bahanBakuList: BahanBakuApiResponse[] = [];
   selectedData: BahanBakuApiResponse | null = null;
   showForm = false;
-  isEdit: boolean = false;
 
   // Loading & Error states
   isLoading = false;
@@ -93,9 +92,6 @@ export class UjiKelembapanComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadBahanBakuList();
-
-    this.showForm = false;
-    this.isEdit = false;
   }
 
   ngOnDestroy(): void {
@@ -169,11 +165,6 @@ export class UjiKelembapanComponent implements OnInit, OnDestroy {
     setTimeout(() => {
       document.getElementById('form-section')?.scrollIntoView({ behavior: 'smooth' });
     }, 100);
-  }
-
-  editData(data: BahanBakuApiResponse) {
-    this.isEdit = true;
-    this.showForm = true;
   }
 
   backToList(): void {

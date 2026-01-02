@@ -135,9 +135,7 @@
                 <th class="px-4 py-3 text-xs font-medium text-left text-gray-500 uppercase">
                   Waktu
                 </th>
-                <th class="px-4 py-3 text-xs font-medium text-center text-gray-500 uppercase">
-                  Status
-                </th>
+
                 <th class="px-4 py-3 text-xs font-medium text-center text-gray-500 uppercase">
                   Aksi
                 </th>
@@ -155,30 +153,35 @@
                   {{ item.berat_bruto }}
                 </td>
                 <td class="px-4 py-3 text-sm text-gray-600">{{ formatDate(item.created_at) }}</td>
-                <td class="px-4 py-3 text-center">
-                  <span
-                    [class]="
-                      'inline-flex px-2 py-1 text-xs font-semibold rounded-full ' +
-                      getStatusBadgeClass(item.status)
-                    "
-                  >
-                    {{ getStatusText(item.status) }}
-                  </span>
-                </td>
-                <td class="px-4 py-3 text-center">
+
+                <td class="text-center">
                   <button
                     (click)="selectData(item)"
-                    class="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded hover:bg-blue-700 transition-colors"
+                    class="flex items-center justify-center gap-1 text-[14px] bg-blue-400 text-blue-100 p-1 rounded-md hover:bg-blue-600 transition-colors hover:scale-110 transition-all duration-300"
                   >
-                    <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                      />
-                    </svg>
-                    {{ item.status === 'Sudah Diuji' ? 'Lihat' : 'Uji' }}
+                    <lucide-icons
+                      [iconsName]="'file-pen-line'"
+                      [color]="'white'"
+                      [strokewidth]="2"
+                      [size]="14"
+                      class="gray"
+                    />
+                    Test
+                  </button>
+                </td>
+                <td class="text-center">
+                  <button
+                    (click)="editData(item)"
+                    class="flex items-center justify-center gap-1 text-[14px] bg-gray-400 text-gray-100 p-1 rounded-md hover:bg-gray-600 transition-colors hover:scale-110 transition-all duration-300"
+                  >
+                    <lucide-icons
+                      [iconsName]="'pen'"
+                      [color]="'white'"
+                      [strokewidth]="2"
+                      [size]="16"
+                      class="gray"
+                    />
+                    Edit
                   </button>
                 </td>
               </tr>
@@ -199,7 +202,7 @@
     </div>
 
     <!-- Form View (when data is selected) -->
-    <div *ngIf="showForm" id="form-section">
+    <div *ngIf="showForm && !isEdit" id="form-section">
       <!-- Back to List Button -->
       <div class="mb-4">
         <button
@@ -446,5 +449,7 @@
         </button>
       </div>
     </div>
+
+    <app-update-uji-kelembapan *ngIf="showForm && isEdit"></app-update-uji-kelembapan>
   </div>
 </div>

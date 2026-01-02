@@ -32,6 +32,7 @@ import {
   Lock,
   LucideAngularModule,
   PackageMinus,
+  Pen,
   Pencil,
   PlusCircle,
   Power,
@@ -74,6 +75,7 @@ import { CodeCustomerComponent } from './pages/code-customer/code-customer.compo
 import { CodeSupplierComponent } from './pages/code-supplier/code-supplier.component';
 import { ScaleDisplayComponent } from './pages/scale-display/scale-display.component';
 import { StockComponent } from './pages/stock/stock.component';
+import { UpdateUjiKelembapanComponent } from './pages/uji-kelembapan/update-uji-kelembapan/update-uji-kelembapan.component';
 import { UsersControlComponent } from './pages/users-control/users-control.component';
 import { TimbanganService } from './services/timbangan.service';
 import { AbhiLatihanComponent } from './unused/abhi-latihan.component';
@@ -100,6 +102,7 @@ import { AbhiLatihanComponent } from './unused/abhi-latihan.component';
     TimbanganComponent,
     KelembapanComponent,
     StockComponent,
+    UpdateUjiKelembapanComponent,
   ],
   imports: [
     RouterModule.forChild(AdminRoutes),
@@ -158,6 +161,7 @@ import { AbhiLatihanComponent } from './unused/abhi-latihan.component';
       Clock,
       Sun,
       Search,
+      Pen,
     }),
   ],
 })
