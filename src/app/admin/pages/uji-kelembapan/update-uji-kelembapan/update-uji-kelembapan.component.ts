@@ -1,12 +1,18 @@
-// src/app/admin/pages/uji-kelembapan/uji-kelembapan.component.ts
+// src/app/admin/pages/uji-kelembapan/update-uji-kelembapan/update-uji-kelembapan.component.ts
 
-import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
-import { Router } from '@angular/router';
+import {
+  Component,
+  EventEmitter,
+  OnDestroy,
+  OnInit,
+  Output,
+  ViewEncapsulation,
+} from '@angular/core';
 import { finalize, Subject, takeUntil } from 'rxjs';
 import { ApiService } from '../../../services/api.service';
 
-// Interface untuk response API dari backend
-interface BahanBakuApiResponse {
+// Interface untuk response API detail
+interface TaraSelesaiResponse {
   id: number;
   nomor_bon: string;
   jenis_kendaraan: string;
@@ -21,10 +27,31 @@ interface BahanBakuApiResponse {
   berat_bruto: string;
   berat_netto: string | null;
   petugas: string;
-  status: string; // "Belum Diuji" | "Sudah Diuji"
-  is_finished: string; // "0" | "1"
+  status: string;
+  is_finished: string;
   created_at: string;
   updated_at: string;
+  uji_kelembapan: {
+    id: number;
+    timbangan_masuk_id: string;
+    jumlah_ball: string;
+    total_moisture: string;
+    avg_moisture: string;
+    nilai_claim: string;
+    berat_bruto: string;
+    berat_netto: string;
+    potongan_sampah: string;
+    created_at: string;
+    updated_at: string;
+  };
+  titik: Array<{
+    id: number;
+    uji_kelembapan_id: string;
+    titik: string;
+    nilai: string;
+    created_at: string;
+    updated_at: string;
+  }>;
 }
 
 interface MoistureResults {
@@ -44,11 +71,14 @@ interface MoistureResults {
   standalone: false,
 })
 export class UpdateUjiKelembapanComponent implements OnInit, OnDestroy {
+  @Output() onBack = new EventEmitter<void>();
+  @Output() onUpdateSuccess = new EventEmitter<void>();
+
   private destroy$ = new Subject<void>();
 
   // List data dari API
-  bahanBakuList: BahanBakuApiResponse[] = [];
-  selectedData: BahanBakuApiResponse | null = null;
+  bahanBakuList: TaraSelesaiResponse[] = [];
+  selectedData: TaraSelesaiResponse | null = null;
   showForm = false;
 
   // Loading & Error states
@@ -85,13 +115,10 @@ export class UpdateUjiKelembapanComponent implements OnInit, OnDestroy {
       .map((_, i) => i);
   }
 
-  constructor(
-    private router: Router,
-    private apiService: ApiService,
-  ) {}
+  constructor(private apiService: ApiService) {}
 
   ngOnInit(): void {
-    this.loadBahanBakuList();
+    this.loadTaraSelesaiList();
   }
 
   ngOnDestroy(): void {
@@ -100,14 +127,14 @@ export class UpdateUjiKelembapanComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Load daftar bahan baku dari API
+   * Load daftar bahan baku yang sudah selesai dari API /daftar-tara-selesai
    */
-  private loadBahanBakuList(): void {
+  private loadTaraSelesaiList(): void {
     this.isLoadingList = true;
     this.errorMessage = '';
 
     this.apiService
-      .get<BahanBakuApiResponse[]>('daftar-bahan-baku')
+      .get<TaraSelesaiResponse[]>('daftar-tara-selesai')
       .pipe(
         takeUntil(this.destroy$),
         finalize(() => (this.isLoadingList = false)),
@@ -115,18 +142,21 @@ export class UpdateUjiKelembapanComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (response) => {
           if (response.success && response.data) {
-            // Filter hanya yang belum diuji (status "Belum Diuji")
+            // Filter hanya yang sudah diuji dan punya data uji_kelembapan
             this.bahanBakuList = response.data.filter(
-              (item) => item.status === 'Belum Diuji' && item.type_bahan === 'Bahan Baku',
+              (item) =>
+                item.status === 'Sudah Diuji' &&
+                item.type_bahan === 'Bahan Baku' &&
+                item.uji_kelembapan != null,
             );
-            console.log('Loaded bahan baku list:', this.bahanBakuList);
+            console.log('Loaded tara selesai list:', this.bahanBakuList);
           } else {
             this.errorMessage = 'Gagal memuat data';
           }
         },
         error: (error) => {
-          console.error('Error loading bahan baku:', error);
-          this.errorMessage = error.message || 'Gagal memuat data bahan baku';
+          console.error('Error loading tara selesai:', error);
+          this.errorMessage = error.message || 'Gagal memuat data';
         },
       });
   }
@@ -135,13 +165,13 @@ export class UpdateUjiKelembapanComponent implements OnInit, OnDestroy {
    * Refresh list data
    */
   refreshList(): void {
-    this.loadBahanBakuList();
+    this.loadTaraSelesaiList();
   }
 
   /**
-   * Select data untuk uji kelembapan
+   * Select data untuk edit uji kelembapan
    */
-  selectData(data: BahanBakuApiResponse): void {
+  selectData(data: TaraSelesaiResponse): void {
     this.selectedData = data;
     this.showForm = true;
 
@@ -152,25 +182,61 @@ export class UpdateUjiKelembapanComponent implements OnInit, OnDestroy {
       tanggal: new Date(data.created_at).toISOString().split('T')[0],
       supplier: data.suplier || '',
       jenisBarang: data.barang || '',
-      jumlahBall: '',
-      beratBahan: data.berat_bruto || '0',
-      potonganSampah: '0', // ← TAMBAHKAN INI
+      jumlahBall: data.uji_kelembapan?.jumlah_ball || '0',
+      beratBahan: data.uji_kelembapan?.berat_bruto || '0',
+      potonganSampah: data.uji_kelembapan?.potongan_sampah || '0',
     };
 
-    // Reset moisture points
+    // Reset moisture points terlebih dahulu
     this.moisturePoints = Array(80).fill('');
-    this.results = null;
+
+    // Populate moisture points dari data titik yang ada
+    if (data.titik && data.titik.length > 0) {
+      data.titik.forEach((titikData) => {
+        const index = parseInt(titikData.titik) - 1; // titik 1 = index 0
+        if (index >= 0 && index < 80) {
+          this.moisturePoints[index] = titikData.nilai;
+        }
+      });
+    }
+
+    // Auto calculate results dari data yang sudah ada
+    this.autoCalculateFromExistingData(data);
 
     // Scroll to form
     setTimeout(() => {
-      document.getElementById('form-section')?.scrollIntoView({ behavior: 'smooth' });
+      document.getElementById('update-form-section')?.scrollIntoView({ behavior: 'smooth' });
     }, 100);
+  }
+
+  /**
+   * Auto calculate results dari data existing
+   */
+  private autoCalculateFromExistingData(data: TaraSelesaiResponse): void {
+    if (!data.uji_kelembapan) return;
+
+    const ujiData = data.uji_kelembapan;
+
+    // Parse nilai dari string (contoh: "162%" -> 162)
+    const totalMoisture = parseFloat(ujiData.total_moisture.replace('%', ''));
+    const avgMoisture = parseFloat(ujiData.avg_moisture.replace('%', ''));
+    const claimPercentage = parseFloat(ujiData.nilai_claim.replace('%', '').replace('+', ''));
+
+    this.results = {
+      totalMoisture: totalMoisture,
+      averageMoisture: avgMoisture,
+      claimPercentage: claimPercentage,
+      beratBahan: parseFloat(ujiData.berat_bruto),
+      netto: parseFloat(ujiData.berat_netto),
+      pointsChecked: data.titik?.length || 0,
+    };
   }
 
   backToList(): void {
     this.showForm = false;
     this.selectedData = null;
     this.resetForm();
+    this.onBack.emit();
   }
 
   calculateResults(): void {
@@ -208,7 +274,7 @@ export class UpdateUjiKelembapanComponent implements OnInit, OnDestroy {
       }
     }
 
-    // NEW: Validate jumlah ball
+    // Validate jumlah ball
     if (!this.formData.jumlahBall || parseInt(this.formData.jumlahBall) < 0) {
       if (!confirm('Jumlah Ball belum diisi. Lanjutkan dengan 0?')) {
         return;
@@ -239,7 +305,6 @@ export class UpdateUjiKelembapanComponent implements OnInit, OnDestroy {
     // Calculate netto based on Bruto
     const beratBahan = parseFloat(this.formData.beratBahan);
 
-    // ✅ BAGIAN BARU - LOGIKA YANG BENAR
     let netto: number;
     if (claimPercentage <= 0) {
       // Kelembapan di bawah atau sama dengan standar -> tidak ada penyesuaian
@@ -260,10 +325,10 @@ export class UpdateUjiKelembapanComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * ANCHOR Save hasil uji kelembapan ke backend
+   * UPDATE hasil uji kelembapan ke backend
    */
   saveResults(): void {
-    if (!this.results || !this.selectedData) {
+    if (!this.results || !this.selectedData || !this.selectedData.uji_kelembapan) {
       alert('Harap hitung hasil terlebih dahulu');
       return;
     }
@@ -271,7 +336,7 @@ export class UpdateUjiKelembapanComponent implements OnInit, OnDestroy {
     // Confirm before save
     if (
       !confirm(
-        `Simpan hasil uji kelembapan?\n\n` +
+        `Update hasil uji kelembapan?\n\n` +
           `Kelembapan Rata-rata: ${this.results.averageMoisture}%\n` +
           `Standar: ${this.STANDARD_MOISTURE}%\n` +
           `Selisih: ${this.results.claimPercentage}%\n` +
@@ -291,9 +356,8 @@ export class UpdateUjiKelembapanComponent implements OnInit, OnDestroy {
       }))
       .filter((item) => item.value !== null); // Filter hanya yang ada valuenya
 
-    // Build payload sesuai format backend
+    // Build payload sesuai format backend untuk UPDATE
     const payload = {
-      timbangan_masuk_id: this.selectedData.id,
       jumlah_ball: parseInt(this.formData.jumlahBall) || 0,
       total_moisture: `${this.results.totalMoisture}%`,
       avg_moisture: `${this.results.averageMoisture}%`,
@@ -304,10 +368,13 @@ export class UpdateUjiKelembapanComponent implements OnInit, OnDestroy {
       titik: titikArray,
     };
 
-    console.log('Payload yang dikirim:', payload);
+    const ujiKelembapanId = this.selectedData.uji_kelembapan.id;
+    console.log('Update payload:', payload);
+    console.log('Uji Kelembapan ID:', ujiKelembapanId);
 
+    // Gunakan endpoint PUT/PATCH untuk update
     this.apiService
-      .post('insert-uji-kelembapan', payload)
+      .put(`update-uji-kelembapan/${ujiKelembapanId}`, payload)
       .pipe(
         takeUntil(this.destroy$),
         finalize(() => (this.isSaving = false)),
@@ -316,21 +383,22 @@ export class UpdateUjiKelembapanComponent implements OnInit, OnDestroy {
         next: (response) => {
           if (response.success) {
             alert(
-              `✓ Hasil uji kelembapan berhasil disimpan!\n\n` +
+              `✓ Hasil uji kelembapan berhasil diupdate!\n\n` +
                 `Kelembapan Rata-rata: ${this.results!.averageMoisture}%\n` +
                 `Standar: ${this.STANDARD_MOISTURE}%\n` +
                 `Selisih: ${this.results!.claimPercentage}%\n` +
                 `Berat Netto: ${this.results!.netto} kg`,
             );
+            this.onUpdateSuccess.emit();
             this.backToList();
-            this.refreshList(); // Refresh list setelah save
+            this.refreshList();
           } else {
-            alert(`Gagal menyimpan: ${response.message}`);
+            alert(`Gagal mengupdate: ${response.message}`);
           }
         },
         error: (error) => {
-          console.error('Error saving hasil uji:', error);
-          alert(`Gagal menyimpan hasil: ${error.message || 'Terjadi kesalahan'}`);
+          console.error('Error updating hasil uji:', error);
+          alert(`Gagal mengupdate hasil: ${error.message || 'Terjadi kesalahan'}`);
         },
       });
   }
@@ -358,6 +426,7 @@ export class UpdateUjiKelembapanComponent implements OnInit, OnDestroy {
 
     const exportData = {
       bahanBakuId: this.selectedData?.id,
+      ujiKelembapanId: this.selectedData?.uji_kelembapan?.id,
       formData: this.formData,
       moisturePoints: this.moisturePoints
         .map((point, index) => ({
@@ -371,7 +440,7 @@ export class UpdateUjiKelembapanComponent implements OnInit, OnDestroy {
 
     const dataStr = JSON.stringify(exportData, null, 2);
     const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
-    const exportFileDefaultName = `moisture_check_${new Date().getTime()}.json`;
+    const exportFileDefaultName = `moisture_check_update_${new Date().getTime()}.json`;
 
     const linkElement = document.createElement('a');
     linkElement.setAttribute('href', dataUri);
@@ -431,12 +500,6 @@ export class UpdateUjiKelembapanComponent implements OnInit, OnDestroy {
       hour: '2-digit',
       minute: '2-digit',
     });
-  }
-
-  navigateTo(path: string): void {
-    if (path === 'menu-utama') {
-      this.router.navigate(['dashboards']);
-    }
   }
 
   /**

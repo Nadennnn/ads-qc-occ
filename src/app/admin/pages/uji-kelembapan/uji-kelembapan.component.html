@@ -30,24 +30,31 @@
             <button
               (click)="refreshList()"
               [disabled]="isLoadingList"
-              class="px-4 py-2 text-sm font-medium text-white transition-colors bg-blue-600 rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              class="flex items-center justify-center gap-1 px-4 py-2 text-sm font-medium text-white transition-colors bg-blue-600 rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <svg
-                *ngIf="!isLoadingList"
-                class="inline w-4 h-4 mr-1"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                />
-              </svg>
+              <lucide-icons
+                [iconsName]="'refresh-cw'"
+                [color]="'white'"
+                [strokewidth]="2"
+                [size]="16"
+                class="gray"
+              />
               <span *ngIf="isLoadingList">Memuat...</span>
               <span *ngIf="!isLoadingList">Refresh</span>
+            </button>
+
+            <button
+              (click)="editData()"
+              class="flex items-center justify-center gap-1 px-4 py-2 text-sm font-medium text-white transition-colors bg-gray-600 rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <lucide-icons
+                [iconsName]="'pen'"
+                [color]="'white'"
+                [strokewidth]="2"
+                [size]="16"
+                class="gray"
+              />
+              Edit
             </button>
             <div class="text-sm text-gray-600">
               Total:
@@ -157,7 +164,7 @@
                 <td class="text-center">
                   <button
                     (click)="selectData(item)"
-                    class="flex items-center justify-center gap-1 text-[14px] bg-blue-400 text-blue-100 p-1 rounded-md hover:bg-blue-600 transition-colors hover:scale-110 transition-all duration-300"
+                    class="flex items-center justify-center gap-1 px-2 py-1 text-blue-100 transition-colors duration-300 bg-blue-400 rounded-lg hover:scale-110"
                   >
                     <lucide-icons
                       [iconsName]="'file-pen-line'"
@@ -167,21 +174,6 @@
                       class="gray"
                     />
                     Test
-                  </button>
-                </td>
-                <td class="text-center">
-                  <button
-                    (click)="editData(item)"
-                    class="flex items-center justify-center gap-1 text-[14px] bg-gray-400 text-gray-100 p-1 rounded-md hover:bg-gray-600 transition-colors hover:scale-110 transition-all duration-300"
-                  >
-                    <lucide-icons
-                      [iconsName]="'pen'"
-                      [color]="'white'"
-                      [strokewidth]="2"
-                      [size]="16"
-                      class="gray"
-                    />
-                    Edit
                   </button>
                 </td>
               </tr>
@@ -435,13 +427,6 @@
         </button>
         <button
           *ngIf="results"
-          (click)="exportToJson()"
-          class="px-6 py-3 font-medium text-white transition-colors bg-purple-600 rounded hover:bg-purple-700"
-        >
-          📥 Export JSON
-        </button>
-        <button
-          *ngIf="results"
           (click)="printReport()"
           class="px-6 py-3 font-medium text-white transition-colors bg-gray-600 rounded hover:bg-gray-700"
         >
@@ -450,6 +435,10 @@
       </div>
     </div>
 
-    <app-update-uji-kelembapan *ngIf="showForm && isEdit"></app-update-uji-kelembapan>
+    <app-update-uji-kelembapan
+      *ngIf="showForm && isEdit"
+      (onBack)="onUpdateBack()"
+      (onUpdateSuccess)="onUpdateSuccess()"
+    ></app-update-uji-kelembapan>
   </div>
 </div>

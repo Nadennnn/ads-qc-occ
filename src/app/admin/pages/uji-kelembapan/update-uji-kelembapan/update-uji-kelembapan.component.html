@@ -1,223 +1,721 @@
-<div>
-  <!-- Selected Data Info -->
-  <div *ngIf="selectedData" class="p-4 mb-6 border border-blue-200 rounded-lg bg-blue-50">
-    <div class="flex items-start gap-3">
-      <svg class="w-5 h-5 text-blue-600 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-        <path
-          fill-rule="evenodd"
-          d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-          clip-rule="evenodd"
-        />
-      </svg>
-      <div class="flex-1">
-        <h3 class="text-sm font-medium text-blue-900">Data yang dipilih:</h3>
-        <div class="grid grid-cols-2 gap-2 mt-2 text-sm text-blue-800 md:grid-cols-4">
-          <div><span class="font-medium">No Bon:</span> {{ selectedData.nomor_bon }}</div>
-          <div><span class="font-medium">Kendaraan:</span> {{ selectedData.nomor_kendaraan }}</div>
-          <div><span class="font-medium">Barang:</span> {{ selectedData.barang }}</div>
-          <div><span class="font-medium">Bruto:</span> {{ selectedData.berat_bruto }} kg</div>
+<!-- src/app/admin/pages/uji-kelembapan/update-uji-kelembapan/update-uji-kelembapan.component.html -->
+
+<div class="min-h-screen">
+  <!-- List View -->
+  <div *ngIf="!showForm">
+    <div class="p-6 mb-6 bg-white border border-gray-300 rounded-lg">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h2 class="text-2xl font-bold text-gray-900">Edit Data Uji Kelembapan</h2>
+          <p class="mt-1 text-sm text-gray-600">Pilih data yang ingin diedit</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <button
+            (click)="refreshList()"
+            [disabled]="isLoadingList"
+            class="px-4 py-2 text-sm font-medium text-white transition-colors bg-blue-600 rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <svg
+              *ngIf="!isLoadingList"
+              class="inline w-4 h-4 mr-1"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+              />
+            </svg>
+            <span *ngIf="isLoadingList">Memuat...</span>
+            <span *ngIf="!isLoadingList">Refresh</span>
+          </button>
+          <div class="text-sm text-gray-600">
+            Total:
+            <span class="font-semibold text-gray-900">{{ bahanBakuList.length }}</span> data
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading State -->
+      <div *ngIf="isLoadingList" class="py-12 text-center">
+        <div
+          class="inline-block w-12 h-12 border-b-2 border-blue-600 rounded-full animate-spin"
+        ></div>
+        <p class="mt-4 text-sm text-gray-600">Memuat data...</p>
+      </div>
+
+      <!-- Error State -->
+      <div
+        *ngIf="errorMessage && !isLoadingList"
+        class="p-4 mb-4 border border-red-200 rounded-lg bg-red-50"
+      >
+        <div class="flex items-start gap-3">
+          <svg class="w-5 h-5 text-red-600 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+            <path
+              fill-rule="evenodd"
+              d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          <div>
+            <h3 class="text-sm font-medium text-red-900">Error</h3>
+            <p class="mt-1 text-sm text-red-700">{{ errorMessage }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div
+        *ngIf="!isLoadingList && !errorMessage && bahanBakuList.length === 0"
+        class="py-12 text-center"
+      >
+        <svg
+          class="w-12 h-12 mx-auto text-gray-400"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+          />
+        </svg>
+        <h3 class="mt-2 text-sm font-medium text-gray-900">Tidak ada data</h3>
+        <p class="mt-1 text-sm text-gray-500">Belum ada data uji kelembapan yang bisa diedit</p>
+      </div>
+
+      <!-- List Table -->
+      <div
+        *ngIf="!isLoadingList && bahanBakuList.length > 0"
+        class="overflow-hidden border border-gray-200 rounded-lg"
+      >
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-gray-50">
+              <tr class="border-b border-gray-200">
+                <th
+                  class="px-4 py-3 text-xs font-semibold tracking-wider text-left text-gray-700 uppercase whitespace-nowrap"
+                >
+                  No. Bon
+                </th>
+                <th
+                  class="px-4 py-3 text-xs font-semibold tracking-wider text-left text-gray-700 uppercase whitespace-nowrap"
+                >
+                  Kendaraan
+                </th>
+                <th
+                  class="px-4 py-3 text-xs font-semibold tracking-wider text-left text-gray-700 uppercase whitespace-nowrap"
+                >
+                  Jenis Barang
+                </th>
+                <th
+                  class="px-4 py-3 text-xs font-semibold tracking-wider text-left text-gray-700 uppercase whitespace-nowrap"
+                >
+                  Supplier
+                </th>
+                <th
+                  class="px-4 py-3 text-xs font-semibold tracking-wider text-center text-gray-700 uppercase bg-blue-50 whitespace-nowrap"
+                >
+                  Kelembapan
+                </th>
+                <th
+                  class="px-4 py-3 text-xs font-semibold tracking-wider text-center text-gray-700 uppercase bg-green-50 whitespace-nowrap"
+                >
+                  Berat Netto
+                </th>
+                <th
+                  class="px-4 py-3 text-xs font-semibold tracking-wider text-center text-gray-700 uppercase whitespace-nowrap"
+                >
+                  Data Titik
+                </th>
+                <th
+                  class="px-4 py-3 text-xs font-semibold tracking-wider text-left text-gray-700 uppercase whitespace-nowrap"
+                >
+                  Tanggal
+                </th>
+                <th
+                  class="px-4 py-3 text-xs font-semibold tracking-wider text-center text-gray-700 uppercase whitespace-nowrap"
+                >
+                  Aksi
+                </th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-100">
+              <tr
+                *ngFor="let item of bahanBakuList; let i = index"
+                class="transition-colors hover:bg-gray-50"
+                [class.bg-gray-25]="i % 2 === 0"
+              >
+                <!-- No Bon -->
+                <td class="px-4 py-3 whitespace-nowrap">
+                  <div class="text-sm font-medium text-gray-900">{{ item.nomor_bon }}</div>
+                </td>
+
+                <!-- Kendaraan -->
+                <td class="px-4 py-3 whitespace-nowrap">
+                  <div class="text-sm text-gray-700">{{ item.nomor_kendaraan }}</div>
+                  <div class="text-xs text-gray-500">{{ item.jenis_kendaraan }}</div>
+                </td>
+
+                <!-- Jenis Barang -->
+                <td class="px-4 py-3 whitespace-nowrap">
+                  <div class="text-sm font-medium text-gray-900 capitalize">{{ item.barang }}</div>
+                </td>
+
+                <!-- Supplier -->
+                <td class="px-4 py-3">
+                  <div class="text-sm text-gray-700">{{ item.suplier || '-' }}</div>
+                </td>
+
+                <!-- Kelembapan -->
+                <td class="px-4 py-3 text-center bg-blue-50/50 whitespace-nowrap">
+                  <div class="inline-flex flex-col items-center">
+                    <span class="text-base font-semibold text-blue-900">
+                      {{ item.uji_kelembapan.avg_moisture || '-' }}
+                    </span>
+                    <span class="text-xs text-gray-600">
+                      {{ item.uji_kelembapan.nilai_claim || '' }}
+                    </span>
+                  </div>
+                </td>
+
+                <!-- Berat Netto -->
+                <td class="px-4 py-3 text-center bg-green-50/50 whitespace-nowrap">
+                  <div class="inline-flex flex-col items-center">
+                    <span class="text-base font-semibold text-green-900">
+                      {{ item.uji_kelembapan.berat_netto || '-' }}
+                    </span>
+                    <span class="text-xs text-gray-600">kg</span>
+                  </div>
+                </td>
+
+                <!-- Data Titik -->
+                <td class="px-4 py-3 text-center whitespace-nowrap">
+                  <div
+                    class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full"
+                    [class.bg-green-100]="(item.titik.length || 0) >= 10"
+                    [class.text-green-800]="(item.titik.length || 0) >= 10"
+                    [class.bg-yellow-100]="
+                      (item.titik.length || 0) < 10 && (item.titik.length || 0) > 0
+                    "
+                    [class.text-yellow-800]="
+                      (item.titik.length || 0) < 10 && (item.titik.length || 0) > 0
+                    "
+                    [class.bg-gray-100]="(item.titik.length || 0) === 0"
+                    [class.text-gray-800]="(item.titik.length || 0) === 0"
+                  >
+                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                      <path
+                        fill-rule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v3.586L7.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 10.586V7z"
+                        clip-rule="evenodd"
+                      />
+                    </svg>
+                    {{ item.titik.length || 0 }} titik
+                  </div>
+                </td>
+
+                <!-- Tanggal -->
+                <td class="px-4 py-3 whitespace-nowrap">
+                  <div class="text-sm text-gray-700">{{ formatDate(item.created_at) }}</div>
+                </td>
+
+                <!-- Aksi -->
+                <td class="px-4 py-3 text-center whitespace-nowrap">
+                  <button
+                    (click)="selectData(item)"
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white transition-all duration-200 bg-orange-500 rounded-md hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
+                  >
+                    <svg
+                      class="w-4 h-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                      />
+                    </svg>
+                    Edit
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Form Info -->
-  <div class="p-6 mb-6 bg-white border border-gray-300 rounded-lg">
-    <div class="grid grid-cols-3 gap-4 mb-4">
-      <div>
-        <label class="block mb-1 text-sm font-medium text-gray-700"> No Kendaraan </label>
-        <input
-          type="text"
-          [(ngModel)]="formData.noKendaraan"
-          class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="BK 0650 FC"
-        />
-      </div>
-      <div>
-        <label class="block mb-1 text-sm font-medium text-gray-700"> No Slip Timbang </label>
-        <input
-          type="text"
-          [(ngModel)]="formData.noSlipTimbang"
-          class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="0049"
-        />
-      </div>
-      <div>
-        <label class="block mb-1 text-sm font-medium text-gray-700"> Tanggal </label>
-        <input
-          type="date"
-          [(ngModel)]="formData.tanggal"
-          class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-      </div>
-    </div>
-
-    <div class="grid grid-cols-2 gap-4">
-      <div>
-        <label class="block mb-1 text-sm font-medium text-gray-700"> Supplier </label>
-        <input
-          type="text"
-          [(ngModel)]="formData.supplier"
-          class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="Nama Supplier"
-        />
-      </div>
-      <div>
-        <label class="block mb-1 text-sm font-medium text-gray-700"> Jenis Barang </label>
-        <input
-          type="text"
-          [(ngModel)]="formData.jenisBarang"
-          class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="LOCC"
-        />
-      </div>
-      <div>
-        <label class="block mb-1 text-sm font-medium text-gray-700"> Jumlah Ball Atau Serak </label>
-        <input
-          type="text"
-          [(ngModel)]="formData.jumlahBall"
-          class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="0"
-        />
-      </div>
-      <div>
-        <label class="block mb-1 text-sm font-medium text-gray-700"> Berat Bahan (kg) </label>
-        <input
-          type="number"
-          step="0.01"
-          [(ngModel)]="formData.beratBahan"
-          class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="0.00"
-        />
-      </div>
-
-      <div>
-        <label class="block mb-1 text-sm font-medium text-gray-700"> Potongan Sampah (kg) </label>
-        <input
-          type="number"
-          step="0.01"
-          min="0"
-          [(ngModel)]="formData.potonganSampah"
-          class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="0.00"
-        />
-      </div>
-    </div>
-  </div>
-
-  <!-- Moisture Points Grid -->
-  <div class="p-6 mb-6 bg-white border border-gray-300 rounded-lg">
-    <div class="flex items-center justify-between mb-4">
-      <h3 class="text-lg font-semibold text-gray-900">
-        Pengukuran Moisture per Titik (Standard: {{ STANDARD_MOISTURE }}%)
-      </h3>
+    <!-- Back Button -->
+    <div class="flex gap-3">
       <button
-        (click)="fillSampleData()"
-        class="px-3 py-1 text-xs text-gray-700 transition-colors bg-gray-200 rounded hover:bg-gray-300"
+        (click)="backToList()"
+        class="px-6 py-3 font-medium text-gray-700 transition-colors bg-white border border-gray-300 rounded hover:bg-gray-50"
       >
-        🧪 Fill Sample Data
+        ← Kembali
+      </button>
+    </div>
+  </div>
+
+  <!-- Form View (when data is selected) -->
+  <div *ngIf="showForm" id="update-form-section">
+    <!-- Back to List Button -->
+    <div class="mb-4">
+      <button
+        (click)="backToList()"
+        class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 transition-colors bg-white border border-gray-300 rounded hover:bg-gray-50"
+      >
+        <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M10 19l-7-7m0 0l7-7m-7 7h18"
+          />
+        </svg>
+        Kembali ke Daftar
       </button>
     </div>
 
-    <div class="grid grid-cols-10 gap-2">
-      <div *ngFor="let index of pointsArray" class="relative">
-        <label class="block mb-1 text-xs text-center text-gray-600">
-          {{ index + 1 }}
-        </label>
-        <input
-          type="number"
-          step="0.1"
-          min="0"
-          max="100"
-          [(ngModel)]="moisturePoints[index]"
-          (input)="validateMoistureInput($event, index)"
-          [class.border-red-500]="isInvalidMoisture(index)"
-          class="w-full px-2 py-2 text-sm text-center border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="-"
-        />
-      </div>
-    </div>
-  </div>
-
-  <!-- Results -->
-  <div *ngIf="results" class="p-6 mb-6 bg-white border border-gray-300 rounded-lg">
-    <h3 class="mb-4 text-lg font-semibold text-gray-900">Hasil Perhitungan</h3>
-
-    <div class="grid grid-cols-3 gap-4">
-      <div class="p-4 border border-blue-200 rounded bg-blue-50">
-        <div class="mb-1 text-sm text-gray-600">Total Moisture</div>
-        <div class="text-2xl font-bold text-gray-900">{{ results.totalMoisture }}%</div>
-        <div class="mt-1 text-xs text-gray-500">dari {{ results.pointsChecked }} titik</div>
-      </div>
-
-      <div class="p-4 border border-green-200 rounded bg-green-50">
-        <div class="mb-1 text-sm text-gray-600">Rata-Rata Moisture</div>
-        <div class="text-2xl font-bold text-gray-900">{{ results.averageMoisture }}%</div>
-        <div class="mt-1 text-xs text-gray-500">standar: {{ STANDARD_MOISTURE }}%</div>
-      </div>
-
-      <div [class]="'border rounded p-4 ' + getClaimClass()">
-        <div class="mb-1 text-sm text-gray-600">Nilai Claim</div>
-        <div class="text-2xl font-bold text-gray-900">
-          {{ results.claimPercentage > 0 ? '+' : '' }}{{ results.claimPercentage }}%
-        </div>
-        <div class="mt-1 text-xs text-gray-500">
-          {{ results.claimPercentage > 0 ? 'di atas standar' : 'sesuai standar' }}
+    <!-- Selected Data Info -->
+    <div *ngIf="selectedData" class="p-4 mb-6 border border-orange-200 rounded-lg bg-orange-50">
+      <div class="flex items-start gap-3">
+        <svg class="w-5 h-5 text-orange-600 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+          <path
+            d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"
+          />
+        </svg>
+        <div class="flex-1">
+          <h3 class="text-sm font-medium text-orange-900">Mode Edit - Data yang dipilih:</h3>
+          <div class="grid grid-cols-2 gap-2 mt-2 text-sm text-orange-800 md:grid-cols-4">
+            <div><span class="font-medium">No Bon:</span> {{ selectedData.nomor_bon }}</div>
+            <div>
+              <span class="font-medium">Kendaraan:</span> {{ selectedData.nomor_kendaraan }}
+            </div>
+            <div><span class="font-medium">Barang:</span> {{ selectedData.barang }}</div>
+            <div>
+              <span class="font-medium">Uji Kelembapan ID:</span>
+              {{ selectedData.uji_kelembapan.id }}
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
-    <div class="grid grid-cols-2 gap-4 mt-6">
-      <div class="p-4 border border-gray-200 rounded bg-gray-50">
-        <div class="mb-1 text-sm text-gray-600">Berat Bahan (A)</div>
-        <div class="text-3xl font-bold text-gray-900">{{ results.beratBahan }} kg</div>
+    <!-- Form Info -->
+    <div class="p-6 mb-6 bg-white border border-gray-300 rounded-lg">
+      <div class="grid grid-cols-3 gap-4 mb-4">
+        <div>
+          <label class="block mb-1 text-sm font-medium text-gray-700"> No Kendaraan </label>
+          <input
+            type="text"
+            [(ngModel)]="formData.noKendaraan"
+            class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-orange-500"
+            placeholder="BK 0650 FC"
+          />
+        </div>
+        <div>
+          <label class="block mb-1 text-sm font-medium text-gray-700"> No Slip Timbang </label>
+          <input
+            type="text"
+            [(ngModel)]="formData.noSlipTimbang"
+            class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-orange-500"
+            placeholder="0049"
+          />
+        </div>
+        <div>
+          <label class="block mb-1 text-sm font-medium text-gray-700"> Tanggal </label>
+          <input
+            type="date"
+            [(ngModel)]="formData.tanggal"
+            class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-orange-500"
+          />
+        </div>
       </div>
 
-      <div class="p-4 border border-yellow-300 rounded bg-yellow-50">
-        <div class="mb-1 text-sm text-gray-600">Netto (kg) - Setelah Penyesuaian</div>
-        <div class="text-3xl font-bold text-gray-900">{{ results.netto }} kg</div>
-        <div class="mt-1 text-xs text-gray-600">Pengurangan: {{ getPengurangan() }} kg</div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block mb-1 text-sm font-medium text-gray-700"> Supplier </label>
+          <input
+            type="text"
+            [(ngModel)]="formData.supplier"
+            class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-orange-500"
+            placeholder="Nama Supplier"
+          />
+        </div>
+        <div>
+          <label class="block mb-1 text-sm font-medium text-gray-700"> Jenis Barang </label>
+          <input
+            type="text"
+            [(ngModel)]="formData.jenisBarang"
+            class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-orange-500"
+            placeholder="LOCC"
+          />
+        </div>
+        <div>
+          <label class="block mb-1 text-sm font-medium text-gray-700">
+            Jumlah Ball Atau Serak
+          </label>
+          <input
+            type="text"
+            [(ngModel)]="formData.jumlahBall"
+            class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-orange-500"
+            placeholder="0"
+          />
+        </div>
+        <div>
+          <label class="block mb-1 text-sm font-medium text-gray-700"> Berat Bahan (kg) </label>
+          <input
+            type="number"
+            step="0.01"
+            [(ngModel)]="formData.beratBahan"
+            class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-orange-500"
+            placeholder="0.00"
+          />
+        </div>
+
+        <div>
+          <label class="block mb-1 text-sm font-medium text-gray-700"> Potongan Sampah (kg) </label>
+          <input
+            type="number"
+            step="0.01"
+            min="0"
+            [(ngModel)]="formData.potonganSampah"
+            class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-orange-500"
+            placeholder="0.00"
+          />
+        </div>
       </div>
     </div>
-  </div>
 
-  <!-- Action Buttons -->
-  <div class="flex flex-wrap gap-3">
-    <button
-      (click)="calculateResults()"
-      [disabled]="isLoading"
-      class="px-6 py-3 font-medium text-white transition-colors bg-blue-600 rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-    >
-      🧮 Hitung Hasil
-    </button>
-    <button
+    <!-- Moisture Points Grid -->
+    <div class="p-6 mb-6 bg-white border border-gray-300 rounded-lg">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-gray-900">
+          Pengukuran Moisture per Titik (Standard: {{ STANDARD_MOISTURE }}%)
+        </h3>
+        <button
+          (click)="fillSampleData()"
+          class="px-3 py-1 text-xs text-gray-700 transition-colors bg-gray-200 rounded hover:bg-gray-300"
+        >
+          🧪 Fill Sample Data
+        </button>
+      </div>
+
+      <div class="grid grid-cols-10 gap-2">
+        <div *ngFor="let index of pointsArray" class="relative">
+          <label class="block mb-1 text-xs text-center text-gray-600">
+            {{ index + 1 }}
+          </label>
+          <input
+            type="number"
+            step="0.1"
+            min="0"
+            max="100"
+            [(ngModel)]="moisturePoints[index]"
+            (input)="validateMoistureInput($event, index)"
+            [class.border-red-500]="isInvalidMoisture(index)"
+            [class.bg-yellow-50]="moisturePoints[index] !== ''"
+            class="w-full px-2 py-2 text-sm text-center border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-orange-500"
+            placeholder="-"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- Results -->
+    <div
       *ngIf="results"
-      (click)="saveResults()"
-      [disabled]="isSaving"
-      class="px-6 py-3 font-medium text-white transition-colors bg-green-600 rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+      class="mb-6 overflow-hidden bg-white border border-gray-200 rounded-lg shadow-sm"
     >
-      <span *ngIf="!isSaving">💾 Simpan Hasil</span>
-      <span *ngIf="isSaving">⏳ Menyimpan...</span>
-    </button>
-    <button
-      (click)="resetForm()"
-      class="px-6 py-3 font-medium text-gray-700 transition-colors bg-white border border-gray-300 rounded hover:bg-gray-50"
-    >
-      🔄 Reset Form
-    </button>
-    <button
-      *ngIf="results"
-      (click)="exportToJson()"
-      class="px-6 py-3 font-medium text-white transition-colors bg-purple-600 rounded hover:bg-purple-700"
-    >
-      📥 Export JSON
-    </button>
-    <button
-      *ngIf="results"
-      (click)="printReport()"
-      class="px-6 py-3 font-medium text-white transition-colors bg-gray-600 rounded hover:bg-gray-700"
-    >
-      🖨️ Print / PDF
-    </button>
+      <!-- Header -->
+      <div class="flex items-center gap-2 px-6 py-4 border-b border-gray-200 bg-gray-50">
+        <lucide-icons
+          [iconsName]="'calculator'"
+          [color]="'#374151'"
+          [size]="20"
+          [strokewidth]="2"
+        ></lucide-icons>
+        <h3 class="text-lg font-semibold text-gray-900">Hasil Perhitungan</h3>
+      </div>
+
+      <!-- Content -->
+      <div class="p-6">
+        <!-- Moisture Metrics -->
+        <div class="grid grid-cols-3 gap-4 mb-6">
+          <!-- Total Moisture -->
+          <div
+            class="relative overflow-hidden transition-all duration-200 border border-gray-200 rounded-lg hover:shadow-md"
+          >
+            <div
+              class="absolute top-0 right-0 w-20 h-20 transform translate-x-8 -translate-y-8 bg-blue-100 rounded-full opacity-50"
+            ></div>
+            <div class="relative p-4">
+              <div class="flex items-start justify-between mb-3">
+                <div class="flex items-center gap-2">
+                  <div class="p-2 bg-blue-100 rounded-lg">
+                    <lucide-icons
+                      [iconsName]="'droplets'"
+                      [color]="'#2563eb'"
+                      [size]="18"
+                      [strokewidth]="2"
+                    ></lucide-icons>
+                  </div>
+                  <span class="text-sm font-medium text-gray-700">Total Moisture</span>
+                </div>
+              </div>
+              <div class="text-2xl font-bold text-gray-900">{{ results.totalMoisture }}%</div>
+              <div class="flex items-center gap-1 mt-1 text-xs text-gray-500">
+                <lucide-icons
+                  [iconsName]="'target'"
+                  [color]="'#6b7280'"
+                  [size]="12"
+                  [strokewidth]="2"
+                ></lucide-icons>
+                dari {{ results.pointsChecked }} titik
+              </div>
+            </div>
+          </div>
+
+          <!-- Average Moisture -->
+          <div
+            class="relative overflow-hidden transition-all duration-200 border border-gray-200 rounded-lg hover:shadow-md"
+          >
+            <div
+              class="absolute top-0 right-0 w-20 h-20 transform translate-x-8 -translate-y-8 bg-green-100 rounded-full opacity-50"
+            ></div>
+            <div class="relative p-4">
+              <div class="flex items-start justify-between mb-3">
+                <div class="flex items-center gap-2">
+                  <div class="p-2 bg-green-100 rounded-lg">
+                    <lucide-icons
+                      [iconsName]="'activity'"
+                      [color]="'#16a34a'"
+                      [size]="18"
+                      [strokewidth]="2"
+                    ></lucide-icons>
+                  </div>
+                  <span class="text-sm font-medium text-gray-700">Rata-rata</span>
+                </div>
+              </div>
+              <div class="text-2xl font-bold text-gray-900">{{ results.averageMoisture }}%</div>
+              <div class="flex items-center gap-1 mt-1 text-xs text-gray-500">
+                <lucide-icons
+                  [iconsName]="'info'"
+                  [color]="'#6b7280'"
+                  [size]="12"
+                  [strokewidth]="2"
+                ></lucide-icons>
+                standar: {{ STANDARD_MOISTURE }}%
+              </div>
+            </div>
+          </div>
+
+          <!-- Claim Percentage -->
+          <div
+            class="relative overflow-hidden transition-all duration-200 border rounded-lg hover:shadow-md"
+            [class.border-red-200]="results.claimPercentage > 0"
+            [class.border-green-200]="results.claimPercentage <= 0"
+          >
+            <div
+              class="absolute top-0 right-0 w-20 h-20 transform translate-x-8 -translate-y-8 rounded-full opacity-50"
+              [class.bg-red-100]="results.claimPercentage > 0"
+              [class.bg-green-100]="results.claimPercentage <= 0"
+            ></div>
+            <div class="relative p-4">
+              <div class="flex items-start justify-between mb-3">
+                <div class="flex items-center gap-2">
+                  <div
+                    class="p-2 rounded-lg"
+                    [class.bg-red-100]="results.claimPercentage > 0"
+                    [class.bg-green-100]="results.claimPercentage <= 0"
+                  >
+                    <lucide-icons
+                      [iconsName]="results.claimPercentage > 0 ? 'trending-up' : 'trending-down'"
+                      [color]="results.claimPercentage > 0 ? '#dc2626' : '#16a34a'"
+                      [size]="18"
+                      [strokewidth]="2"
+                    >
+                    </lucide-icons>
+                  </div>
+                  <span class="text-sm font-medium text-gray-700">Nilai Claim</span>
+                </div>
+              </div>
+              <div
+                class="text-2xl font-bold"
+                [class.text-red-600]="results.claimPercentage > 0"
+                [class.text-green-600]="results.claimPercentage <= 0"
+              >
+                {{ results.claimPercentage > 0 ? '+' : '' }}{{ results.claimPercentage }}%
+              </div>
+              <div
+                class="flex items-center gap-1 mt-1 text-xs"
+                [class.text-red-600]="results.claimPercentage > 0"
+                [class.text-green-600]="results.claimPercentage <= 0"
+              >
+                <lucide-icons
+                  [iconsName]="results.claimPercentage > 0 ? 'alert-circle' : 'check-circle'"
+                  [color]="results.claimPercentage > 0 ? '#dc2626' : '#16a34a'"
+                  [size]="12"
+                  [strokewidth]="2"
+                >
+                </lucide-icons>
+                {{ results.claimPercentage > 0 ? 'di atas standar' : 'sesuai standar' }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Weight Metrics -->
+        <!-- <div class="grid grid-cols-2 gap-4">
+          <div
+            class="relative overflow-hidden transition-all duration-200 border border-gray-200 rounded-lg hover:shadow-md"
+          >
+            <div
+              class="absolute top-0 right-0 w-24 h-24 transform translate-x-10 -translate-y-10 bg-gray-100 rounded-full opacity-50"
+            ></div>
+            <div class="relative p-4">
+              <div class="flex items-start justify-between mb-3">
+                <div class="flex items-center gap-2">
+                  <div class="p-2 bg-gray-100 rounded-lg">
+                    <lucide-icons
+                      [iconsName]="'weight'"
+                      [color]="'#4b5563'"
+                      [size]="20"
+                      [strokewidth]="2"
+                    ></lucide-icons>
+                  </div>
+                  <span class="text-sm font-medium text-gray-700">Berat Bahan (Bruto)</span>
+                </div>
+              </div>
+              <div class="text-3xl font-bold text-gray-900">{{ results.beratBahan }}</div>
+              <div class="mt-1 text-sm text-gray-500">kilogram</div>
+            </div>
+          </div>
+
+          <div
+            class="relative overflow-hidden transition-all duration-200 border rounded-lg border-amber-200 hover:shadow-md bg-amber-50/30"
+          >
+            <div
+              class="absolute top-0 right-0 w-24 h-24 transform translate-x-10 -translate-y-10 rounded-full opacity-50 bg-amber-100"
+            ></div>
+            <div class="relative p-4">
+              <div class="flex items-start justify-between mb-3">
+                <div class="flex items-center gap-2">
+                  <div class="p-2 rounded-lg bg-amber-100">
+                    <lucide-icons
+                      [iconsName]="'package-check'"
+                      [color]="'#d97706'"
+                      [size]="20"
+                      [strokewidth]="2"
+                    ></lucide-icons>
+                  </div>
+                  <span class="text-sm font-medium text-gray-700">Berat Netto</span>
+                </div>
+              </div>
+              <div class="text-3xl font-bold text-amber-900">{{ results.netto }}</div>
+              <div class="flex items-center gap-1 mt-1 text-xs text-amber-700">
+                <lucide-icons
+                  [iconsName]="'minus-circle'"
+                  [color]="'#d97706'"
+                  [size]="12"
+                  [strokewidth]="2"
+                ></lucide-icons>
+                pengurangan: {{ getPengurangan() }} kg
+              </div>
+            </div>
+          </div>
+        </div> -->
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="flex flex-wrap gap-3">
+      <!-- Calculate Button -->
+      <button
+        (click)="calculateResults()"
+        [disabled]="isLoading"
+        class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white transition-all duration-200 bg-orange-600 rounded-lg hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
+      >
+        <lucide-icons
+          [iconsName]="'calculator'"
+          [color]="'white'"
+          [size]="16"
+          [strokewidth]="2"
+        ></lucide-icons>
+        Hitung Ulang
+      </button>
+
+      <!-- Save Button -->
+      <button
+        *ngIf="results"
+        (click)="saveResults()"
+        [disabled]="isSaving"
+        class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white transition-all duration-200 bg-green-600 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
+      >
+        <lucide-icons
+          [iconsName]="isSaving ? 'loader-2' : 'save'"
+          [color]="'white'"
+          [size]="16"
+          [strokewidth]="2"
+          [class.animate-spin]="isSaving"
+        >
+        </lucide-icons>
+        <span *ngIf="!isSaving">Update Hasil</span>
+        <span *ngIf="isSaving">Mengupdate...</span>
+      </button>
+
+      <!-- Reset Button -->
+      <button
+        (click)="resetForm()"
+        class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-gray-700 transition-all duration-200 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 shadow-sm hover:shadow-md"
+      >
+        <lucide-icons
+          [iconsName]="'rotate-ccw'"
+          [color]="'#374151'"
+          [size]="16"
+          [strokewidth]="2"
+        ></lucide-icons>
+        Reset Form
+      </button>
+
+      <!-- Export Button -->
+      <!-- <button
+        *ngIf="results"
+        (click)="exportToJson()"
+        class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white transition-all duration-200 bg-purple-600 rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 shadow-sm hover:shadow-md"
+      >
+        <lucide-icons
+          [iconsName]="'download'"
+          [color]="'white'"
+          [size]="16"
+          [strokewidth]="2"
+        ></lucide-icons>
+        Export JSON
+      </button> -->
+
+      <!-- Print Button -->
+      <button
+        *ngIf="results"
+        (click)="printReport()"
+        class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white transition-all duration-200 bg-gray-600 rounded-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 shadow-sm hover:shadow-md"
+      >
+        <lucide-icons
+          [iconsName]="'printer'"
+          [color]="'white'"
+          [size]="16"
+          [strokewidth]="2"
+        ></lucide-icons>
+        Print / PDF
+      </button>
+    </div>
   </div>
 </div>

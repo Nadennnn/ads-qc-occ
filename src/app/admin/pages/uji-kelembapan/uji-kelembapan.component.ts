@@ -171,10 +171,10 @@ export class UjiKelembapanComponent implements OnInit, OnDestroy {
     }, 100);
   }
 
-  editData(data: BahanBakuApiResponse) {
-    this.isEdit = true;
-    this.showForm = true;
-  }
+  // editData(data: BahanBakuApiResponse) {
+  //   this.isEdit = true;
+  //   this.showForm = true;
+  // }
 
   backToList(): void {
     this.showForm = false;
@@ -473,5 +473,27 @@ export class UjiKelembapanComponent implements OnInit, OnDestroy {
         this.moisturePoints[i] = (14 + Math.random() * 4).toFixed(1); // 14-18%
       }
     }
+  }
+
+  // ANCHOR UPDATE DATA UJI KELEMBAPAN
+  // Method untuk handle event dari child component
+  onUpdateBack(): void {
+    this.showForm = false;
+    this.isEdit = false;
+    this.refreshList();
+  }
+
+  onUpdateSuccess(): void {
+    this.showForm = false;
+    this.isEdit = false;
+    this.refreshList();
+    // Optional: tambahkan notifikasi success
+  }
+
+  // Update method editData
+  editData(): void {
+    this.isEdit = true;
+    this.showForm = true;
+    // this.selectedData = data;
   }
 }
