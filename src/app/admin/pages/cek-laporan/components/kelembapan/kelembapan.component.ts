@@ -5,6 +5,7 @@ import { Subject, takeUntil } from 'rxjs';
 import * as XLSX from 'xlsx';
 import { WorkSheet } from 'xlsx';
 import { ApiService } from '../../../../services/api.service';
+import { AuthService } from '../../../../services/auth.service';
 import { TimbanganData, TimbanganService } from '../../../../services/timbangan.service';
 
 // Types
@@ -109,6 +110,7 @@ export class KelembapanComponent implements OnInit, OnDestroy {
     private fb: FormBuilder,
     private timbanganService: TimbanganService,
     private api: ApiService,
+    private authService: AuthService,
   ) {}
 
   ngOnInit(): void {

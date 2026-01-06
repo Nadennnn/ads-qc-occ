@@ -4,6 +4,7 @@ import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { Router } from '@angular/router';
 import { finalize, Subject, takeUntil } from 'rxjs';
 import { ApiService } from '../../services/api.service';
+import { AuthService } from '../../services/auth.service';
 
 // Interface untuk response API dari backend
 interface BahanBakuApiResponse {
@@ -89,6 +90,7 @@ export class UjiKelembapanComponent implements OnInit, OnDestroy {
   constructor(
     private router: Router,
     private apiService: ApiService,
+    private authService: AuthService,
   ) {}
 
   ngOnInit(): void {
@@ -96,11 +98,74 @@ export class UjiKelembapanComponent implements OnInit, OnDestroy {
 
     this.showForm = false;
     this.isEdit = false;
+
+    this.loadUserProfile();
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  // ANCHOR INI BAGIAN loadUserProfile
+  currentUser: any;
+  dataCurrentUser: any = {
+    username: '',
+    roles: [],
+  };
+
+  userRoles: Set<string> = new Set();
+  isLoadingRoles = true;
+
+  private async loadUserProfile(): Promise<void> {
+    this.isLoadingRoles = true;
+
+    try {
+      // Check cache dulu
+      const cachedProfile = this.authService.getCachedProfile();
+      console.log('22222222222', cachedProfile);
+
+      if (cachedProfile) {
+        // Gunakan cached data
+        this.dataCurrentUser = cachedProfile;
+        this.userRoles = new Set(cachedProfile.roles.map((r) => r.role_id));
+        console.log('Using cached profile:', cachedProfile);
+        this.isLoadingRoles = false;
+        return;
+      }
+
+      // Fetch dari backend jika cache tidak ada atau expired
+      this.authService.getUserProfile().subscribe({
+        next: (profile) => {
+          if (profile) {
+            this.dataCurrentUser = profile;
+            this.userRoles = new Set(profile.roles.map((r) => r.role_id));
+
+            console.log('Profile loaded:', {
+              username: profile.username,
+              roles: Array.from(this.userRoles),
+              roleDetails: profile.roles,
+            });
+          }
+          this.isLoadingRoles = false;
+        },
+        error: (err) => {
+          console.error('Failed to load user profile:', err);
+          this.isLoadingRoles = false;
+
+          // Jika gagal fetch profile (401/403), logout user
+          if (err.error?.status === 401 || err.status === 401) {
+            alert('Sesi Anda telah berakhir. Silakan login kembali.');
+            this.authService.logout();
+          } else {
+            alert('Gagal memuat data profil. Silakan refresh halaman.');
+          }
+        },
+      });
+    } catch (err) {
+      console.error('Error loading profile:', err);
+      this.isLoadingRoles = false;
+    }
   }
 
   /**
