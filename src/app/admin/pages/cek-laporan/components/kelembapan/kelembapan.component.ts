@@ -733,11 +733,31 @@ export class KelembapanComponent implements OnInit, OnDestroy {
     this.isRincianVisible = !this.isRincianVisible;
   }
 
+  nettoSetelahPotongan: any;
+
   viewDetail(item: any): void {
     console.log('📋 Item yang dipilih:', item);
     console.log('🔍 Hasil Uji Kelembapan:', item.hasilUjiKelembapan);
     console.log('📊 Moisture Points:', item.hasilUjiKelembapan?.moisturePoints);
 
+    let beratNetto = item.hasilTara.beratNetto;
+
+    // Mulai dari berat netto
+    let netWeight = beratNetto;
+
+    // Kurangi potongan basah jika averageMoisture > 15
+    if (item.hasilUjiKelembapan && item.hasilUjiKelembapan.averageMoisture > 15) {
+      const claimPercentage = item.hasilUjiKelembapan.claimPercentage;
+      const potonganBasah = beratNetto * (claimPercentage / 100);
+      netWeight = netWeight - potonganBasah;
+    }
+
+    // Kurangi potongan sampah jika ada
+    if (item.hasilUjiKelembapan && item.hasilUjiKelembapan.potonganSampah) {
+      netWeight = netWeight - item.hasilUjiKelembapan.potonganSampah;
+    }
+
+    this.nettoSetelahPotongan = netWeight;
     this.selectedItem = item;
     this.isModalOpen = true;
   }

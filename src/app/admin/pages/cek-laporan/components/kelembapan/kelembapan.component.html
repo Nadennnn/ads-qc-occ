@@ -393,14 +393,12 @@
             <div class="info-item">
               <span class="info-label">Material Weight</span>
               <span class="info-value">
-                {{ formatNumber(selectedItem.hasilUjiKelembapan.beratBahan) }} kg
+                {{ formatNumber(selectedItem.hasilTara.beratNetto) }} kg
               </span>
             </div>
             <div class="info-item">
               <span class="info-label">Net Weight</span>
-              <span class="info-value">
-                {{ formatNumber(selectedItem.hasilUjiKelembapan.netto) }} kg
-              </span>
+              <span class="info-value"> {{ formatNumber(nettoSetelahPotongan) }} kg </span>
             </div>
             <div class="info-item">
               <span class="info-label">Waste Deduction</span>
