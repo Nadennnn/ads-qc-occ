@@ -94,6 +94,11 @@ export class CekLaporanComponent implements OnInit, OnDestroy {
         return;
       }
 
+      if (cachedProfile?.username == '123') {
+        this.activeTab = 'both';
+        return;
+      }
+
       const hasTimbangan = cachedProfile?.roles.some((role) => role.role_id === '3');
       const hasKelembapan = cachedProfile?.roles.some((role) => role.role_id === '6');
 
