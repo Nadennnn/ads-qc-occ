@@ -105,7 +105,7 @@ export const AdminRoutes: Route[] = [
     component: StockComponent,
     canActivate: [RoleGuard],
     data: {
-      roles: ['1'], // Only Admin/Superadmin
+      roles: ['1', '10'], // Only Admin/Superadmin
       title: 'Users Control',
     },
   },
