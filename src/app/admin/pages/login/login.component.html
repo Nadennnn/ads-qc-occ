@@ -1,30 +1,30 @@
-<div class="min-h-screen flex flex-col lg:flex-row">
+<div class="flex flex-col min-h-screen lg:flex-row">
   <!-- Left Side - Background with Image -->
-  <div class="hidden lg:flex lg:w-1/2 change-background relative overflow-hidden">
+  <div class="relative hidden overflow-hidden lg:flex lg:w-1/2 change-background">
     <!-- Dark Overlay for better text visibility -->
     <div class="absolute inset-0 bg-black/40"></div>
 
     <!-- Content -->
-    <div class="relative z-10 flex flex-col justify-center items-start p-16 text-white">
-      <h1 class="text-6xl font-bold mb-4 leading-tight drop-shadow-lg">AGRO DELI<br />SERDANG</h1>
-      <div class="w-24 h-1 bg-white mb-6"></div>
-      <p class="text-xl text-white/90 max-w-md drop-shadow-md">
+    <div class="relative z-10 flex flex-col items-start justify-center p-16 text-white">
+      <h1 class="mb-4 text-6xl font-bold leading-tight drop-shadow-lg">AGRO DELI<br />SERDANG</h1>
+      <div class="w-24 h-1 mb-6 bg-white"></div>
+      <p class="max-w-md text-xl text-white/90 drop-shadow-md">
         Scale and moisture measurement system
       </p>
 
       <!-- Optional: Add illustration or image here -->
-      <div class="mt-12 text-white/80 text-sm">
+      <div class="mt-12 text-sm text-white/80">
         <p>© {{ currentYear }} PT Agro Deli Serdang. All rights reserved.</p>
       </div>
     </div>
   </div>
 
   <!-- Right Side - Login Form -->
-  <div class="flex-1 flex items-center justify-center p-6 lg:p-12 bg-gray-50">
+  <div class="flex items-center justify-center flex-1 p-6 lg:p-12 bg-gray-50">
     <div class="w-full max-w-md">
       <!-- Mobile Header (visible only on small screens) -->
-      <div class="lg:hidden text-center mb-8">
-        <div class="flex justify-center items-center gap-3 mb-3">
+      <div class="mb-8 text-center lg:hidden">
+        <div class="flex items-center justify-center gap-3 mb-3">
           <img src="./ads-logo1.png" class="w-10 h-auto" alt="Logo" />
           <h1 class="text-xl font-bold text-gray-800">PT AGRO DELI SERDANG</h1>
         </div>
@@ -32,14 +32,14 @@
       </div>
 
       <!-- Login Card -->
-      <div class="bg-white rounded-2xl shadow-xl p-8 lg:p-10 animate-fade-in">
+      <div class="p-8 bg-white shadow-xl rounded-2xl lg:p-10 animate-fade-in">
         <!-- Desktop Header -->
-        <div class="hidden lg:block text-center mb-8">
-          <div class="flex justify-center items-center gap-3 mb-3">
+        <div class="hidden mb-8 text-center lg:block">
+          <div class="flex items-center justify-center gap-3 mb-3">
             <img src="./ads-logo1.png" class="w-12 h-auto" alt="Logo" />
             <h1 class="text-2xl font-semibold text-gray-800">PT AGRO DELI SERDANG</h1>
           </div>
-          <div class="w-full h-px bg-gray-200 my-4"></div>
+          <div class="w-full h-px my-4 bg-gray-200"></div>
           <p class="text-sm text-gray-500">Scale and moisture measurement system</p>
         </div>
 
@@ -47,7 +47,7 @@
         <form (ngSubmit)="onSubmit()" #loginForm="ngForm" class="space-y-6">
           <!-- Username -->
           <div>
-            <label for="username" class="block text-sm font-medium text-gray-700 mb-2">
+            <label for="username" class="block mb-2 text-sm font-medium text-gray-700">
               Username
             </label>
             <input
@@ -56,7 +56,7 @@
               name="username"
               [(ngModel)]="username"
               (ngModelChange)="onInputChange()"
-              class="w-full px-4 py-3 border border-gray-300 rounded-xl bg-white shadow-sm focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500 transition-all"
+              class="w-full px-4 py-3 transition-all bg-white border border-gray-300 shadow-sm rounded-xl focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500"
               placeholder="Type your username here ..."
               required
               autocomplete="username"
@@ -66,7 +66,7 @@
 
           <!-- Password -->
           <div>
-            <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
+            <label for="password" class="block mb-2 text-sm font-medium text-gray-700">
               Password
             </label>
 
@@ -77,7 +77,7 @@
                 name="password"
                 [(ngModel)]="password"
                 (ngModelChange)="onInputChange()"
-                class="w-full px-4 py-3 border border-gray-300 rounded-xl bg-white shadow-sm focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500 transition-all pr-12"
+                class="w-full px-4 py-3 pr-12 transition-all bg-white border border-gray-300 shadow-sm rounded-xl focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500"
                 placeholder="Type your password here ..."
                 required
                 autocomplete="current-password"
@@ -88,7 +88,7 @@
               <button
                 type="button"
                 (click)="togglePasswordVisibility()"
-                class="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-md text-gray-500 hover:bg-gray-100 transition"
+                class="absolute p-2 text-gray-500 transition -translate-y-1/2 rounded-md right-3 top-1/2 hover:bg-gray-100"
                 [disabled]="isLoading"
               >
                 <!-- Eye Icon -->
@@ -136,16 +136,21 @@
           <!-- Error Message -->
           <div
             *ngIf="errorMessage"
-            class="p-3 bg-red-50 text-red-700 border border-red-200 rounded-xl text-sm flex items-start gap-2"
+            class="flex items-end justify-center gap-2 p-3 text-sm text-red-700 border border-red-200 bg-red-50 rounded-xl"
           >
-            <svg class="w-5 h-5 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                fill-rule="evenodd"
-                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                clip-rule="evenodd"
-              />
-            </svg>
-            <span>{{ errorMessage }}</span>
+            <lucide-icons
+              [iconsName]="'history'"
+              [color]="'gray'"
+              [strokewidth]="2"
+              [size]="16"
+              class="gray"
+            />
+            <span
+              >{{ errorMessage }},
+              <a href="https://agrodeliserdang.rafajayacrane.com" class="text-[8px] underline">
+                Click me then click advance and proceed to agrodel...</a
+              ></span
+            >
           </div>
 
           <!-- Submit Button -->
@@ -156,7 +161,7 @@
           >
             <svg
               *ngIf="isLoading"
-              class="animate-spin h-5 w-5 text-white"
+              class="w-5 h-5 text-white animate-spin"
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
