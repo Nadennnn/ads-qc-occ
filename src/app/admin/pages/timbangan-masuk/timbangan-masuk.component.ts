@@ -475,109 +475,131 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
 
   // REVIEW onSubmit
   async onSubmit(): Promise<void> {
+    // Validasi awal - jangan submit jika form invalid atau sedang submitting
     if (!this.form.valid || this.isSubmitting()) return;
 
-    this.isSubmitting.set(true);
+    // Ambil semua data dari form
+    const rawFormData = this.form.getRawValue();
 
-    try {
-      const rawFormData = this.form.getRawValue();
+    console.log('📝 Form Value saat Submit:', {
+      noTiket: rawFormData.noTiket,
+      tipeBahan: rawFormData.tipeBahan,
+      namaBarang: rawFormData.namaBarang,
+      jenisKendaraan: rawFormData.jenisKendaraan,
+      jenisRelasi: rawFormData.jenisRelasi,
+    });
 
-      console.log('📝 Form Value saat Submit:', {
-        noTiket: rawFormData.noTiket,
-        tipeBahan: rawFormData.tipeBahan,
-        namaBarang: rawFormData.namaBarang,
-        jenisKendaraan: rawFormData.jenisKendaraan,
-        jenisRelasi: rawFormData.jenisRelasi,
-      });
+    // ============================================
+    // VALIDASI DATA
+    // ============================================
 
-      if (!rawFormData.tipeBahan || !rawFormData.namaBarang) {
-        throw new Error('Tipe Bahan dan Nama Barang wajib diisi!');
-      }
-
-      // ✅ Validasi keterangan jika DAN LAIN-LAIN
-      if (
-        rawFormData.tipeBahan === 'lainnya' &&
-        rawFormData.namaBarang === 'DAN LAIN-LAIN' &&
-        !rawFormData.keteranganBarang
-      ) {
-        throw new Error('Keterangan Barang wajib diisi untuk barang DAN LAIN-LAIN!');
-      }
-
-      const response = await lastValueFrom(
-        this.timbanganService.addTimbanganData({
-          noTiket: rawFormData.noTiket,
-          jenisKendaraan: rawFormData.jenisKendaraan,
-          noKendaraan: rawFormData.noKendaraan,
-          noContainer: rawFormData.noContainer || undefined,
-          tipeBahan: rawFormData.tipeBahan,
-          namaBarang: rawFormData.namaBarang,
-          keteranganBarang: rawFormData.keteranganBarang || undefined,
-          namaRelasi: rawFormData.namaRelasi,
-          jenisRelasi: rawFormData.jenisRelasi,
-          namaSupir: rawFormData.namaSupir,
-          tipeTransaksi: rawFormData.tipeTransaksi,
-          timbanganPertama: rawFormData.timbanganPertama,
-          namaPenimbang: rawFormData.namaPenimbang,
-          timestamp: new Date().toISOString(),
-        }),
-      );
-
-      if (!response.success) {
-        throw new Error(response.message || 'Gagal menyimpan data');
-      }
-
-      console.log('✅ Data saved successfully:', response.message);
-
-      await this.delay(300);
-
-      const tipeBahan = rawFormData.tipeBahan === 'bahan-baku' ? 'Bahan Baku' : 'Lainnya';
-
-      // Tampilkan notifikasi sukses
-      if (rawFormData.tipeBahan === 'bahan-baku') {
-        this.showNotification({
-          type: 'success',
-          title: 'Data Berhasil Disimpan',
-          message: response.message || 'Data timbangan masuk telah tersimpan dengan baik',
-          details: [
-            { label: 'Tipe Bahan', value: tipeBahan },
-            { label: 'Bruto', value: `${rawFormData.timbanganPertama} kg` },
-          ],
-          steps: [
-            'Lakukan Uji Kelembapan terlebih dahulu',
-            'Setelah selesai uji, input Tara saat truk keluar',
-            'Netto akan otomatis dihitung dengan pengurangan kelembapan',
-          ],
-          confirmText: 'Mengerti',
-        });
-      } else {
-        this.showNotification({
-          type: 'success',
-          title: 'Data Berhasil Disimpan',
-          message: response.message || 'Data timbangan masuk telah tersimpan dengan baik',
-          details: [
-            { label: 'Tipe Bahan', value: tipeBahan },
-            { label: 'Bruto', value: `${rawFormData.timbanganPertama} kg` },
-          ],
-          confirmText: 'Mengerti',
-        });
-      }
-
-      this.onReset();
-      this.switchView('list');
-    } catch (error: any) {
-      console.error('❌ Error:', error);
-
-      const errorMessage = error?.message || 'Gagal menyimpan data. Silakan coba lagi.';
-
+    // Validasi 1: Tipe Bahan dan Nama Barang wajib diisi
+    if (!rawFormData.tipeBahan || !rawFormData.namaBarang) {
       this.showNotification({
         type: 'error',
-        title: 'Terjadi Kesalahan',
-        message: errorMessage,
+        title: 'Data Tidak Lengkap',
+        message: 'Tipe Bahan dan Nama Barang wajib diisi!',
         confirmText: 'Tutup',
       });
-    } finally {
-      this.isSubmitting.set(false);
+      return;
     }
+
+    // Validasi 2: Jika pilih "DAN LAIN-LAIN", keterangan wajib diisi
+    if (
+      rawFormData.tipeBahan === 'lainnya' &&
+      rawFormData.namaBarang === 'DAN LAIN-LAIN' &&
+      !rawFormData.keteranganBarang
+    ) {
+      this.showNotification({
+        type: 'error',
+        title: 'Data Tidak Lengkap',
+        message: 'Keterangan Barang wajib diisi untuk barang DAN LAIN-LAIN!',
+        confirmText: 'Tutup',
+      });
+      return;
+    }
+
+    // ============================================
+    // PREPARE PAYLOAD UNTUK PREVIEW
+    // ============================================
+
+    const payload = {
+      nomor_bon: rawFormData.noTiket,
+      jenis_kendaraan: rawFormData.jenisKendaraan === 'truck' ? 'Truck' : 'Container',
+      nomor_kendaraan: rawFormData.noKendaraan,
+      nomor_container: rawFormData.noContainer || '-',
+      type_bahan: rawFormData.tipeBahan === 'bahan-baku' ? 'Bahan Baku' : 'Lainnya',
+      barang: rawFormData.namaBarang,
+      keterangan_barang: rawFormData.keteranganBarang || '-',
+      [rawFormData.jenisRelasi === 'customer' ? 'customer' : 'suplier']: rawFormData.namaRelasi,
+      supir: rawFormData.namaSupir || '-',
+      berat_bruto: String(rawFormData.timbanganPertama),
+      petugas: rawFormData.namaPenimbang,
+      tipe_transaksi: rawFormData.tipeTransaksi === 'pembelian' ? 'PEMBELIAN' : 'PENJUALAN',
+    };
+
+    // ============================================
+    // BUILD DETAILS ARRAY UNTUK MODAL PREVIEW
+    // ============================================
+
+    const previewDetails: Array<{ label: string; value: string | number }> = [
+      { label: 'Nomor Bon', value: payload.nomor_bon },
+      { label: 'Tipe Transaksi', value: payload.tipe_transaksi },
+      { label: 'Jenis Kendaraan', value: payload.jenis_kendaraan },
+      { label: 'No. Kendaraan', value: payload.nomor_kendaraan },
+    ];
+
+    // Tambahkan No. Container jika ada
+    if (payload.nomor_container !== '-') {
+      previewDetails.push({ label: 'No. Container', value: payload.nomor_container });
+    }
+
+    // Tambahkan data barang
+    previewDetails.push(
+      { label: 'Tipe Bahan', value: payload.type_bahan },
+      { label: 'Nama Barang', value: payload.barang },
+    );
+
+    // Tambahkan keterangan jika ada
+    if (payload.keterangan_barang !== '-') {
+      previewDetails.push({ label: 'Keterangan', value: payload.keterangan_barang });
+    }
+
+    // Tambahkan customer/supplier
+    previewDetails.push({
+      label: rawFormData.jenisRelasi === 'customer' ? 'Customer' : 'Supplier',
+      value: rawFormData.namaRelasi,
+    });
+
+    // Tambahkan nama supir jika ada
+    if (payload.supir !== '-') {
+      previewDetails.push({ label: 'Nama Supir', value: payload.supir });
+    }
+
+    // Tambahkan berat dan petugas
+    previewDetails.push(
+      { label: 'Berat Bruto', value: `${payload.berat_bruto} kg` },
+      { label: 'Petugas', value: payload.petugas },
+    );
+
+    // ============================================
+    // TAMPILKAN MODAL KONFIRMASI
+    // ============================================
+
+    this.showNotification({
+      type: 'preview',
+      title: 'Konfirmasi Data Timbangan Pertama',
+      message: 'Pastikan semua data sudah benar sebelum menyimpan',
+      details: previewDetails,
+      showCancel: true,
+      confirmText: '✓ Ya, Simpan Data',
+      cancelText: '✕ Batal',
+      payload: payload, // Untuk debugging (optional)
+      onConfirm: () => this.executeSaveData(rawFormData), // Panggil method save
+      onCancel: () => {
+        console.log('❌ User membatalkan penyimpanan data');
+      },
+    });
   }
 
   // ANCHOR EXECUTE SUBMIT
