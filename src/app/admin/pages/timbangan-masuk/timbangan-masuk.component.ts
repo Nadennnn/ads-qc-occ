@@ -26,7 +26,7 @@ interface BarangOption {
 type ViewMode = 'form' | 'list';
 
 interface ModalConfig {
-  type: 'success' | 'warning' | 'error' | 'info' | 'confirm';
+  type: 'success' | 'warning' | 'error' | 'info' | 'confirm' | 'preview';
   title: string;
   message: string;
   details?: Array<{ label: string; value: string | number }>;
@@ -36,6 +36,7 @@ interface ModalConfig {
   cancelText?: string;
   onConfirm?: () => void;
   onCancel?: () => void;
+  payload?: any;
 }
 
 @Component({
@@ -579,6 +580,84 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
     }
   }
 
+  // ANCHOR EXECUTE SUBMIT
+  private async executeSaveData(rawFormData: any): Promise<void> {
+    this.isSubmitting.set(true);
+
+    try {
+      const response = await lastValueFrom(
+        this.timbanganService.addTimbanganData({
+          noTiket: rawFormData.noTiket,
+          jenisKendaraan: rawFormData.jenisKendaraan,
+          noKendaraan: rawFormData.noKendaraan,
+          noContainer: rawFormData.noContainer || undefined,
+          tipeBahan: rawFormData.tipeBahan,
+          namaBarang: rawFormData.namaBarang,
+          keteranganBarang: rawFormData.keteranganBarang || undefined,
+          namaRelasi: rawFormData.namaRelasi,
+          jenisRelasi: rawFormData.jenisRelasi,
+          namaSupir: rawFormData.namaSupir,
+          tipeTransaksi: rawFormData.tipeTransaksi,
+          timbanganPertama: rawFormData.timbanganPertama,
+          namaPenimbang: rawFormData.namaPenimbang,
+          timestamp: new Date().toISOString(),
+        }),
+      );
+
+      if (!response.success) {
+        throw new Error(response.message || 'Gagal menyimpan data');
+      }
+
+      console.log('✅ Data saved successfully:', response.message);
+      await this.delay(300);
+
+      const tipeBahan = rawFormData.tipeBahan === 'bahan-baku' ? 'Bahan Baku' : 'Lainnya';
+
+      if (rawFormData.tipeBahan === 'bahan-baku') {
+        this.showNotification({
+          type: 'success',
+          title: 'Data Berhasil Disimpan',
+          message: response.message || 'Data timbangan masuk telah tersimpan dengan baik',
+          details: [
+            { label: 'Tipe Bahan', value: tipeBahan },
+            { label: 'Bruto', value: `${rawFormData.timbanganPertama} kg` },
+          ],
+          steps: [
+            'Lakukan Uji Kelembapan terlebih dahulu',
+            'Setelah selesai uji, input Tara saat truk keluar',
+            'Netto akan otomatis dihitung dengan pengurangan kelembapan',
+          ],
+          confirmText: 'Mengerti',
+        });
+      } else {
+        this.showNotification({
+          type: 'success',
+          title: 'Data Berhasil Disimpan',
+          message: response.message || 'Data timbangan masuk telah tersimpan dengan baik',
+          details: [
+            { label: 'Tipe Bahan', value: tipeBahan },
+            { label: 'Bruto', value: `${rawFormData.timbanganPertama} kg` },
+          ],
+          confirmText: 'Mengerti',
+        });
+      }
+
+      this.onReset();
+      this.switchView('list');
+    } catch (error: any) {
+      console.error('❌ Error:', error);
+      this.showNotification({
+        type: 'error',
+        title: 'Terjadi Kesalahan',
+        message: error?.message || 'Gagal menyimpan data. Silakan coba lagi.',
+        confirmText: 'Tutup',
+      });
+    } finally {
+      this.isSubmitting.set(false);
+    }
+  }
+  // ANCHOR END EXECUTE SUBMIT
+
   openTaraModal(data: TimbanganData): void {
     if (data.tipeBahan === 'bahan-baku' && data.statusUjiKelembapan === 'pending') {
       this.showNotification({
@@ -612,58 +691,111 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
     const tara = this.taraForm.getRawValue().timbanganKedua;
     const selected = this.selectedForTara();
 
-    if (!selected || this.isSubmitting()) {
+    if (!selected || this.isSubmitting()) return;
+
+    // ✅ Validasi berdasarkan tipe transaksi
+    if (selected.tipeTransaksi === 'pembelian' && tara >= selected.timbanganPertama) {
+      this.showNotification({
+        type: 'error',
+        title: 'Input Tidak Valid',
+        message: 'Untuk PEMBELIAN, Tara tidak boleh lebih besar atau sama dengan Bruto',
+        details: [
+          { label: 'Tipe', value: 'PEMBELIAN' },
+          { label: 'Bruto (Truk + Barang)', value: `${selected.timbanganPertama} kg` },
+          { label: 'Tara (Truk Kosong)', value: `${tara} kg` },
+        ],
+        confirmText: 'Tutup',
+      });
       return;
     }
 
+    if (selected.tipeTransaksi === 'penjualan' && tara <= selected.timbanganPertama) {
+      this.showNotification({
+        type: 'error',
+        title: 'Input Tidak Valid',
+        message: 'Untuk PENJUALAN, Tara tidak boleh lebih kecil atau sama dengan Bruto',
+        details: [
+          { label: 'Tipe', value: 'PENJUALAN' },
+          { label: 'Bruto (Truk Kosong)', value: `${selected.timbanganPertama} kg` },
+          { label: 'Tara (Truk + Barang)', value: `${tara} kg` },
+        ],
+        confirmText: 'Tutup',
+      });
+      return;
+    }
+
+    // ✅ Hitung Netto untuk preview
+    let nettoSebelumPengurangan = 0;
+    if (selected.tipeTransaksi === 'pembelian') {
+      nettoSebelumPengurangan = selected.timbanganPertama - tara;
+    } else {
+      nettoSebelumPengurangan = tara - selected.timbanganPertama;
+    }
+
+    // ✅ Prepare details untuk preview
+    let previewDetails: Array<{ label: string; value: string | number }> = [
+      { label: 'Nomor Bon', value: selected.noTiket },
+      {
+        label: 'Tipe Transaksi',
+        value: selected.tipeTransaksi === 'pembelian' ? 'PEMBELIAN' : 'PENJUALAN',
+      },
+      { label: 'No. Kendaraan', value: selected.noKendaraan },
+      { label: 'Nama Barang', value: selected.namaBarang },
+    ];
+
+    if (selected.tipeTransaksi === 'pembelian') {
+      previewDetails.push(
+        { label: 'Bruto (Truk + Barang)', value: `${selected.timbanganPertama} kg` },
+        { label: 'Tara (Truk Kosong)', value: `${tara} kg` },
+        { label: 'Netto Kotor', value: `${nettoSebelumPengurangan.toFixed(2)} kg` },
+      );
+
+      if (selected.tipeBahan === 'bahan-baku' && selected.hasilUjiKelembapan) {
+        const kelembapan = selected.hasilUjiKelembapan.claimPercentage;
+        const pengurangan = nettoSebelumPengurangan * (kelembapan / 100);
+        const nettoAkhir = nettoSebelumPengurangan - pengurangan;
+
+        previewDetails.push(
+          { label: 'Kelembapan', value: `${kelembapan.toFixed(2)}%` },
+          { label: 'Pengurangan', value: `${pengurangan.toFixed(2)} kg` },
+          { label: 'Netto Final', value: `${nettoAkhir.toFixed(2)} kg` },
+        );
+      }
+    } else {
+      previewDetails.push(
+        { label: 'Bruto (Truk Kosong)', value: `${selected.timbanganPertama} kg` },
+        { label: 'Tara (Truk + Barang)', value: `${tara} kg` },
+        { label: 'Netto', value: `${nettoSebelumPengurangan.toFixed(2)} kg` },
+      );
+    }
+
+    // ✅ TAMPILKAN MODAL KONFIRMASI
+    this.showNotification({
+      type: 'preview',
+      title: 'Konfirmasi Data Timbangan Kedua',
+      message: 'Pastikan berat tara sudah sesuai sebelum menyimpan',
+      details: previewDetails,
+      showCancel: true,
+      confirmText: '✓ Ya, Simpan Tara',
+      cancelText: '✕ Batal',
+      payload: {
+        timbangan_masuk_id: selected.id,
+        berat_tara: String(tara),
+      },
+      onConfirm: () => this.executeSubmitTara(selected, tara),
+      onCancel: () => {
+        console.log('❌ User membatalkan input tara');
+      },
+    });
+  }
+
+  // ANCHOR END REVIEW TARA
+
+  // ANCHOR EXCECUTE SUBMIT TARA
+  private async executeSubmitTara(selected: TimbanganData, tara: number): Promise<void> {
     this.isSubmitting.set(true);
 
     try {
-      // ✅ VALIDASI BERDASARKAN TIPE TRANSAKSI
-      if (selected.tipeTransaksi === 'pembelian') {
-        // Pembelian: Tara tidak boleh >= Bruto
-        if (tara >= selected.timbanganPertama) {
-          this.showNotification({
-            type: 'error',
-            title: 'Input Tidak Valid',
-            message: 'Untuk PEMBELIAN, Tara tidak boleh lebih besar atau sama dengan Bruto',
-            details: [
-              { label: 'Tipe', value: 'PEMBELIAN' },
-              { label: 'Bruto (Truk + Barang)', value: `${selected.timbanganPertama} kg` },
-              { label: 'Tara (Truk Kosong)', value: `${tara} kg` },
-            ],
-            confirmText: 'Tutup',
-          });
-          this.isSubmitting.set(false);
-          return;
-        }
-      } else if (selected.tipeTransaksi === 'penjualan') {
-        // Penjualan: Tara tidak boleh <= Bruto
-        if (tara <= selected.timbanganPertama) {
-          this.showNotification({
-            type: 'error',
-            title: 'Input Tidak Valid',
-            message: 'Untuk PENJUALAN, Tara tidak boleh lebih kecil atau sama dengan Bruto',
-            details: [
-              { label: 'Tipe', value: 'PENJUALAN' },
-              { label: 'Bruto (Truk Kosong)', value: `${selected.timbanganPertama} kg` },
-              { label: 'Tara (Truk + Barang)', value: `${tara} kg` },
-            ],
-            confirmText: 'Tutup',
-          });
-          this.isSubmitting.set(false);
-          return;
-        }
-      }
-
-      console.log('📤 Submitting Tara:', {
-        id: selected.id,
-        tara: tara,
-        bruto: selected.timbanganPertama,
-        tipeTransaksi: selected.tipeTransaksi,
-      });
-
-      // Kirim ke endpoint insert-tara
       const response = await lastValueFrom(this.timbanganService.updateTaraData(selected.id, tara));
 
       if (!response.success) {
@@ -673,20 +805,16 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
       console.log('✅ Tara saved successfully:', response.message);
       await this.delay(500);
 
-      // ✅ HITUNG NETTO BERDASARKAN TIPE TRANSAKSI
+      // Hitung netto
       let nettoSebelumPengurangan = 0;
-
       if (selected.tipeTransaksi === 'pembelian') {
-        // Pembelian: Netto = Bruto - Tara
         nettoSebelumPengurangan = selected.timbanganPertama - tara;
-      } else if (selected.tipeTransaksi === 'penjualan') {
-        // Penjualan: Netto = Tara - Bruto
+      } else {
         nettoSebelumPengurangan = tara - selected.timbanganPertama;
       }
 
+      // Build details untuk notifikasi sukses
       let details: Array<{ label: string; value: string | number }> = [];
-
-      // ✅ BUILD DETAILS SESUAI TIPE TRANSAKSI
       if (selected.tipeTransaksi === 'pembelian') {
         if (selected.tipeBahan === 'bahan-baku' && selected.hasilUjiKelembapan) {
           const kelembapan = selected.hasilUjiKelembapan.claimPercentage;
@@ -711,7 +839,6 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
           ];
         }
       } else {
-        // Penjualan
         details = [
           { label: 'Tipe', value: 'PENJUALAN' },
           { label: 'Bruto (Truk Kosong)', value: `${selected.timbanganPertama} kg` },
@@ -720,7 +847,6 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
         ];
       }
 
-      // Close modal
       this.closeTaraModal();
 
       // Tampilkan konfirmasi cetak slip
@@ -739,19 +865,17 @@ export class TimbanganMasukComponent implements OnInit, OnDestroy {
       });
     } catch (error: any) {
       console.error('❌ Error saat submit tara:', error);
-
-      const errorMessage = error?.message || 'Gagal menyimpan data Tara. Silakan coba lagi.';
-
       this.showNotification({
         type: 'error',
         title: 'Terjadi Kesalahan',
-        message: errorMessage,
+        message: error?.message || 'Gagal menyimpan data Tara. Silakan coba lagi.',
         confirmText: 'Tutup',
       });
     } finally {
       this.isSubmitting.set(false);
     }
   }
+  // ANCHOR END EXCECUTE SUBMIT TARA
 
   // printSlip(id: string): void {
   //   const url = `/admin/print-slip/${id}`;

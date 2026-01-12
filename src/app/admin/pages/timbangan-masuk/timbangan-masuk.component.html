@@ -1,20 +1,20 @@
 <!-- src/app/admin/pages/timbangan-masuk/timbangan-masuk.component.html -->
 
-<div class="min-h-screen bg-neutral-50 p-4 sm:p-6">
+<div class="min-h-screen p-4 bg-neutral-50 sm:p-6">
   <div class="max-w-6xl mx-auto">
     <!-- Header with View Toggle -->
     <div class="mb-8">
       <div class="flex items-center justify-between">
         <div>
-          <div class="flex justify-center items-center gap-3">
+          <div class="flex items-center justify-center gap-3">
             <img src="./LOGO_ADS.png" class="w-auto h-7" alt="PT. Agro Deli Serdang" />
           </div>
-          <div class="w-16 h-1 bg-neutral-800 mt-4 rounded-full"></div>
-          <h1 class="text-xl font-medium text-neutral-800 mt-2">Halaman Timbangan Masuk</h1>
+          <div class="w-16 h-1 mt-4 rounded-full bg-neutral-800"></div>
+          <h1 class="mt-2 text-xl font-medium text-neutral-800">Halaman Timbangan Masuk</h1>
         </div>
 
         <!-- Toggle View Buttons -->
-        <div class="flex gap-2 bg-white rounded-lg border border-neutral-200 p-1">
+        <div class="flex gap-2 p-1 bg-white border rounded-lg border-neutral-200">
           <button
             type="button"
             (click)="switchView('form')"
@@ -52,10 +52,10 @@
     @if (currentView() === 'form') {
       <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-6">
         <!-- Section: Informasi Tiket & Kendaraan -->
-        <div class="bg-white p-6 rounded-lg border border-neutral-200">
-          <h2 class="text-lg font-medium text-neutral-800 mb-4">Informasi Tiket & Kendaraan</h2>
+        <div class="p-6 bg-white border rounded-lg border-neutral-200">
+          <h2 class="mb-4 text-lg font-medium text-neutral-800">Informasi Tiket & Kendaraan</h2>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
             <!-- Nomor Bon -->
             <div>
               <label class="block text-sm font-medium text-neutral-700 mb-1.5"> Nomor Bon </label>
@@ -64,7 +64,7 @@
                 type="text"
                 formControlName="noTiket"
                 placeholder="TKT-001"
-                class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:border-transparent transition-all"
+                class="w-full px-3 py-2 transition-all border rounded-lg border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:border-transparent"
                 [class.border-red-500]="
                   form.get('noTiket')?.invalid && form.get('noTiket')?.touched
                 "
@@ -80,7 +80,7 @@
               </label>
               <select
                 formControlName="tipeTransaksi"
-                class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:border-transparent transition-all bg-white"
+                class="w-full px-3 py-2 transition-all bg-white border rounded-lg border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:border-transparent"
                 [class.border-red-500]="
                   form.get('tipeTransaksi')?.invalid && form.get('tipeTransaksi')?.touched
                 "
@@ -91,7 +91,7 @@
 
               <!-- Helper Text -->
               <!-- @if (form.get('tipeTransaksi')?.value === 'pembelian') {
-                <p class="mt-1 text-xs text-blue-600 flex items-center gap-1">
+                <p class="flex items-center gap-1 mt-1 text-xs text-blue-600">
                   <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
                     <path
                       fill-rule="evenodd"
@@ -103,7 +103,7 @@
                 </p>
               } -->
               <!-- @if (form.get('tipeTransaksi')?.value === 'penjualan') {
-                <p class="mt-1 text-xs text-green-600 flex items-center gap-1">
+                <p class="flex items-center gap-1 mt-1 text-xs text-green-600">
                   <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
                     <path
                       fill-rule="evenodd"
@@ -127,7 +127,7 @@
               </label>
               <select
                 formControlName="jenisKendaraan"
-                class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:border-transparent transition-all bg-white"
+                class="w-full px-3 py-2 transition-all bg-white border rounded-lg border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:border-transparent"
                 [class.border-red-500]="
                   form.get('jenisKendaraan')?.invalid && form.get('jenisKendaraan')?.touched
                 "
@@ -150,7 +150,7 @@
                 type="text"
                 formControlName="noKendaraan"
                 placeholder="BK 1234 GLO"
-                class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:border-transparent transition-all"
+                class="w-full px-3 py-2 transition-all border rounded-lg border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:border-transparent"
                 [class.border-red-500]="
                   form.get('noKendaraan')?.invalid && form.get('noKendaraan')?.touched
                 "
@@ -172,7 +172,7 @@
                   type="text"
                   formControlName="noContainer"
                   placeholder="ABCU1234567"
-                  class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:border-transparent transition-all"
+                  class="w-full px-3 py-2 transition-all border rounded-lg border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:border-transparent"
                   [class.border-red-500]="
                     form.get('noContainer')?.invalid && form.get('noContainer')?.touched
                   "
@@ -187,14 +187,14 @@
         </div>
 
         <!-- Section: Tipe Bahan -->
-        <div class="bg-white p-6 rounded-lg border border-neutral-200">
-          <h2 class="text-lg font-medium text-neutral-800 mb-4">Kategori Bahan</h2>
+        <div class="p-6 bg-white border rounded-lg border-neutral-200">
+          <h2 class="mb-4 text-lg font-medium text-neutral-800">Kategori Bahan</h2>
 
           <div>
             <label class="block text-sm font-medium text-neutral-700 mb-1.5"> Tipe Bahan </label>
             <select
               formControlName="tipeBahan"
-              class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:border-transparent transition-all bg-white"
+              class="w-full px-3 py-2 transition-all bg-white border rounded-lg border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:border-transparent"
               [class.border-red-500]="
                 form.get('tipeBahan')?.invalid && form.get('tipeBahan')?.touched
               "
@@ -205,7 +205,7 @@
               </option>
             </select>
             @if (form.get('tipeBahan')?.value === 'bahan-baku') {
-              <p class="mt-1 text-xs text-blue-600 flex items-center gap-1">
+              <p class="flex items-center gap-1 mt-1 text-xs text-blue-600">
                 <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
                   <path
                     fill-rule="evenodd"
@@ -223,11 +223,11 @@
         </div>
 
         <!-- Section: Informasi Barang & Relasi -->
-        <div class="bg-white p-6 rounded-lg border border-neutral-200">
-          <h2 class="text-lg font-medium text-neutral-800 mb-4">Informasi Barang & Relasi</h2>
+        <div class="p-6 bg-white border rounded-lg border-neutral-200">
+          <h2 class="mb-4 text-lg font-medium text-neutral-800">Informasi Barang & Relasi</h2>
 
           <div class="space-y-4">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
               <!-- Nama Barang -->
               <div>
                 <label class="block text-sm font-medium text-neutral-700 mb-1.5">
@@ -235,7 +235,7 @@
                 </label>
                 <select
                   formControlName="namaBarang"
-                  class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:border-transparent transition-all bg-white"
+                  class="w-full px-3 py-2 transition-all bg-white border rounded-lg border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:border-transparent"
                   [class.border-red-500]="
                     form.get('namaBarang')?.invalid && form.get('namaBarang')?.touched
                   "
@@ -278,7 +278,7 @@
                     type="text"
                     formControlName="keteranganBarang"
                     placeholder="Contoh: Plastik Kemasan, Kardus Bekas, dll"
-                    class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:border-transparent transition-all"
+                    class="w-full px-3 py-2 transition-all border rounded-lg border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:border-transparent"
                     [class.border-red-500]="
                       form.get('keteranganBarang')?.invalid && form.get('keteranganBarang')?.touched
                     "
@@ -334,7 +334,7 @@
                 type="text"
                 formControlName="namaSupir"
                 placeholder="Nama supir kendaraan"
-                class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:border-transparent transition-all"
+                class="w-full px-3 py-2 transition-all border rounded-lg border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:border-transparent"
               />
               <!-- @if (form.get('namaSupir')?.invalid && form.get('namaSupir')?.touched) {
               <p class="mt-1 text-sm text-red-600">{{ getError('namaSupir') }}</p>
@@ -347,12 +347,12 @@
         </div>
 
         <!-- Section: Data Penimbangan dengan Timbangan Digital -->
-        <div class="bg-white p-6 rounded-lg border border-neutral-200">
-          <h2 class="text-lg font-medium text-neutral-800 mb-4">Data Penimbangan Awal</h2>
+        <div class="p-6 bg-white border rounded-lg border-neutral-200">
+          <h2 class="mb-4 text-lg font-medium text-neutral-800">Data Penimbangan Awal</h2>
 
           <div class="space-y-4">
             <!-- Info Banner -->
-            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div class="p-4 border border-blue-200 rounded-lg bg-blue-50">
               <div class="flex items-start gap-3">
                 <svg class="w-5 h-5 text-blue-600 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                   <path
@@ -365,13 +365,13 @@
                   <p class="text-sm font-medium text-blue-900">
                     Input timbangan pertama dari Timbangan Digital
                   </p>
-                  <p class="text-xs text-blue-700 mt-1">Hubungkan timbangan terlebih dahulu</p>
+                  <p class="mt-1 text-xs text-blue-700">Hubungkan timbangan terlebih dahulu</p>
                 </div>
               </div>
             </div>
 
             <!-- Connection Status -->
-            <div class="border border-neutral-200 rounded-lg p-4 bg-neutral-50">
+            <div class="p-4 border rounded-lg border-neutral-200 bg-neutral-50">
               <div class="flex items-center justify-between mb-3">
                 <div class="flex items-center gap-2">
                   <span class="text-sm font-medium text-neutral-700">Status Timbangan:</span>
@@ -397,7 +397,7 @@
                   <button
                     type="button"
                     (click)="connectScale()"
-                    class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                    class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700"
                   >
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path
@@ -413,7 +413,7 @@
                   <button
                     type="button"
                     (click)="disconnectScale()"
-                    class="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors"
+                    class="px-4 py-2 text-sm font-medium text-white transition-colors bg-red-600 rounded-lg hover:bg-red-700"
                   >
                     Putus Koneksi
                   </button>
@@ -422,7 +422,7 @@
 
               <!-- Error Message -->
               @if (scaleError()) {
-                <div class="bg-red-50 border border-red-200 rounded-lg p-3">
+                <div class="p-3 border border-red-200 rounded-lg bg-red-50">
                   <p class="text-sm text-red-800">
                     <span class="font-semibold">Error:</span> {{ scaleError() }}
                   </p>
@@ -431,18 +431,18 @@
 
               <!-- Live Weight Display -->
               @if (scaleConnected()) {
-                <div class="mt-4 bg-white border-2 border-neutral-300 rounded-lg p-6">
+                <div class="p-6 mt-4 bg-white border-2 rounded-lg border-neutral-300">
                   <div class="text-center">
-                    <p class="text-sm text-neutral-600 mb-2">Berat Real-Time</p>
+                    <p class="mb-2 text-sm text-neutral-600">Berat Real-Time</p>
                     <div class="flex items-center justify-center gap-3">
-                      <span class="text-5xl font-bold text-neutral-900 font-mono">
+                      <span class="font-mono text-5xl font-bold text-neutral-900">
                         {{ currentWeight() !== null ? currentWeight() : '---' }}
                       </span>
                       <span class="text-2xl font-medium text-neutral-600">kg</span>
                     </div>
 
                     <!-- Stability Indicator -->
-                    <div class="mt-3 flex items-center justify-center gap-2">
+                    <div class="flex items-center justify-center gap-2 mt-3">
                       @if (weightStable()) {
                         <span
                           class="inline-flex items-center gap-1.5 px-3 py-1 bg-green-100 text-green-800 text-sm font-semibold rounded-full"
@@ -496,13 +496,13 @@
                   }
                 </label>
                 <div class="relative">
-                  <div class="flex justify-center items-center gap-3">
+                  <div class="flex items-center justify-center gap-3">
                     <input
                       type="number"
                       formControlName="timbanganPertama"
                       placeholder="0"
                       readonly
-                      class="w-1/2 px-3 py-2 pr-10 border border-neutral-300 rounded-lg bg-neutral-50 text-neutral-900 font-medium cursor-not-allowed"
+                      class="w-1/2 px-3 py-2 pr-10 font-medium border rounded-lg cursor-not-allowed border-neutral-300 bg-neutral-50 text-neutral-900"
                       [class.border-red-500]="
                         form.get('timbanganPertama')?.invalid &&
                         form.get('timbanganPertama')?.touched
@@ -513,7 +513,7 @@
                         type="button"
                         (click)="captureWeightForBruto()"
                         [disabled]="!scaleConnected() || !weightStable()"
-                        class="w-full px-4 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 disabled:bg-neutral-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                        class="flex items-center justify-center w-full gap-2 px-4 py-2 font-medium text-white transition-colors bg-green-600 rounded-lg hover:bg-green-700 disabled:bg-neutral-300 disabled:cursor-not-allowed"
                       >
                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path
@@ -545,7 +545,7 @@
 
             <!-- Instructions -->
             @if (scaleConnected()) {
-              <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+              <div class="p-4 border border-green-200 rounded-lg bg-green-50">
                 <div class="flex items-start gap-3">
                   <svg
                     class="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0"
@@ -560,7 +560,7 @@
                   </svg>
                   <div class="flex-1">
                     <p class="text-sm font-medium text-green-900">Cara Penggunaan:</p>
-                    <ol class="mt-1 text-xs text-green-800 space-y-1 list-decimal list-inside">
+                    <ol class="mt-1 space-y-1 text-xs text-green-800 list-decimal list-inside">
                       <!-- ✅ INSTRUCTION DINAMIS -->
                       @if (form.get('tipeTransaksi')?.value === 'pembelian') {
                         <li>Pastikan truk + muatan berada di atas timbangan</li>
@@ -579,8 +579,8 @@
 
         <!-- Section: Petugas -->
         <!-- Section: Petugas -->
-        <div class="bg-white p-6 rounded-lg border border-neutral-200">
-          <h2 class="text-lg font-medium text-neutral-800 mb-4">Petugas Penimbang</h2>
+        <div class="p-6 bg-white border rounded-lg border-neutral-200">
+          <h2 class="mb-4 text-lg font-medium text-neutral-800">Petugas Penimbang</h2>
 
           <div>
             <label class="block text-sm font-medium text-neutral-700 mb-1.5">
@@ -590,9 +590,9 @@
             @if (isLoadingProfile()) {
               <!-- Loading State -->
               <div
-                class="w-full px-3 py-2 border border-neutral-300 rounded-lg bg-neutral-50 animate-pulse"
+                class="w-full px-3 py-2 border rounded-lg border-neutral-300 bg-neutral-50 animate-pulse"
               >
-                <div class="h-5 bg-neutral-200 rounded"></div>
+                <div class="h-5 rounded bg-neutral-200"></div>
               </div>
               <p class="mt-1 text-xs text-neutral-500">Memuat data pengguna...</p>
             } @else {
@@ -602,7 +602,7 @@
                   type="text"
                   formControlName="namaPenimbang"
                   readonly
-                  class="w-full px-3 py-2 pr-10 border border-neutral-300 rounded-lg bg-neutral-50 text-neutral-900 font-medium cursor-not-allowed focus:outline-none"
+                  class="w-full px-3 py-2 pr-10 font-medium border rounded-lg cursor-not-allowed border-neutral-300 bg-neutral-50 text-neutral-900 focus:outline-none"
                 />
                 <!-- Icon locked -->
                 <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
@@ -621,7 +621,7 @@
                   </svg>
                 </div>
               </div>
-              <p class="mt-1 text-xs text-neutral-500 flex items-center gap-1">
+              <p class="flex items-center gap-1 mt-1 text-xs text-neutral-500">
                 <svg class="w-3.5 h-3.5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
                   <path
                     fill-rule="evenodd"
@@ -636,15 +636,15 @@
         </div>
 
         <!-- Action Buttons -->
-        <div class="flex flex-col sm:flex-row gap-3 pt-2">
+        <div class="flex flex-col gap-3 pt-2 sm:flex-row">
           <button
             type="submit"
             [disabled]="form.invalid || isSubmitting()"
-            class="flex-1 px-6 py-3 bg-neutral-800 text-white rounded-lg font-medium hover:bg-neutral-900 disabled:bg-neutral-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+            class="flex items-center justify-center flex-1 gap-2 px-6 py-3 font-medium text-white transition-colors rounded-lg bg-neutral-800 hover:bg-neutral-900 disabled:bg-neutral-300 disabled:cursor-not-allowed"
           >
             @if (isSubmitting()) {
               <svg
-                class="animate-spin h-5 w-5 text-white"
+                class="w-5 h-5 text-white animate-spin"
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
                 viewBox="0 0 24 24"
@@ -673,7 +673,7 @@
             type="button"
             [disabled]="isSubmitting()"
             (click)="onReset()"
-            class="flex-1 px-6 py-3 bg-white text-neutral-800 border border-neutral-300 rounded-lg font-medium hover:bg-neutral-50 disabled:bg-neutral-100 disabled:cursor-not-allowed transition-colors"
+            class="flex-1 px-6 py-3 font-medium transition-colors bg-white border rounded-lg text-neutral-800 border-neutral-300 hover:bg-neutral-50 disabled:bg-neutral-100 disabled:cursor-not-allowed"
           >
             Reset
           </button>
@@ -681,7 +681,7 @@
 
         <!-- Form Status -->
         @if (form.invalid && form.touched) {
-          <div class="text-center text-sm text-neutral-500">
+          <div class="text-sm text-center text-neutral-500">
             Lengkapi semua field yang wajib diisi
           </div>
         }
@@ -690,12 +690,12 @@
 
     <!-- List View -->
     @if (currentView() === 'list') {
-      <div class="bg-white rounded-lg border border-neutral-200 p-6">
+      <div class="p-6 bg-white border rounded-lg border-neutral-200">
         <div class="mb-6">
           <div class="flex items-center justify-between mb-4">
             <div>
               <h2 class="text-2xl font-bold text-neutral-900">List Data Untuk Timbangan Kedua</h2>
-              <p class="text-sm text-neutral-600 mt-1">
+              <p class="mt-1 text-sm text-neutral-600">
                 Data yang sudah melalui timbangan pertama, menunggu inputan kedua
               </p>
             </div>
@@ -704,7 +704,7 @@
               <button
                 type="button"
                 (click)="refreshList()"
-                class="px-4 py-2 bg-white border border-neutral-300 rounded-lg text-sm font-medium text-neutral-700 hover:bg-neutral-50 transition-colors flex items-center gap-2"
+                class="flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors bg-white border rounded-lg border-neutral-300 text-neutral-700 hover:bg-neutral-50"
               >
                 <lucide-icons [iconsName]="'refresh-cw'" [color]="'gray'" class="gray" />
                 Refresh
@@ -714,7 +714,7 @@
               <button
                 type="button"
                 (click)="openHistoryModal()"
-                class="px-4 py-2 bg-white border border-neutral-300 rounded-lg text-sm font-medium text-neutral-700 hover:bg-neutral-50 transition-colors flex items-center gap-2"
+                class="flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors bg-white border rounded-lg border-neutral-300 text-neutral-700 hover:bg-neutral-50"
               >
                 <lucide-icons [iconsName]="'printer'" [color]="'gray'" />
                 History & Print
@@ -743,7 +743,7 @@
               class="w-full pl-10 pr-4 py-2.5 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:border-transparent transition-all"
             />
             <svg
-              class="absolute left-3 top-3 w-5 h-5 text-neutral-400"
+              class="absolute w-5 h-5 left-3 top-3 text-neutral-400"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -775,9 +775,9 @@
 
         <!-- Empty State -->
         @if (filteredTimbanganList().length === 0) {
-          <div class="text-center py-12">
+          <div class="py-12 text-center">
             <svg
-              class="mx-auto h-12 w-12 text-neutral-400"
+              class="w-12 h-12 mx-auto text-neutral-400"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -804,30 +804,30 @@
         @if (filteredTimbanganList().length > 0) {
           <div class="overflow-x-auto">
             <table class="w-full">
-              <thead class="bg-neutral-50 border-b border-neutral-200">
+              <thead class="border-b bg-neutral-50 border-neutral-200">
                 <tr>
-                  <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase">
+                  <th class="px-4 py-3 text-xs font-medium text-left uppercase text-neutral-500">
                     Nomor Bon
                   </th>
-                  <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase">
+                  <th class="px-4 py-3 text-xs font-medium text-left uppercase text-neutral-500">
                     No Kendaraan
                   </th>
-                  <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase">
+                  <th class="px-4 py-3 text-xs font-medium text-left uppercase text-neutral-500">
                     Tipe Bahan
                   </th>
-                  <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase">
+                  <th class="px-4 py-3 text-xs font-medium text-left uppercase text-neutral-500">
                     Nama Barang
                   </th>
-                  <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase">
+                  <th class="px-4 py-3 text-xs font-medium text-left uppercase text-neutral-500">
                     Supplier/Customer
                   </th>
-                  <th class="px-4 py-3 text-right text-xs font-medium text-neutral-500 uppercase">
+                  <th class="px-4 py-3 text-xs font-medium text-right uppercase text-neutral-500">
                     Bruto (kg)
                   </th>
-                  <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase">
+                  <th class="px-4 py-3 text-xs font-medium text-left uppercase text-neutral-500">
                     Waktu Masuk
                   </th>
-                  <th class="px-4 py-3 text-center text-xs font-medium text-neutral-500 uppercase">
+                  <th class="px-4 py-3 text-xs font-medium text-center uppercase text-neutral-500">
                     Aksi
                   </th>
                 </tr>
@@ -835,7 +835,7 @@
               <tbody class="bg-white divide-y divide-neutral-200">
                 <tr
                   *ngFor="let item of filteredTimbanganList()"
-                  class="hover:bg-neutral-50 transition-colors"
+                  class="transition-colors hover:bg-neutral-50"
                 >
                   <td class="px-4 py-3 text-sm font-medium text-neutral-900">{{ item.noTiket }}</td>
                   <td class="px-4 py-3 text-sm text-neutral-700">{{ item.noKendaraan }}</td>
@@ -852,7 +852,7 @@
                   </td>
                   <td class="px-4 py-3 text-sm text-neutral-700">{{ item.namaBarang }}</td>
                   <td class="px-4 py-3 text-sm text-neutral-700">{{ item.namaRelasi }}</td>
-                  <td class="px-4 py-3 text-sm text-neutral-900 text-right font-medium">
+                  <td class="px-4 py-3 text-sm font-medium text-right text-neutral-900">
                     {{ item.timbanganPertama }}
                   </td>
                   <td class="px-4 py-3 text-sm text-neutral-600">
@@ -862,7 +862,7 @@
                     <div class="flex items-center justify-center gap-2">
                       <button
                         (click)="openTaraModal(item)"
-                        class="flex justify-center items-center"
+                        class="flex items-center justify-center"
                         title="Inputan kedua"
                       >
                         <lucide-icons [iconsName]="'square-plus'" [color]="'#00c950'" />
@@ -893,32 +893,32 @@
 </div>
 <!-- Tara Input Modal -->
 @if (showTaraModal() && selectedForTara()) {
-  <div class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
     <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
       <div class="p-6">
-        <h3 class="text-lg font-semibold text-neutral-900 mb-4">Input Timbangan Kedua</h3>
+        <h3 class="mb-4 text-lg font-semibold text-neutral-900">Input Timbangan Kedua</h3>
 
         <!-- ✅ INFO DENGAN BADGE TIPE TRANSAKSI -->
-        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+        <div class="p-4 mb-4 border border-blue-200 rounded-lg bg-blue-50">
           <div class="flex items-start gap-2 mb-2">
             @if (selectedForTara()!.tipeTransaksi === 'pembelian') {
               <span
-                class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800"
+                class="inline-flex px-2 py-1 text-xs font-semibold text-blue-800 bg-blue-100 rounded-full"
               >
                 PEMBELIAN
               </span>
             } @else {
               <span
-                class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800"
+                class="inline-flex px-2 py-1 text-xs font-semibold text-green-800 bg-green-100 rounded-full"
               >
                 PENJUALAN
               </span>
             }
           </div>
-          <p class="text-sm text-blue-900 font-medium">
+          <p class="text-sm font-medium text-blue-900">
             {{ selectedForTara()!.noTiket }} - {{ selectedForTara()!.noKendaraan }}
           </p>
-          <p class="text-sm text-blue-700 mt-1">
+          <p class="mt-1 text-sm text-blue-700">
             @if (selectedForTara()!.tipeTransaksi === 'pembelian') {
               Berat Dari Timbangan Pertama:
               <span class="font-semibold">{{ selectedForTara()!.timbanganPertama }} kg</span>
@@ -936,18 +936,18 @@
           <div class="mb-6">
             <!-- Live Weight Display -->
             @if (scaleConnected()) {
-              <div class="mt-4 bg-white border-2 border-neutral-300 rounded-lg p-6">
+              <div class="p-6 mt-4 bg-white border-2 rounded-lg border-neutral-300">
                 <div class="text-center">
-                  <p class="text-sm text-neutral-600 mb-2">Berat Real-Time</p>
+                  <p class="mb-2 text-sm text-neutral-600">Berat Real-Time</p>
                   <div class="flex items-center justify-center gap-3">
-                    <span class="text-5xl font-bold text-neutral-900 font-mono">
+                    <span class="font-mono text-5xl font-bold text-neutral-900">
                       {{ currentWeight() !== null ? currentWeight() : '---' }}
                     </span>
                     <span class="text-2xl font-medium text-neutral-600">kg</span>
                   </div>
 
                   <!-- Stability Indicator -->
-                  <div class="mt-3 flex items-center justify-center gap-2">
+                  <div class="flex items-center justify-center gap-2 mt-3">
                     @if (weightStable()) {
                       <span
                         class="inline-flex items-center gap-1.5 px-3 py-1 bg-green-100 text-green-800 text-sm font-semibold rounded-full"
@@ -1001,7 +1001,7 @@
                 formControlName="timbanganKedua"
                 placeholder="0"
                 readonly
-                class="w-1/2 px-3 py-2 border border-neutral-300 rounded-lg bg-neutral-50 text-neutral-900 font-medium cursor-not-allowed"
+                class="w-1/2 px-3 py-2 font-medium border rounded-lg cursor-not-allowed border-neutral-300 bg-neutral-50 text-neutral-900"
                 [class.border-red-500]="
                   taraForm.get('timbanganKedua')?.invalid && taraForm.get('timbanganKedua')?.touched
                 "
@@ -1011,7 +1011,7 @@
                 type="button"
                 (click)="captureWeightForTara()"
                 [disabled]="!scaleConnected() || !weightStable()"
-                class="w-1/2 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 disabled:bg-neutral-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                class="flex items-center justify-center w-1/2 gap-2 px-4 py-2 text-sm font-medium text-white transition-colors bg-green-600 rounded-lg hover:bg-green-700 disabled:bg-neutral-300 disabled:cursor-not-allowed"
               >
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path
@@ -1047,7 +1047,7 @@
 
           <!-- ✅ INSTRUCTIONS DINAMIS -->
           @if (scaleConnected()) {
-            <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+            <div class="p-4 mb-6 border border-green-200 rounded-lg bg-green-50">
               <div class="flex items-start gap-3">
                 <svg
                   class="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0"
@@ -1062,7 +1062,7 @@
                 </svg>
                 <div class="flex-1">
                   <p class="text-sm font-medium text-green-900">Cara Penggunaan:</p>
-                  <ol class="mt-1 text-xs text-green-800 space-y-1 list-decimal list-inside">
+                  <ol class="mt-1 space-y-1 text-xs text-green-800 list-decimal list-inside">
                     @if (selectedForTara()!.tipeTransaksi === 'pembelian') {
                       <li>Pastikan truk kosong (tanpa muatan) berada di atas timbangan</li>
                     } @else {
@@ -1078,7 +1078,7 @@
 
           <!-- ✅ CALCULATION PREVIEW DINAMIS -->
           @if (taraForm.get('timbanganKedua')?.value) {
-            <div class="bg-neutral-50 border border-neutral-200 rounded-lg p-3 mb-6">
+            <div class="p-3 mb-6 border rounded-lg bg-neutral-50 border-neutral-200">
               <div class="text-sm text-neutral-600">
                 @if (selectedForTara()!.tipeTransaksi === 'pembelian') {
                   <div class="flex justify-between mb-1">
@@ -1089,7 +1089,7 @@
                     <span>Tara (Truk Kosong):</span>
                     <span class="font-medium">{{ taraForm.get('timbanganKedua')?.value }} kg</span>
                   </div>
-                  <div class="border-t border-neutral-300 pt-1 mt-1 flex justify-between">
+                  <div class="flex justify-between pt-1 mt-1 border-t border-neutral-300">
                     <span class="font-semibold">Netto (Bruto - Tara):</span>
                     <span class="font-semibold text-neutral-900">
                       {{
@@ -1107,7 +1107,7 @@
                     <span>Tara (Truk + Barang):</span>
                     <span class="font-medium">{{ taraForm.get('timbanganKedua')?.value }} kg</span>
                   </div>
-                  <div class="border-t border-neutral-300 pt-1 mt-1 flex justify-between">
+                  <div class="flex justify-between pt-1 mt-1 border-t border-neutral-300">
                     <span class="font-semibold">Netto (Tara - Bruto):</span>
                     <span class="font-semibold text-neutral-900">
                       {{
@@ -1126,12 +1126,12 @@
             <button
               type="submit"
               (click)="submitTara()"
-              class="flex-1 px-4 py-2 bg-neutral-800 text-white rounded-lg font-medium hover:bg-neutral-900 disabled:bg-neutral-300 disabled:cursor-not-allowed transition-colors"
+              class="flex-1 px-4 py-2 font-medium text-white transition-colors rounded-lg bg-neutral-800 hover:bg-neutral-900 disabled:bg-neutral-300 disabled:cursor-not-allowed"
             >
               @if (isSubmitting()) {
                 <span class="flex items-center justify-center gap-2">
                   <svg
-                    class="animate-spin h-5 w-5 text-white"
+                    class="w-5 h-5 text-white animate-spin"
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
                     viewBox="0 0 24 24"
@@ -1160,7 +1160,7 @@
               type="button"
               (click)="closeTaraModal()"
               [disabled]="isSubmitting()"
-              class="flex-1 px-4 py-2 bg-white text-neutral-800 border border-neutral-300 rounded-lg font-medium hover:bg-neutral-50 disabled:bg-neutral-100 disabled:cursor-not-allowed transition-colors"
+              class="flex-1 px-4 py-2 font-medium transition-colors bg-white border rounded-lg text-neutral-800 border-neutral-300 hover:bg-neutral-50 disabled:bg-neutral-100 disabled:cursor-not-allowed"
             >
               Batal
             </button>
@@ -1171,19 +1171,20 @@
   </div>
 }
 
-<!-- Notification Modal -->
 @if (showModal() && modalConfig()) {
   <div
     class="fixed inset-0 bg-black bg-opacity-50 z-[60] flex items-center justify-center p-4 animate-fadeIn"
   >
-    <div class="bg-white rounded-lg shadow-2xl max-w-md w-full animate-slideUp">
+    <div
+      class="bg-white rounded-lg shadow-2xl max-w-2xl w-full animate-slideUp max-h-[90vh] overflow-y-auto"
+    >
       <!-- Header -->
       <div class="p-6 border-b border-neutral-200">
         <div class="flex items-start gap-4">
           <!-- Icon -->
           <div class="flex-shrink-0">
             @if (modalConfig()!.type === 'success') {
-              <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+              <div class="flex items-center justify-center w-12 h-12 bg-green-100 rounded-full">
                 <svg
                   class="w-6 h-6 text-green-600"
                   fill="none"
@@ -1199,7 +1200,7 @@
                 </svg>
               </div>
             } @else if (modalConfig()!.type === 'warning') {
-              <div class="w-12 h-12 rounded-full bg-yellow-100 flex items-center justify-center">
+              <div class="flex items-center justify-center w-12 h-12 bg-yellow-100 rounded-full">
                 <svg
                   class="w-6 h-6 text-yellow-600"
                   fill="none"
@@ -1215,7 +1216,7 @@
                 </svg>
               </div>
             } @else if (modalConfig()!.type === 'error') {
-              <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+              <div class="flex items-center justify-center w-12 h-12 bg-red-100 rounded-full">
                 <svg
                   class="w-6 h-6 text-red-600"
                   fill="none"
@@ -1230,8 +1231,25 @@
                   />
                 </svg>
               </div>
+            } @else if (modalConfig()!.type === 'preview') {
+              <!-- ✅ NEW: Icon untuk preview -->
+              <div class="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-full">
+                <svg
+                  class="w-6 h-6 text-blue-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+                  />
+                </svg>
+              </div>
             } @else if (modalConfig()!.type === 'confirm') {
-              <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+              <div class="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-full">
                 <svg
                   class="w-6 h-6 text-blue-600"
                   fill="none"
@@ -1247,7 +1265,7 @@
                 </svg>
               </div>
             } @else {
-              <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+              <div class="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-full">
                 <svg
                   class="w-6 h-6 text-blue-600"
                   fill="none"
@@ -1270,7 +1288,7 @@
             <h3 class="text-lg font-semibold text-neutral-900">
               {{ modalConfig()!.title }}
             </h3>
-            <p class="text-sm text-neutral-600 mt-1">
+            <p class="mt-1 text-sm text-neutral-600">
               {{ modalConfig()!.message }}
             </p>
           </div>
@@ -1279,9 +1297,65 @@
 
       <!-- Content -->
       <div class="p-6">
-        <!-- Details -->
-        @if (modalConfig()!.details && modalConfig()!.details!.length > 0) {
-          <div class="bg-neutral-50 rounded-lg p-4 mb-4">
+        <!-- ✅ NEW: Preview Details dengan styling berbeda -->
+        @if (
+          modalConfig()!.type === 'preview' &&
+          modalConfig()!.details &&
+          modalConfig()!.details!.length > 0
+        ) {
+          <div
+            class="p-5 mb-4 border-2 border-blue-200 rounded-lg bg-gradient-to-br from-blue-50 to-indigo-50"
+          >
+            <div class="flex items-center gap-2 mb-3">
+              <svg class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  fill-rule="evenodd"
+                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+              <span class="text-sm font-semibold text-blue-900"
+                >Preview Data yang Akan Disimpan</span
+              >
+            </div>
+
+            <div class="space-y-2.5">
+              @for (detail of modalConfig()!.details; track $index) {
+                <div
+                  class="flex items-start justify-between px-3 py-2 bg-white rounded-md shadow-sm"
+                >
+                  <span class="w-2/5 text-sm font-medium text-neutral-700">{{ detail.label }}</span>
+                  <span class="w-3/5 text-sm font-semibold text-right break-words text-neutral-900">
+                    {{ detail.value }}
+                  </span>
+                </div>
+              }
+            </div>
+
+            <!-- ✅ Optional: Show JSON payload untuk debugging (bisa di-comment jika tidak perlu) -->
+            @if (modalConfig()!.payload) {
+              <details class="mt-4">
+                <summary
+                  class="text-xs font-medium text-blue-600 cursor-pointer hover:text-blue-800"
+                >
+                  🔍 Lihat Payload JSON (Debug)
+                </summary>
+                <pre
+                  class="p-3 mt-2 overflow-x-auto font-mono text-xs text-green-400 rounded-md bg-neutral-800"
+                  >{{ modalConfig()!.payload | json }}</pre
+                >
+              </details>
+            }
+          </div>
+        }
+
+        <!-- Regular Details (untuk modal selain preview) -->
+        @if (
+          modalConfig()!.type !== 'preview' &&
+          modalConfig()!.details &&
+          modalConfig()!.details!.length > 0
+        ) {
+          <div class="p-4 mb-4 rounded-lg bg-neutral-50">
             <div class="space-y-2">
               @for (detail of modalConfig()!.details; track $index) {
                 <div class="flex justify-between text-sm">
@@ -1295,11 +1369,11 @@
 
         <!-- Steps -->
         @if (modalConfig()!.steps && modalConfig()!.steps!.length > 0) {
-          <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-            <p class="text-sm font-medium text-blue-900 mb-2">Langkah Selanjutnya:</p>
+          <div class="p-4 mb-4 border border-blue-200 rounded-lg bg-blue-50">
+            <p class="mb-2 text-sm font-medium text-blue-900">Langkah Selanjutnya:</p>
             <ol class="space-y-1.5">
               @for (step of modalConfig()!.steps; track $index) {
-                <li class="text-sm text-blue-800 flex items-start gap-2">
+                <li class="flex items-start gap-2 text-sm text-blue-800">
                   <span class="font-semibold mt-0.5">{{ $index + 1 }}.</span>
                   <span>{{ step }}</span>
                 </li>
@@ -1319,7 +1393,11 @@
             </button>
             <button
               (click)="handleModalConfirm()"
-              class="flex-1 px-4 py-2.5 bg-neutral-800 text-white rounded-lg font-medium hover:bg-neutral-900 transition-colors"
+              [class]="
+                modalConfig()!.type === 'preview'
+                  ? 'flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors'
+                  : 'flex-1 px-4 py-2.5 bg-neutral-800 text-white rounded-lg font-medium hover:bg-neutral-900 transition-colors'
+              "
             >
               {{ modalConfig()!.confirmText || 'OK' }}
             </button>
@@ -1340,21 +1418,21 @@
 <!-- REVIEW tara selesai -->
 <!-- History Modal -->
 @if (showHistoryModal()) {
-  <div class="fixed inset-0 bg-black bg-opacity-50 z-999 flex items-center justify-center p-4">
+  <div class="fixed inset-0 flex items-center justify-center p-4 bg-black bg-opacity-50 z-999">
     <div class="bg-white rounded-lg shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
       <!-- Header -->
-      <div class="sticky top-0 bg-white border-b border-neutral-200 p-6 z-10">
+      <div class="sticky top-0 z-10 p-6 bg-white border-b border-neutral-200">
         <div class="flex items-center justify-between mb-4">
           <div>
             <h2 class="text-2xl font-bold text-neutral-900">History Timbangan Selesai</h2>
-            <p class="text-sm text-neutral-600 mt-1">
+            <p class="mt-1 text-sm text-neutral-600">
               Daftar semua data yang sudah selesai proses penimbangan
             </p>
           </div>
           <button
             type="button"
             (click)="closeHistoryModal()"
-            class="p-2 hover:bg-neutral-100 rounded-lg transition-colors"
+            class="p-2 transition-colors rounded-lg hover:bg-neutral-100"
           >
             <svg
               class="w-6 h-6 text-neutral-500"
@@ -1374,7 +1452,7 @@
 
         <!-- Search & Actions -->
         <div class="flex items-center gap-3">
-          <div class="flex-1 relative">
+          <div class="relative flex-1">
             <input
               type="text"
               [value]="historySearchQuery()"
@@ -1383,7 +1461,7 @@
               class="w-full pl-10 pr-4 py-2.5 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:border-transparent transition-all"
             />
             <svg
-              class="absolute left-3 top-3 w-5 h-5 text-neutral-400"
+              class="absolute w-5 h-5 left-3 top-3 text-neutral-400"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -1446,7 +1524,7 @@
           <div class="flex items-center justify-center py-12">
             <div class="text-center">
               <svg
-                class="animate-spin h-12 w-12 text-neutral-400 mx-auto"
+                class="w-12 h-12 mx-auto animate-spin text-neutral-400"
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
                 viewBox="0 0 24 24"
@@ -1472,9 +1550,9 @@
 
         <!-- Empty State -->
         @if (!isLoadingHistory() && filteredHistoryList().length === 0) {
-          <div class="text-center py-12">
+          <div class="py-12 text-center">
             <svg
-              class="mx-auto h-12 w-12 text-neutral-400"
+              class="w-12 h-12 mx-auto text-neutral-400"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -1501,33 +1579,33 @@
         @if (!isLoadingHistory() && filteredHistoryList().length > 0) {
           <div class="overflow-x-auto">
             <table class="w-full">
-              <thead class="bg-neutral-50 border-b border-neutral-200">
+              <thead class="border-b bg-neutral-50 border-neutral-200">
                 <tr>
-                  <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase">
+                  <th class="px-4 py-3 text-xs font-medium text-left uppercase text-neutral-500">
                     Nomor Bon
                   </th>
-                  <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase">
+                  <th class="px-4 py-3 text-xs font-medium text-left uppercase text-neutral-500">
                     No Kendaraan
                   </th>
-                  <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase">
+                  <th class="px-4 py-3 text-xs font-medium text-left uppercase text-neutral-500">
                     Tipe Bahan
                   </th>
-                  <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase">
+                  <th class="px-4 py-3 text-xs font-medium text-left uppercase text-neutral-500">
                     Nama Barang
                   </th>
-                  <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase">
+                  <th class="px-4 py-3 text-xs font-medium text-left uppercase text-neutral-500">
                     Supplier/Customer
                   </th>
-                  <th class="px-4 py-3 text-right text-xs font-medium text-neutral-500 uppercase">
+                  <th class="px-4 py-3 text-xs font-medium text-right uppercase text-neutral-500">
                     Bruto (kg)
                   </th>
-                  <th class="px-4 py-3 text-right text-xs font-medium text-neutral-500 uppercase">
+                  <th class="px-4 py-3 text-xs font-medium text-right uppercase text-neutral-500">
                     Netto (kg)
                   </th>
-                  <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase">
+                  <th class="px-4 py-3 text-xs font-medium text-left uppercase text-neutral-500">
                     Waktu
                   </th>
-                  <th class="px-4 py-3 text-center text-xs font-medium text-neutral-500 uppercase">
+                  <th class="px-4 py-3 text-xs font-medium text-center uppercase text-neutral-500">
                     Aksi
                   </th>
                 </tr>
@@ -1535,7 +1613,7 @@
               <tbody class="bg-white divide-y divide-neutral-200">
                 <tr
                   *ngFor="let item of filteredHistoryList()"
-                  class="hover:bg-neutral-50 transition-colors"
+                  class="transition-colors hover:bg-neutral-50"
                 >
                   <td class="px-4 py-3 text-sm font-medium text-neutral-900">
                     {{ item.noTiket }}
@@ -1560,10 +1638,10 @@
                   <td class="px-4 py-3 text-sm text-neutral-700">
                     {{ item.namaRelasi }}
                   </td>
-                  <td class="px-4 py-3 text-sm text-neutral-900 text-right font-medium">
+                  <td class="px-4 py-3 text-sm font-medium text-right text-neutral-900">
                     {{ item.timbanganPertama }}
                   </td>
-                  <td class="px-4 py-3 text-sm text-neutral-900 text-right font-medium">
+                  <td class="px-4 py-3 text-sm font-medium text-right text-neutral-900">
                     {{ item.beratNetto || '-' }}
                   </td>
                   <td class="px-4 py-3 text-sm text-neutral-600">
@@ -1573,7 +1651,7 @@
                     <button
                       (click)="printSlipFromHistory(item)"
                       title="Cetak Slip"
-                      class="w-5 h-5 rounded-full bg-blue-100 p-5 flex items-center justify-center hover:bg-gray-300 transition-colors"
+                      class="flex items-center justify-center w-5 h-5 p-5 transition-colors bg-blue-100 rounded-full hover:bg-gray-300"
                     >
                       <lucide-icons [iconsName]="'printer'" [color]="'blue'" />
                     </button>
@@ -1586,12 +1664,12 @@
       </div>
 
       <!-- Footer -->
-      <div class="sticky bottom-0 bg-neutral-50 border-t border-neutral-200 p-4">
+      <div class="sticky bottom-0 p-4 border-t bg-neutral-50 border-neutral-200">
         <div class="flex justify-end">
           <button
             type="button"
             (click)="closeHistoryModal()"
-            class="px-6 py-2 bg-neutral-800 text-white rounded-lg font-medium hover:bg-neutral-900 transition-colors"
+            class="px-6 py-2 font-medium text-white transition-colors rounded-lg bg-neutral-800 hover:bg-neutral-900"
           >
             Tutup
           </button>
