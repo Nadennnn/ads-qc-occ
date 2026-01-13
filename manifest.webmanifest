@@ -1,11 +1,10 @@
 {
-  "name": "PT AGRO DELI SERDANG",
+  "name": "PT Agro Deli Serdang",
   "short_name": "ADS",
-  "description": "Weight Sclaing and moisture testing system",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#1976d2",
+  "theme_color": "#your-color-here",
   "scope": "/",
   "icons": [
     {
